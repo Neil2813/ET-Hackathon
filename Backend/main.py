@@ -106,13 +106,24 @@ INCIDENT_LIST_LIMIT = 200
 INCIDENT_SUMMARY_SCAN_LIMIT = 250
 SIMULATION_LIST_LIMIT = 200
 
-_DEV_ORIGINS = ["http://localhost:3000", "http://localhost:5173"]
+_DEV_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
 _env_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 _CORS_ORIGINS = list(dict.fromkeys(_DEV_ORIGINS + _env_origins))
+_CORS_ORIGIN_REGEX = os.getenv("CORS_ORIGIN_REGEX", "").strip() or None
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_CORS_ORIGINS,
+    allow_origin_regex=_CORS_ORIGIN_REGEX,
     allow_credentials=True,   # Required for requests that carry Authorization / Cookie headers
     allow_methods=["*"],
     allow_headers=["*"],
