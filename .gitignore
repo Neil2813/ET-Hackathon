@@ -1,0 +1,29 @@
+# Ignore everything in the root
+/*
+
+# Except these explicitly allowed directories and files
+!/Backend/
+!/Frontend/
+!/Test/
+!/docs/
+!/nginx/
+!/secrets/
+!/README.md
+!/.gitignore
+!/render.yaml
+!/docker-compose.yml
+!/deploy.sh
+
+# Local environment files. Keep examples trackable.
+**/.env
+**/.env.*
+!**/.env.example
+!**/*.env.example
+
+# Keep the secrets/ directory in git but never commit actual key files
+/secrets/*.json
+/secrets/*.p12
+/secrets/*.pem
+.sh
+docs/DEPLOYMENT_FIREBASE.md
+docs/SETUP_GUIDE.md
