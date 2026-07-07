@@ -1,0 +1,30 @@
+{
+  "status": "trained",
+  "epochs": 30,
+  "samples_used": 5,
+  "best_loss": 0.027169,
+  "model_path": "D:\\ET Gen AI\\Solution-Challenge-2026-main\\Backend\\ml\\gnn_weights.pt",
+  "trained_at": "2026-07-07T08:21:46.209976+00:00",
+  "training_log": [
+    {
+      "epoch": 0,
+      "avg_loss": 0.754324,
+      "best_loss": 0.754324
+    },
+    {
+      "epoch": 10,
+      "avg_loss": 0.197187,
+      "best_loss": 0.197187
+    },
+    {
+      "epoch": 20,
+      "avg_loss": 0.249716,
+      "best_loss": 0.111058
+    },
+    {
+      "epoch": 29,
+      "avg_loss": 0.027169,
+      "best_loss": 0.027169
+    }
+  ]
+}
