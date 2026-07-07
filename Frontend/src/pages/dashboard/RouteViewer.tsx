@@ -212,7 +212,7 @@ export default function RouteViewer() {
         : `Maritime waypoint graph (${(data.waypoints || []).length} chokepoints)`;
       setSourceMeta(prev => ({ ...prev, sea: lbl }));
       fetchCost("sea", data.distance_km, "sea");
-    } catch (e: any) {
+    } catch (e) {
       setError("Sea route API unavailable.");
     } finally { setLoading(false); }
   }, [hasCoords, seaCoords, fromLat, fromLng, toLat, toLng, fetchCost]);
@@ -240,7 +240,7 @@ export default function RouteViewer() {
         setSourceMeta(prev => ({ ...prev, land: data.source_label || data.source || "OSRM" }));
         fetchCost("land", data.distance_km, "land");
       }
-    } catch (e: any) {
+    } catch (e) {
       setError("Land route API unavailable.");
     } finally { setLoading(false); }
   }, [hasCoords, landCoords, landViable, fromLat, fromLng, toLat, toLng, directKm, fetchCost]);
@@ -266,7 +266,7 @@ export default function RouteViewer() {
       if (data.via_alt_hub) {
         fetchCost("air", data.via_alt_hub.distance_km, "air-1");
       }
-    } catch (e: any) {
+    } catch (e) {
       setError("Air route API unavailable.");
     } finally { setLoading(false); }
   }, [hasCoords, airData, fromLat, fromLng, toLat, toLng, fromLabel, toLabel, fetchCost]);

@@ -8,7 +8,7 @@ PyJWT==2.12.1
 reportlab==4.4.10
 apscheduler==3.11.2
 xgboost==3.2.0
-# numpy 2.3+ requires Python >=3.11 (Render was on 3.10 → use PYTHON_VERSION=3.11.13).
+# numpy 2.3+ requires Python >=3.11 
 numpy==2.4.4
 joblib==1.5.3
 google-cloud-firestore==2.26.0

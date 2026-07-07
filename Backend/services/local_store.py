@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sqlite3
 import hashlib
@@ -8,6 +9,8 @@ from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 DB_PATH = Path(os.getenv("LOCAL_DB_PATH") or (Path(__file__).resolve().parents[1] / "local_fallback.db"))
 
@@ -570,7 +573,7 @@ def sync_graph_to_sql(user_id: str, payload_json: str) -> None:
             con.commit()
     except Exception as e:
         # If sync fails, don't break the main flow.
-        pass
+        logger.exception("Failed to sync supply chain graph to SQL database: %s", e)
 
 
 def insert_signal(signal_id: str, payload_json: str) -> None:
