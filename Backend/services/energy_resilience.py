@@ -3,6 +3,8 @@ from __future__ import annotations
 import math
 import os
 import sqlite3
+import urllib.parse
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -10,6 +12,18 @@ from typing import Any
 from agents.spr_optimization_agent import optimize_spr_drawdown
 
 DB_PATH = Path(os.getenv("LOCAL_DB_PATH") or (Path(__file__).resolve().parent.parent / "local_fallback.db"))
+LIVE_API_ENABLED = os.getenv("ENERGY_RESILIENCE_USE_LIVE_APIS", "true").strip().lower() in {"1", "true", "yes"}
+HTTP_TIMEOUT_SECONDS = max(2.0, float(os.getenv("ENERGY_RESILIENCE_API_TIMEOUT_SECONDS", "8")))
+GDELT_DOC_URL = os.getenv("ENERGY_RESILIENCE_GDELT_URL", "https://api.gdeltproject.org/api/v2/doc/doc")
+PORTWATCH_TRANSIT_URL = os.getenv(
+    "ENERGY_RESILIENCE_PORTWATCH_URL",
+    "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Chokepoints_Data/FeatureServer/0/query",
+)
+EIA_BRENT_URL = os.getenv(
+    "ENERGY_RESILIENCE_EIA_BRENT_URL",
+    "https://api.eia.gov/v2/petroleum/pri/spt/data/",
+)
+EIA_API_KEY = os.getenv("EIA_API_KEY", "").strip()
 
 
 CRUDE_PROFILES: list[dict[str, Any]] = [
@@ -137,6 +151,102 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _http_json(url: str, params: dict[str, Any] | None = None) -> dict[str, Any] | list[Any] | None:
+    if not LIVE_API_ENABLED:
+        return None
+    query = urllib.parse.urlencode({k: v for k, v in (params or {}).items() if v is not None})
+    target = f"{url}?{query}" if query else url
+    try:
+        req = urllib.request.Request(target, headers={"User-Agent": "SupplyShield-EnergyResilience/1.0"})
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
+            if int(resp.status) != 200:
+                return None
+            raw = resp.read(2_000_000)
+        import json
+
+        parsed = json.loads(raw.decode("utf-8"))
+        return parsed if isinstance(parsed, (dict, list)) else None
+    except Exception:
+        return None
+
+
+def _latest_portwatch_transit(portwatch_name: str) -> dict[str, Any] | None:
+    data = _http_json(
+        PORTWATCH_TRANSIT_URL,
+        {
+            "where": f"portname='{portwatch_name.replace(chr(39), chr(39) + chr(39))}'",
+            "outFields": "date,n_total",
+            "orderByFields": "date DESC",
+            "resultRecordCount": "14",
+            "f": "json",
+        },
+    )
+    if not isinstance(data, dict):
+        return None
+    features = data.get("features")
+    if not isinstance(features, list) or not features:
+        return None
+    values: list[float] = []
+    latest_date = ""
+    for feature in features:
+        attrs = feature.get("attributes") if isinstance(feature, dict) else {}
+        if not isinstance(attrs, dict):
+            continue
+        if not latest_date and attrs.get("date") is not None:
+            latest_date = str(attrs.get("date"))
+        try:
+            values.append(float(attrs.get("n_total")))
+        except Exception:
+            continue
+    if not values:
+        return None
+    latest = values[0]
+    baseline = sum(values[1:]) / max(1, len(values[1:])) if len(values) > 1 else latest
+    wow_change_pct = ((latest - baseline) / baseline * 100.0) if baseline else 0.0
+    return {
+        "latest_transit_count": round(latest, 2),
+        "baseline_transit_count": round(baseline, 2),
+        "wow_change_pct": round(wow_change_pct, 2),
+        "latest_date": latest_date,
+        "source": "IMF PortWatch",
+    }
+
+
+def _fetch_brent_trend() -> dict[str, Any] | None:
+    if not EIA_API_KEY:
+        return None
+    data = _http_json(
+        EIA_BRENT_URL,
+        {
+            "frequency": "daily",
+            "data[0]": "value",
+            "facets[series][]": "RBRTE",
+            "sort[0][column]": "period",
+            "sort[0][direction]": "desc",
+            "offset": "0",
+            "length": "10",
+            "api_key": EIA_API_KEY,
+        },
+    )
+    if not isinstance(data, dict):
+        return None
+    rows = (((data.get("response") or {}) if isinstance(data.get("response"), dict) else {}).get("data") or [])
+    if not isinstance(rows, list) or len(rows) < 2:
+        return None
+    try:
+        latest = float(rows[0].get("value"))
+        previous = float(rows[-1].get("value"))
+    except Exception:
+        return None
+    trend_pct = ((latest - previous) / previous * 100.0) if previous else 0.0
+    return {
+        "brent_latest_usd": round(latest, 2),
+        "brent_trend_pct": round(trend_pct, 2),
+        "observations": len(rows),
+        "source": "U.S. EIA",
+    }
+
+
 def _connect() -> sqlite3.Connection:
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
@@ -222,7 +332,7 @@ def _score_match(crude: dict[str, Any], refinery: dict[str, Any]) -> dict[str, A
 
 
 def build_ais_anomaly_forecast() -> dict[str, Any]:
-    vessels = [
+    fallback_vessels = [
         {
             "mmsi": "419001241",
             "name": "MT Narmada Spirit",
@@ -257,6 +367,27 @@ def build_ais_anomaly_forecast() -> dict[str, Any]:
             "route_deviation_nm": 7.2,
         },
     ]
+    portwatch = {
+        "Strait of Hormuz": _latest_portwatch_transit("Strait of Hormuz"),
+        "Bab el-Mandeb": _latest_portwatch_transit("Bab el-Mandeb Strait"),
+    }
+    vessels = []
+    for vessel in fallback_vessels:
+        live_corridor = portwatch.get(str(vessel["corridor"]))
+        if live_corridor:
+            drop_pct = max(0.0, -float(live_corridor.get("wow_change_pct") or 0.0))
+            vessel = {
+                **vessel,
+                "latest_transit_count": live_corridor.get("latest_transit_count"),
+                "transit_wow_change_pct": live_corridor.get("wow_change_pct"),
+                "source": live_corridor.get("source"),
+                "source_date": live_corridor.get("latest_date"),
+                "ais_gap_minutes": max(float(vessel["ais_gap_minutes"]), drop_pct * 4.0),
+                "route_deviation_nm": max(float(vessel["route_deviation_nm"]), drop_pct / 2.0),
+            }
+        else:
+            vessel = {**vessel, "source": "curated fallback"}
+        vessels.append(vessel)
     scored = []
     for vessel in vessels:
         speed_delta = abs(float(vessel["speed_knots"]) - float(vessel["expected_speed_knots"]))
@@ -272,16 +403,28 @@ def build_ais_anomaly_forecast() -> dict[str, Any]:
             status = "normal"
         scored.append({**vessel, "anomaly_score": anomaly_score, "status": status})
     return {
-        "model": "spatial-temporal transformer surrogate",
+        "model": "spatial-temporal anomaly surrogate with IMF PortWatch live corridor proxy",
         "lead_time_hours": 18,
-        "high_risk_corridors": ["Strait of Hormuz"],
+        "high_risk_corridors": sorted({str(v["corridor"]) for v in scored if str(v["status"]) in {"critical", "watch"}}),
         "vessels": scored,
+        "live_sources": {
+            "portwatch_enabled": LIVE_API_ENABLED,
+            "portwatch_used": any(v is not None for v in portwatch.values()),
+            "fallback_used": not any(v is not None for v in portwatch.values()),
+        },
         "generated_at": _now(),
     }
 
 
 def build_spr_policy(payload: dict[str, Any] | None = None) -> dict[str, Any]:
-    spr = optimize_spr_drawdown(payload or {})
+    inputs = dict(payload or {})
+    brent = _fetch_brent_trend()
+    if brent:
+        trend = float(brent.get("brent_trend_pct") or 0.0)
+        if "supply_gap_mbd" not in inputs and trend > 5:
+            inputs["supply_gap_mbd"] = min(2.4, 1.4 + (trend / 20.0))
+        inputs.setdefault("brent_trend_pct", trend)
+    spr = optimize_spr_drawdown(inputs)
     schedule = spr.get("schedule", [])
     first_week_draw = sum(float(day.get("spr_draw_mbd") or 0.0) for day in schedule[:7])
     avg_draw = first_week_draw / 7 if schedule else 0.0
@@ -293,9 +436,15 @@ def build_spr_policy(payload: dict[str, Any] | None = None) -> dict[str, Any]:
         "action_space": ["drawdown_mbd", "replenishment_mbd", "forward_procurement"],
         "recommended_action": {
             "drawdown_rate_mbd": round(avg_draw, 3),
-            "replenishment_eta_days": (payload or {}).get("replenishment_eta_days", 21),
+            "replenishment_eta_days": inputs.get("replenishment_eta_days", 21),
             "forward_procurement": "secure non-Hormuz cargo optionality for days 14-30",
             "human_gate_required": peak_stress >= 0.35 or spr.get("exhaustion_day") is not None,
+        },
+        "market_inputs": brent or {
+            "source": "curated fallback",
+            "brent_latest_usd": None,
+            "brent_trend_pct": inputs.get("brent_trend_pct", 0.0),
+            "fallback_used": True,
         },
     }
 
@@ -340,7 +489,7 @@ def _blend_note(blocked: dict[str, Any], crude: dict[str, Any]) -> str:
 
 
 def build_geopolitical_rag() -> dict[str, Any]:
-    documents = [
+    fallback_documents = [
         {
             "source": "GDELT",
             "title": "Naval advisory reports elevated drone activity near Gulf tanker lane",
@@ -369,6 +518,8 @@ def build_geopolitical_rag() -> dict[str, Any]:
             "severity": 0.72,
         },
     ]
+    live_documents = _fetch_gdelt_maritime_documents()
+    documents = live_documents or fallback_documents
     risk_by_corridor: dict[str, dict[str, Any]] = {}
     for doc in documents:
         key = str(doc["corridor"])
@@ -382,11 +533,108 @@ def build_geopolitical_rag() -> dict[str, Any]:
         item["severity"] = round(item["severity"] / count, 3)
         item["risk_score"] = round(math.sqrt(item["likelihood"] * item["severity"]), 3)
     return {
-        "vector_store": "local maritime-risk corpus",
+        "vector_store": "GDELT maritime-risk corpus" if live_documents else "local maritime-risk corpus",
         "documents": documents,
         "risk_by_corridor": risk_by_corridor,
+        "live_sources": {
+            "gdelt_enabled": LIVE_API_ENABLED,
+            "gdelt_used": bool(live_documents),
+            "fallback_used": not bool(live_documents),
+        },
         "generated_at": _now(),
     }
+
+
+def _fetch_gdelt_maritime_documents() -> list[dict[str, Any]]:
+    data = _http_json(
+        GDELT_DOC_URL,
+        {
+            "query": '"Strait of Hormuz" OR "Bab el-Mandeb" tanker OR maritime OR oil shipping',
+            "mode": "ArtList",
+            "maxrecords": "20",
+            "format": "json",
+            "timespan": "48h",
+        },
+    )
+    if not isinstance(data, dict):
+        return []
+    articles = data.get("articles")
+    if not isinstance(articles, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for article in articles[:12]:
+        if not isinstance(article, dict):
+            continue
+        title = str(article.get("title") or "").strip()
+        if not title:
+            continue
+        text = f"{title} {article.get('seendate') or ''}".lower()
+        if "bab" in text or "red sea" in text or "yemen" in text:
+            corridor = "Bab el-Mandeb"
+        elif "hormuz" in text or "iran" in text or "gulf" in text:
+            corridor = "Strait of Hormuz"
+        else:
+            corridor = "Strait of Hormuz"
+        threat_type = _classify_threat(title)
+        severity = _severity_from_text(title)
+        likelihood = min(0.92, 0.38 + severity * 0.45)
+        out.append({
+            "source": str(article.get("domain") or "GDELT"),
+            "title": title,
+            "url": article.get("url"),
+            "published_at": article.get("seendate"),
+            "corridor": corridor,
+            "actors": _actors_from_text(title),
+            "threat_type": threat_type,
+            "likelihood": round(likelihood, 3),
+            "severity": round(severity, 3),
+        })
+    return out
+
+
+def _classify_threat(title: str) -> str:
+    low = title.lower()
+    if any(token in low for token in ["attack", "missile", "drone", "strike", "explosion"]):
+        return "kinetic attacks"
+    if any(token in low for token in ["sanction", "embargo", "restriction"]):
+        return "sanctions"
+    if any(token in low for token in ["cyber", "hack", "outage"]):
+        return "cyber threats"
+    if any(token in low for token in ["insurance", "premium", "freight", "rate"]):
+        return "market access"
+    return "maritime security"
+
+
+def _severity_from_text(title: str) -> float:
+    low = title.lower()
+    score = 0.42
+    for token, bump in {
+        "attack": 0.22,
+        "missile": 0.20,
+        "drone": 0.18,
+        "closure": 0.24,
+        "war": 0.16,
+        "sanction": 0.14,
+        "tanker": 0.10,
+        "oil": 0.08,
+    }.items():
+        if token in low:
+            score += bump
+    return max(0.15, min(0.95, score))
+
+
+def _actors_from_text(title: str) -> list[str]:
+    low = title.lower()
+    actors = []
+    if "iran" in low:
+        actors.append("Iran")
+    if "houthi" in low or "yemen" in low:
+        actors.append("Houthi/Yemen actors")
+    if "navy" in low or "naval" in low:
+        actors.append("naval forces")
+    if "insurer" in low or "insurance" in low:
+        actors.append("marine insurers")
+    return actors or ["open-source reporting"]
 
 
 def build_exchange_ledger(tenant_id: str) -> dict[str, Any]:
