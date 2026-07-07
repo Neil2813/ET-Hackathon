@@ -124,7 +124,7 @@ def optimize_spr_drawdown(inputs: SPRInputs | dict[str, Any] | None = None) -> d
         days.append(
             SPRDay(
                 day=day,
-                supply_gap=round(gap, 3),
+                supply_gap_mbd=round(gap, 3),
                 refinery_throughput_mbd=round(throughput_after_gap, 3),
                 spr_draw_mbd=round(spr_draw, 3),
                 demand_management_mbd=round(demand_management, 3),
