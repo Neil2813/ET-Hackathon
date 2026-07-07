@@ -240,6 +240,13 @@ def init_local_store() -> None:
                 safety_stock_days INTEGER,
                 criticality TEXT,
                 single_source BOOLEAN,
+                api_gravity REAL,
+                sulfur_pct REAL,
+                viscosity_cst REAL,
+                crude_grade TEXT,
+                distillation_profile_json TEXT,
+                inventory_days REAL,
+                privacy_band TEXT,
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (tenant_id, node_id)
             )
@@ -249,6 +256,19 @@ def init_local_store() -> None:
             con.execute("ALTER TABLE graph_nodes ADD COLUMN duns_number TEXT")
         except Exception:
             pass
+        for ddl in [
+            "ALTER TABLE graph_nodes ADD COLUMN api_gravity REAL",
+            "ALTER TABLE graph_nodes ADD COLUMN sulfur_pct REAL",
+            "ALTER TABLE graph_nodes ADD COLUMN viscosity_cst REAL",
+            "ALTER TABLE graph_nodes ADD COLUMN crude_grade TEXT",
+            "ALTER TABLE graph_nodes ADD COLUMN distillation_profile_json TEXT",
+            "ALTER TABLE graph_nodes ADD COLUMN inventory_days REAL",
+            "ALTER TABLE graph_nodes ADD COLUMN privacy_band TEXT",
+        ]:
+            try:
+                con.execute(ddl)
+            except Exception:
+                pass
         con.execute(
             """
             CREATE TABLE IF NOT EXISTS graph_edges (

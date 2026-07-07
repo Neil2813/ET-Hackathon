@@ -455,6 +455,48 @@ export interface SPRResponse {
   policy_summary: string;
 }
 
+export interface EnergyResilienceDashboard {
+  tenant_id: string;
+  generated_at: string;
+  national_resilience_score: number;
+  status: "stable" | "watch" | "critical" | string;
+  ais: {
+    model: string;
+    lead_time_hours: number;
+    high_risk_corridors: string[];
+    vessels: Array<Record<string, unknown>>;
+    generated_at: string;
+  };
+  spr: SPRResponse & {
+    agent: string;
+    state_space: string[];
+    action_space: string[];
+    recommended_action: Record<string, unknown>;
+  };
+  compatibility: {
+    blocked_grade: Record<string, unknown>;
+    matches: Array<Record<string, unknown>>;
+    generated_at: string;
+  };
+  rag: {
+    vector_store: string;
+    documents: Array<Record<string, unknown>>;
+    risk_by_corridor: Record<string, Record<string, number>>;
+    generated_at: string;
+  };
+  exchange_ledger: {
+    tenant_id: string;
+    participants: Array<Record<string, unknown>>;
+    recommendation: Record<string, unknown>;
+    generated_at: string;
+  };
+}
+
+export interface EnergySPRRequest extends SPRRequest {
+  brent_trend_pct?: number;
+  shipping_queue_days?: number;
+}
+
 export interface NaturalHazard {
   id: string;
   type: string;
@@ -880,6 +922,22 @@ export const api = {
         method: "POST",
         body: JSON.stringify(payload),
       }),
+  },
+  energyResilience: {
+    dashboard: () => request<EnergyResilienceDashboard>("/energy-resilience/dashboard"),
+    ais: () => request<EnergyResilienceDashboard["ais"]>("/energy-resilience/ais"),
+    sprPolicy: (payload: EnergySPRRequest) =>
+      request<EnergyResilienceDashboard["spr"]>("/energy-resilience/spr-policy", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    crudeCompatibility: (blocked_grade = "iranian_light") =>
+      request<EnergyResilienceDashboard["compatibility"]>("/energy-resilience/crude-compatibility", {
+        method: "POST",
+        body: JSON.stringify({ blocked_grade }),
+      }),
+    geopoliticalRag: () => request<EnergyResilienceDashboard["rag"]>("/energy-resilience/geopolitical-rag"),
+    exchangeLedger: () => request<EnergyResilienceDashboard["exchange_ledger"]>("/energy-resilience/exchange-ledger"),
   },
   signals: {
     hazards: () => request<NaturalHazard[]>("/signals/hazards"),

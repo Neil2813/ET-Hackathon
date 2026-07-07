@@ -97,6 +97,15 @@ from services.intelligence_gap_tracker import build_intelligence_gap_report
 from services.threshold_tuner import get_all_thresholds, compute_stage_metrics, threshold_tuning_history
 from services.event_bus import websocket_handler as ws_handler, connection_count as ws_connection_count, broadcast as ws_broadcast
 from services.cache_provider import cache_get_or_set
+from services.energy_resilience import (
+    build_ais_anomaly_forecast,
+    build_compatibility_matches,
+    build_energy_resilience_dashboard,
+    build_exchange_ledger,
+    build_geopolitical_rag,
+    build_spr_policy,
+    migrate_energy_resilience_schema,
+)
 from models.supply_graph import CustomerSupplyGraph
 
 app = FastAPI(title="SupplyShield API", version="0.2.0")
@@ -145,6 +154,7 @@ from services.worldmonitor_fetcher import (
 )
 
 init_store()
+migrate_energy_resilience_schema()
 chatbot_manager = ChatbotManager()
 workflow_graph_manager = WorkflowGraphManager()
 _worldmonitor_task: asyncio.Task | None = None
@@ -246,6 +256,15 @@ class SPRRequest(BaseModel):
     demand_shed_limit_pct: float = Field(default=0.08, ge=0.0, le=0.3)
     planning_horizon_days: int = Field(default=30, ge=1, le=180)
     replenishment_eta_days: int = Field(default=21, ge=1, le=180)
+
+
+class EnergyResilienceSPRRequest(SPRRequest):
+    brent_trend_pct: float = 4.5
+    shipping_queue_days: float = 3.0
+
+
+class CrudeCompatibilityRequest(BaseModel):
+    blocked_grade: str = "iranian_light"
 
 
 class WorkflowStateUpdate(BaseModel):
@@ -1067,6 +1086,58 @@ async def health() -> dict:
         "fallbacks": {"state_store": "firestore"},
         "xgboost_model_loaded": MODEL_PATH.exists(),
     }
+
+
+def _energy_tenant(user: dict[str, Any]) -> str:
+    try:
+        return _resolved_request_tenant(user)
+    except Exception:
+        return str(user.get("sub") or "default").strip() or "default"
+
+
+@app.get("/api/energy-resilience/dashboard")
+async def api_energy_resilience_dashboard(user=Depends(verify_firebase_or_local_token)) -> dict[str, Any]:
+    tenant_id = _energy_tenant(user)
+    payload = build_energy_resilience_dashboard(tenant_id)
+    add_audit("energy_resilience_dashboard", tenant_id)
+    return payload
+
+
+@app.get("/api/energy-resilience/ais")
+async def api_energy_resilience_ais(user=Depends(verify_firebase_or_local_token)) -> dict[str, Any]:
+    add_audit("energy_resilience_ais_forecast", user.get("sub", "local"))
+    return build_ais_anomaly_forecast()
+
+
+@app.post("/api/energy-resilience/spr-policy")
+async def api_energy_resilience_spr_policy(
+    payload: EnergyResilienceSPRRequest,
+    user=Depends(verify_firebase_or_local_token),
+) -> dict[str, Any]:
+    add_audit("energy_resilience_spr_policy", user.get("sub", "local"))
+    return build_spr_policy(payload.model_dump())
+
+
+@app.post("/api/energy-resilience/crude-compatibility")
+async def api_energy_resilience_crude_compatibility(
+    payload: CrudeCompatibilityRequest,
+    user=Depends(verify_firebase_or_local_token),
+) -> dict[str, Any]:
+    add_audit("energy_resilience_crude_compatibility", f"{user.get('sub', 'local')}:{payload.blocked_grade}")
+    return build_compatibility_matches(payload.blocked_grade)
+
+
+@app.get("/api/energy-resilience/geopolitical-rag")
+async def api_energy_resilience_geopolitical_rag(user=Depends(verify_firebase_or_local_token)) -> dict[str, Any]:
+    add_audit("energy_resilience_geopolitical_rag", user.get("sub", "local"))
+    return build_geopolitical_rag()
+
+
+@app.get("/api/energy-resilience/exchange-ledger")
+async def api_energy_resilience_exchange_ledger(user=Depends(verify_firebase_or_local_token)) -> dict[str, Any]:
+    tenant_id = _energy_tenant(user)
+    add_audit("energy_resilience_exchange_ledger", tenant_id)
+    return build_exchange_ledger(tenant_id)
 
 
 @app.post("/ml/train/xgboost")
