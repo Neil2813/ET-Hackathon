@@ -1,8 +1,17 @@
 """Infer coordinates for text-only signals (news headlines, etc.)."""
 from __future__ import annotations
 
+import os
 import re
+import httpx
+import logging
+import asyncio
+import concurrent.futures
 from typing import Any
+from pydantic import BaseModel
+from services.llm_provider import structured_complete
+
+logger = logging.getLogger(__name__)
 
 # Major supply-chain hubs — used when feeds omit lat/lng
 _CITY_CENTROIDS: dict[str, tuple[float, float]] = {
@@ -175,12 +184,107 @@ def _apply_geo(
     return out
 
 
+class LocationExtraction(BaseModel):
+    country: str
+    city: str | None
+    search_query: str
+    reasoning: str
+
+
+async def extract_location_entities(headline: str) -> LocationExtraction:
+    prompt = (
+        f"Analyze the geopolitical incident headline: '{headline}'. "
+        "Extract the primary affected country, city, or maritime chokepoint, and construct an optimized "
+        "search query (e.g., 'Strait of Hormuz' or 'Port of Jamnagar') to resolve its exact coordinates. "
+        "Return the details in the specified JSON format."
+    )
+    return await structured_complete(prompt=prompt, output_model=LocationExtraction)
+
+
+async def lookup_coordinates_via_serpapi(search_query: str) -> tuple[float, float] | None:
+    api_key = os.getenv("SERPAPI_API_KEY", "").strip()
+    if not api_key:
+        return None
+
+    url = "https://serpapi.com/search.json"
+    params = {
+        "engine": "google_maps",
+        "q": search_query,
+        "api_key": api_key
+    }
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(url, params=params)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+
+    # 1. Try maps place results
+    place_results = data.get("place_results", {})
+    if place_results and "gps_coordinates" in place_results:
+        gps = place_results["gps_coordinates"]
+        return float(gps.get("latitude", 0.0)), float(gps.get("longitude", 0.0))
+
+    # 2. Fallback to local map search results
+    local_results = data.get("local_results", [])
+    if local_results and isinstance(local_results, list):
+        gps = local_results[0].get("gps_coordinates", {})
+        if gps:
+            return float(gps.get("latitude", 0.0)), float(gps.get("longitude", 0.0))
+
+    return None
+
+
+async def geocode_text_via_llm_and_serpapi(headline: str) -> tuple[float, float, str] | None:
+    try:
+        extraction = await extract_location_entities(headline)
+        query = extraction.search_query.strip()
+        if not query:
+            return None
+        coords = await lookup_coordinates_via_serpapi(query)
+        if coords:
+            lat, lng = coords
+            location_label = extraction.city if extraction.city else extraction.country
+            if not location_label:
+                location_label = query
+            return lat, lng, location_label
+    except Exception as e:
+        logger.warning("Gemini/SerpAPI geocoding failed: %s", e)
+    return None
+
+
+def _run_async_sync(coro):
+    """Run an async coroutine synchronously, handling existing event loops safely."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+        
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(lambda: asyncio.run(coro))
+        return future.result()
+
+
 def geocode_signal(signal: dict[str, Any]) -> dict[str, Any]:
     lat = float(signal.get("lat", 0) or 0)
     lng = float(signal.get("lng", 0) or 0)
     if lat != 0.0 or lng != 0.0:
         return signal
 
+    # Try SerpAPI geocoding if API key is present
+    api_key = os.getenv("SERPAPI_API_KEY", "").strip()
+    if api_key:
+        headline = str(signal.get("title") or signal.get("description") or "")
+        if headline:
+            try:
+                res = _run_async_sync(geocode_text_via_llm_and_serpapi(headline))
+                if res:
+                    flat_lat, flat_lng, location_name = res
+                    return _apply_geo(signal, flat_lat, flat_lng, precision="llm_serpapi", location=location_name)
+            except Exception as exc:
+                logger.warning("Failed to execute SerpAPI geocoding synchronously: %s", exc)
+
+    # Rule-based fallback
     text = " ".join(
         str(signal.get(key) or "")
         for key in ("title", "location", "description", "summary", "event_type")

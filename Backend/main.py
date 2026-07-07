@@ -211,10 +211,51 @@ def _enqueue_celery_task(task_name: str, *args: Any, **kwargs: Any) -> dict[str,
         raise HTTPException(status_code=503, detail=f"Task queue unavailable: {exc}")
 
 
+def _bootstrap_ml_models():
+    """Run model bootstrapping in a background thread to avoid blocking server startup."""
+    import threading
+    from pathlib import Path
+    
+    logger = logging.getLogger("main.bootstrap_ml")
+    backend_dir = Path(__file__).resolve().parent
+    
+    # 1. GNN Risk Propagation Bootstrap
+    gnn_weights = backend_dir / "ml" / "gnn_weights.pt"
+    if not gnn_weights.exists():
+        try:
+            logger.info("GNN weights file not found. Bootstrapping GNN training...")
+            from ml.gnn_model import train_gnn_model
+            from ml.gnn_stub import build_graph_from_dataset
+            from scheduler.tasks import _dataset_suppliers
+            
+            graph = build_graph_from_dataset(_dataset_suppliers())
+            report = train_gnn_model(graph, epochs=30)
+            logger.info("GNN bootstrap completed: %s", report)
+        except Exception as e:
+            logger.exception("Failed to bootstrap GNN: %s", e)
+            
+    # 2. SPR Drawdown PPO Policy Bootstrap
+    spr_weights = backend_dir / "ml" / "spr_ppo_weights.zip"
+    if not spr_weights.exists():
+        try:
+            logger.info("SPR PPO weights file not found. Bootstrapping PPO training...")
+            from ml.train_rl import train_spr_ppo
+            
+            report = train_spr_ppo(timesteps=5000)
+            logger.info("SPR PPO bootstrap completed: %s", report)
+        except Exception as e:
+            logger.exception("Failed to bootstrap SPR PPO: %s", e)
+
+
 @app.on_event("startup")
 async def _start_worldmonitor_cron():
     """Initialize Firebase Admin when configured; start worldmonitor background fetcher."""
     init_firebase_admin_app()
+    
+    # Trigger GNN and SPR RL bootstrap training in a background thread
+    import threading
+    threading.Thread(target=_bootstrap_ml_models, daemon=True).start()
+
     if os.getenv("ENABLE_IN_PROCESS_SCHEDULERS", "true").strip().lower() in {"1", "true", "yes"}:
         # Start scheduler in app lifecycle (not module import) to avoid side-effects on import/reload.
         try:
