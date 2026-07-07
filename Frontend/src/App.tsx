@@ -20,6 +20,7 @@ const ArView = lazy(() => import("@/pages/dashboard/ArView"));
 const Incidents = lazy(() => import("@/pages/dashboard/Incidents"));
 const IncidentSimulator = lazy(() => import("@/pages/dashboard/IncidentSimulator"));
 const Intelligence = lazy(() => import("@/pages/dashboard/Intelligence"));
+const EnergyResilience = lazy(() => import("@/pages/dashboard/EnergyResilience"));
 const Compliance = lazy(() => import("@/pages/dashboard/Compliance"));
 const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage"));
 const RouteViewer = lazy(() => import("@/pages/dashboard/RouteViewer"));
@@ -68,6 +69,7 @@ const App = () => (
               <Route path="incidents" element={<Incidents />} />
               <Route path="incident-simulator" element={<IncidentSimulator />} />
               <Route path="intelligence" element={<Intelligence />} />
+              <Route path="energy-resilience" element={<EnergyResilience />} />
               <Route path="compliance" element={<Compliance />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="route-viewer" element={<RouteViewer />} />

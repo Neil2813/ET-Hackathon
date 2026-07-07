@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Crosshair, Network, AlertTriangle, Radar, Shield, Globe2,
   Settings, Bell, Menu, ChevronLeft, ShieldAlert, Wifi, WifiOff,
-  Send, CheckCircle, LogOut, User, Clock,
+  Send, CheckCircle, LogOut, User, Clock, Fuel,
 } from "lucide-react";
 import { api, getAccessToken, getUserId, getDisplayName, clearAuthSession } from "@/lib/api";
 import { useWSQueryInvalidation, useWebSocket } from "@/hooks/use-websocket";
@@ -36,6 +36,7 @@ const NAV_ITEMS = [
   { title: "AR View", icon: Globe2, path: "/dashboard/ar-view", description: "3D globe" },
   { title: "Incidents", icon: AlertTriangle, path: "/dashboard/incidents", description: "Auto-analyzed" },
   { title: "Intelligence", icon: Radar, path: "/dashboard/intelligence", description: "Signals & map" },
+  { title: "Energy", icon: Fuel, path: "/dashboard/energy-resilience", description: "Maritime & SPR" },
   { title: "Compliance", icon: Shield, path: "/dashboard/compliance", description: "Audit & export" },
 ];
 

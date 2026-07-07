@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type { ElementType } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
@@ -33,7 +34,7 @@ import { api, type EnergyResilienceDashboard } from "@/lib/api";
 
 type ModuleKey = "ais" | "spr" | "compatibility" | "rag" | "ledger";
 
-const MODULES: Array<{ key: ModuleKey; label: string; icon: React.ElementType }> = [
+const MODULES: Array<{ key: ModuleKey; label: string; icon: ElementType }> = [
   { key: "ais", label: "AIS Agent", icon: Ship },
   { key: "spr", label: "SPR Policy", icon: Gauge },
   { key: "compatibility", label: "Crude Match", icon: FlaskConical },
@@ -64,7 +65,7 @@ function MetricTile({
 }: {
   label: string;
   value: string;
-  icon: React.ElementType;
+  icon: ElementType;
   tone?: string;
 }) {
   return (
