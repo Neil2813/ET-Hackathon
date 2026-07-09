@@ -232,22 +232,25 @@ const CommandCenter = () => {
   const { data: briefing, isLoading } = useQuery({
     queryKey: ["command", "briefing"],
     queryFn: () => api.incidents.briefing(),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 0,
   });
   const { data: incidentsRaw = [], isLoading: isIncidentsLoading } = useQuery({
     queryKey: ["incidents", "command-center-active"],
     queryFn: () => api.incidents.list(),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 0,
   });
   const { data: simulationIncidentsRaw = [], isLoading: isSimulationLoading } = useQuery({
     queryKey: ["intelligence", "simulation-incidents", "command-center"],
     queryFn: () => api.intelligence.simulationIncidents(),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 0,
   });
 
   const generate = useMutation({
     mutationFn: () => api.incidents.generate(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["command"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["command"] });
+      qc.invalidateQueries({ queryKey: ["incidents"] });
+    },
   });
 
   const { data: resolvedIncidentsRaw = [] } = useQuery({
@@ -255,13 +258,13 @@ const CommandCenter = () => {
     queryFn: () => api.incidents.list().then((all: Record<string, unknown>[]) =>
       all.filter((i) => String(i.status ?? "").toUpperCase() === "RESOLVED")
     ),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 
   const { data: suppliersRaw = [] } = useQuery({
     queryKey: ["risks", "suppliers"],
     queryFn: () => api.risks.suppliers(),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 0,
   });
 
   const suppliersMap = useMemo(() => {
