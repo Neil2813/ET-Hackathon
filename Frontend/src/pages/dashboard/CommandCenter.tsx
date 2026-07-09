@@ -263,7 +263,7 @@ const CommandCenter = () => {
 
   const mergedLivePool = useMemo(() => {
     const activeStatuses = new Set(["DETECTED", "ANALYZED", "AWAITING_APPROVAL"]);
-    const merged = [...(incidentsRaw as Record<string, unknown>[]), ...(simulationIncidentsRaw as Record<string, unknown>[])];
+    const merged = [...(incidentsRaw as Record<string, unknown>[]), ...(simulationIncidentsRaw as unknown as Record<string, unknown>[])];
     const outByKey = new globalThis.Map<string, Record<string, unknown>>();
     const quality = (inc: Record<string, unknown>) => ({
       count: Number(inc.affected_node_count || 0),
