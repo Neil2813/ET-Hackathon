@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FirebaseRedirectResume } from "@/components/FirebaseRedirectResume";
+import { BrandLoader } from "@/components/ui/BrandLoader";
 
 // Lazy loaded pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -42,10 +43,7 @@ const queryClient = new QueryClient({
 // Premium, elegant skeleton loader placeholder matching design variables
 const PageLoader = () => (
   <div className="w-full h-screen flex items-center justify-center bg-background/50 backdrop-blur-sm">
-    <div className="relative flex items-center justify-center">
-      <div className="w-12 h-12 rounded-full border-[3px] border-muted/80 border-t-sentinel animate-spin" />
-      <div className="absolute w-6 h-6 rounded-full bg-sentinel/10 animate-pulse-subtle" />
-    </div>
+    <BrandLoader />
   </div>
 );
 

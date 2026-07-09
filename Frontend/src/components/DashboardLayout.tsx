@@ -6,6 +6,7 @@ import {
   Settings, Bell, Menu, ChevronLeft, ShieldAlert, Wifi, WifiOff,
   Send, CheckCircle, LogOut, User, Clock, Fuel,
 } from "lucide-react";
+import { BrandLoader } from "@/components/ui/BrandLoader";
 import { api, getAccessToken, getUserId, getDisplayName, clearAuthSession } from "@/lib/api";
 import { useWSQueryInvalidation, useWebSocket } from "@/hooks/use-websocket";
 import { toast } from "@/components/ui/sonner";
@@ -445,11 +446,8 @@ const DashboardLayout = () => {
   if (isOnboardingStatusLoading || !onboardingStatus) {
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm">
-        <div className="relative flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full border-[3px] border-muted/80 border-t-red-500 animate-spin" />
-          <div className="absolute w-6 h-6 rounded-full bg-red-500/10 animate-pulse-subtle" />
-        </div>
-        <span className="text-[10px] font-headline font-bold uppercase tracking-[0.2em] text-slate-500 mt-4 animate-pulse">
+        <BrandLoader />
+        <span className="text-[10px] font-headline font-bold uppercase tracking-[0.2em] text-slate-500 mt-8 animate-pulse">
           Verifying security authorization...
         </span>
       </div>

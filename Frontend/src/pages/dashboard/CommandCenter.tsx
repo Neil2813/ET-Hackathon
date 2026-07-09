@@ -96,11 +96,16 @@ function HBar({ label, pct, color }: { label: string; pct: number; color: string
   );
 }
 
+function isFiniteCoord(v: unknown): v is number {
+  const n = Number(v);
+  return isFinite(n) && n !== 0;
+}
+
 function incidentCoords(inc: Record<string, unknown>) {
   const lat = inc.lat ?? inc.latitude ?? inc.event_lat;
   const lng = inc.lng ?? inc.longitude ?? inc.event_lng;
-  if (typeof lat !== "number" || typeof lng !== "number" || isNaN(lat) || isNaN(lng)) return null;
-  return { lat, lng };
+  if (!isFiniteCoord(lat) || !isFiniteCoord(lng)) return null;
+  return { lat: Number(lat), lng: Number(lng) };
 }
 
 function markerColor(severity: string) {
@@ -340,8 +345,11 @@ const CommandCenter = () => {
       if (sid && suppliersMap.has(sid)) {
         return true;
       }
-      // Fallback: If it has coordinates, show it on the map!
-      return !!(inc.event_lat || inc.latitude || inc.lat || inc.event_lng || inc.longitude || inc.lng);
+      // Fallback: Use the same isFiniteCoord check as the map renderer uses
+      return (
+        isFiniteCoord(inc.event_lat || inc.latitude || inc.lat) &&
+        isFiniteCoord(inc.event_lng || inc.longitude || inc.lng)
+      );
     });
   }, [activePool, suppliersMap]);
 
@@ -457,8 +465,11 @@ const CommandCenter = () => {
 
           <Map theme="light" center={[30, 20]} zoom={1.8} className="w-full h-full">
             <MapControls position="top-left" showZoom showLocate />
-            {incidents
-              .map((inc: any, i: number) => {
+            {(() => {
+              const mappedIncidents: React.ReactNode[] = [];
+              const unmappedIncidents: any[] = [];
+
+              incidents.forEach((inc: any, i: number) => {
                 const coords = (() => {
                   const nodes = Array.isArray(inc.affected_nodes) ? inc.affected_nodes : [];
                   for (const node of nodes) {
@@ -470,21 +481,25 @@ const CommandCenter = () => {
                   const sup = suppliersMap.get(sid);
                   if (sup) return { lat: sup.lat, lng: sup.lng };
 
-                  // Fallback: Use the incident's event coordinates directly!
-                  const eventLat = Number(inc.event_lat || inc.latitude || inc.lat);
-                  const eventLng = Number(inc.event_lng || inc.longitude || inc.lng);
-                  if (eventLat && eventLng) {
-                    return { lat: eventLat, lng: eventLng };
+                  // Fallback: use isFiniteCoord-safe extraction
+                  const rawLat = inc.event_lat ?? inc.latitude ?? inc.lat;
+                  const rawLng = inc.event_lng ?? inc.longitude ?? inc.lng;
+                  if (isFiniteCoord(rawLat) && isFiniteCoord(rawLng)) {
+                    return { lat: Number(rawLat), lng: Number(rawLng) };
                   }
-                  
                   return null;
                 })();
-                if (!coords) return null;
+
+                if (!coords) {
+                  unmappedIncidents.push(inc);
+                  return;
+                }
+
                 const colors = markerColor(String(inc.severity || ""));
                 const isCritical = ["CRITICAL", "HIGH"].includes(String(inc.severity || "").toUpperCase());
                 const isSelected = String(inc.id) === String(selectedIncident?.id);
 
-                return (
+                mappedIncidents.push(
                   <MapMarker key={inc.id || i} longitude={coords.lng} latitude={coords.lat}>
                     <MarkerContent>
                       <div
@@ -502,7 +517,6 @@ const CommandCenter = () => {
 
                         {isSelected && (
                           <>
-                            {/* Concentric red blast radius rings */}
                             <div className="absolute -inset-12 rounded-full border border-red-500/30 bg-red-500/5 animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
                             <div className="absolute -inset-8 rounded-full border border-red-400/40 bg-red-400/10 animate-pulse pointer-events-none" style={{ animationDuration: '2s' }} />
                             <div className="absolute -inset-4 rounded-full border border-red-300/50 bg-red-300/20 animate-pulse pointer-events-none" style={{ animationDuration: '1.5s' }} />
@@ -527,7 +541,76 @@ const CommandCenter = () => {
                     </MarkerPopup>
                   </MapMarker>
                 );
-              })}
+              });
+
+              // Cluster marker for incidents with no resolvable coordinates
+              const unmappedCritical = unmappedIncidents.filter(inc =>
+                ["CRITICAL", "HIGH"].includes(String(inc.severity || "").toUpperCase())
+              );
+              if (unmappedIncidents.length > 0) {
+                // Spread across a few sentinel positions so they're visible
+                const positions = [
+                  { lat: 20, lng: 0 },
+                  { lat: 35, lng: 60 },
+                  { lat: -10, lng: 30 },
+                  { lat: 50, lng: -100 },
+                  { lat: 10, lng: 100 },
+                ];
+                const clusterGroups: any[][] = positions.map(() => []);
+                unmappedIncidents.forEach((inc, idx) => {
+                  clusterGroups[idx % positions.length].push(inc);
+                });
+                clusterGroups.forEach((group, gi) => {
+                  if (group.length === 0) return;
+                  const hasCritical = group.some(inc => ["CRITICAL", "HIGH"].includes(String(inc.severity || "").toUpperCase()));
+                  const pos = positions[gi];
+                  mappedIncidents.push(
+                    <MapMarker key={`cluster-${gi}`} longitude={pos.lng} latitude={pos.lat}>
+                      <MarkerContent>
+                        <div
+                          onClick={() => setSelectedId(String(group[0].id))}
+                          className="relative cursor-pointer group"
+                        >
+                          {hasCritical && (
+                            <div className="absolute inset-0 -m-3 rounded-full bg-red-500/20 animate-ping" />
+                          )}
+                          <div className={`
+                            flex items-center justify-center
+                            min-w-[22px] h-[22px] px-1.5 rounded-full border-2 border-white shadow-lg
+                            text-[9px] font-bold text-white
+                            ${hasCritical ? "bg-red-500" : "bg-amber-400"}
+                            group-hover:scale-110 transition-transform
+                          `}>
+                            {group.length}
+                          </div>
+                        </div>
+                      </MarkerContent>
+                      <MarkerPopup className="w-56 p-0 rounded-lg shadow-xl border border-border bg-card">
+                        <div className="p-3 space-y-2">
+                          <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-muted-foreground">
+                            {group.length} incident{group.length > 1 ? "s" : ""} · location pending
+                          </p>
+                          {group.slice(0, 3).map((inc: any, j: number) => {
+                            const colors = markerColor(String(inc.severity || ""));
+                            return (
+                              <div key={j} className="flex items-center gap-2 cursor-pointer hover:bg-muted/40 rounded px-1 py-0.5" onClick={() => setSelectedId(String(inc.id))}>
+                                <div className={`w-2 h-2 rounded-full shrink-0 ${colors.dot}`} />
+                                <p className="text-xs font-medium truncate">{incidentDisplayTitle(inc as Record<string, unknown>)}</p>
+                              </div>
+                            );
+                          })}
+                          {group.length > 3 && (
+                            <p className="text-[10px] text-muted-foreground pl-1">+{group.length - 3} more…</p>
+                          )}
+                        </div>
+                      </MarkerPopup>
+                    </MapMarker>
+                  );
+                });
+              }
+
+              return mappedIncidents;
+            })()}
           </Map>
 
           <div className="absolute bottom-3 left-3 z-10 bg-card/90 backdrop-blur-sm border border-border rounded-md px-3 py-2 space-y-1.5">
