@@ -327,9 +327,9 @@ const CommandCenter = () => {
   const watchCount = Number(b.watch_count ?? listedWatchCount) || listedWatchCount;
   const activeIncidentCount = Number(b.critical_count ?? 0) + Number(b.watch_count ?? 0) || incidents.length;
 
-  const selectedIncident = selectedId
+  const selectedIncident = (selectedId
     ? incidents.find((i: any) => String(i.id) === selectedId)
-    : incidents[0];
+    : incidents[0]) as any;
 
   /* derived stats */
   const safeCount = Math.max(0, totalNodes - activeIncidentCount);
@@ -707,7 +707,7 @@ const CommandCenter = () => {
 
       {isRfqOpen && selectedIncident && (
         <RFQDispatchPanel
-          incidentId={selectedIncident.id}
+          incidentId={String(selectedIncident.id)}
           incidentTitle={incidentDisplayTitle(selectedIncident as Record<string, unknown>)}
           onClose={() => setIsRfqOpen(false)}
         />
