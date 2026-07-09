@@ -322,10 +322,6 @@ const CommandCenter = () => {
   const activePool = mergedLivePool.length > 0 ? mergedLivePool : briefingPool;
 
   const filteredIncidents = useMemo(() => {
-    const list = Array.isArray(suppliersRaw) ? suppliersRaw : ((suppliersRaw as any)?.data || []);
-    if (list.length === 0) {
-      return activePool;
-    }
     return activePool.filter((inc: any) => {
       // 1. Check affected_nodes list
       const nodes = Array.isArray(inc.affected_nodes) ? inc.affected_nodes : [];
@@ -342,7 +338,7 @@ const CommandCenter = () => {
       }
       return false;
     });
-  }, [activePool, suppliersRaw, suppliersMap]);
+  }, [activePool, suppliersMap]);
 
   const incidents = filteredIncidents;
   const listedCriticalCount = incidents.filter((inc) => ["CRITICAL", "HIGH"].includes(String(inc.severity || "").toUpperCase())).length;
@@ -458,7 +454,19 @@ const CommandCenter = () => {
             <MapControls position="top-left" showZoom showLocate />
             {incidents
               .map((inc: any, i: number) => {
-                const coords = incidentCoords(inc);
+                const coords = (() => {
+                  const nodes = Array.isArray(inc.affected_nodes) ? inc.affected_nodes : [];
+                  for (const node of nodes) {
+                    const nid = String(node.id || node.node_id || "").trim();
+                    const sup = suppliersMap.get(nid);
+                    if (sup) return { lat: sup.lat, lng: sup.lng };
+                  }
+                  const sid = String(inc.supplier_id || inc.node_id || "").trim();
+                  const sup = suppliersMap.get(sid);
+                  if (sup) return { lat: sup.lat, lng: sup.lng };
+                  
+                  return null;
+                })();
                 if (!coords) return null;
                 const colors = markerColor(String(inc.severity || ""));
                 const isCritical = ["CRITICAL", "HIGH"].includes(String(inc.severity || "").toUpperCase());
