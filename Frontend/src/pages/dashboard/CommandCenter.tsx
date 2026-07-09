@@ -292,7 +292,9 @@ const CommandCenter = () => {
   const totalNodes = b.total_nodes || 0;
 
   const mergedLivePool = useMemo(() => {
-    const activeStatuses = new Set(["DETECTED", "ANALYZED", "AWAITING_APPROVAL"]);
+    // Blacklist: exclude only truly terminal statuses — do NOT whitelist because
+    // backend may use many valid active-status strings (ACTIVE, NEW, OPEN, etc.)
+    const terminalStatuses = new Set(["RESOLVED", "CLOSED", "ARCHIVED", "CANCELLED", "DISMISSED", "COMPLETED"]);
     const merged = [...(incidentsRaw as Record<string, unknown>[]), ...(simulationIncidentsRaw as unknown as Record<string, unknown>[])];
     const outByKey = new globalThis.Map<string, Record<string, unknown>>();
     const quality = (inc: Record<string, unknown>) => ({
@@ -305,7 +307,8 @@ const CommandCenter = () => {
     });
     for (const inc of merged) {
       const status = String(inc.status || "").toUpperCase();
-      if (!activeStatuses.has(status)) continue;
+      // Skip only if explicitly a terminal/resolved status
+      if (terminalStatuses.has(status)) continue;
       const id = String(inc.id || inc.incident_id || "");
       const fallback = `${String(inc.event_title || inc.title || "").toLowerCase()}|${String(inc.created_at || "")}`;
       const key = id || fallback;
@@ -327,7 +330,14 @@ const CommandCenter = () => {
   const briefingPool = (b.active_incidents?.length
     ? b.active_incidents
     : [...(b.critical_incidents || []), ...(b.watch_incidents || [])]) as Record<string, unknown>[];
-  const activePool = mergedLivePool.length > 0 ? mergedLivePool : briefingPool;
+
+  // Only switch to the real merged pool once BOTH live queries have finished loading.
+  // If we switch while one is still in-flight, mergedLivePool is partially populated
+  // and the count flashes from 31 → 4 → 31 as queries resolve sequentially.
+  const bothLiveQueriesLoaded = !isIncidentsLoading && !isSimulationLoading;
+  const activePool = (bothLiveQueriesLoaded && mergedLivePool.length > 0)
+    ? mergedLivePool
+    : briefingPool;
 
   const filteredIncidents = useMemo(() => {
     return activePool.filter((inc: any) => {
