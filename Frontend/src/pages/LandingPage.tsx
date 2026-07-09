@@ -283,13 +283,9 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-16 pb-20 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
+      <section className="relative pt-24 pb-24 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
         <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-1.5 rounded-sm mb-8">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse-glow" />
-              <span className="text-label-sm uppercase tracking-widest text-slate-500">Kinetic Fortress Activated</span>
-            </div>
             <h1 className="text-display-lg leading-tight mb-6 flex flex-wrap gap-x-[0.3em]">
               <BlurText text="Your Supply Chain" delay={180} animateBy="words" direction="top" className="text-slate-900 inline" />
               <BlurText text="Doesn't Stop." delay={180} animateBy="words" direction="top" className="text-red-500 inline" />

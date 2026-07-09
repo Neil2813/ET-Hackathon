@@ -1,7 +1,7 @@
+@import "tailwindcss";
+
 @import url('https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-
-@import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 @config "../tailwind.config.ts";
@@ -9,19 +9,24 @@
 @layer base {
   :root {
     /* ── Praecantator Design System: Clean Light Theme (Image Reference) ── */
-    --background: 0 0% 98%;          /* Light grey/off-white background */
-    --foreground: 0 0% 10%;          /* Dark gray text */
+    --background: 0 0% 98%;
+    /* Light grey/off-white background */
+    --foreground: 0 0% 10%;
+    /* Dark gray text */
 
-    --card: 0 0% 100%;               /* White cards */
+    --card: 0 0% 100%;
+    /* White cards */
     --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 0 0% 10%;             /* Black/Dark gray for buttons/primary */
+    --primary: 0 0% 10%;
+    /* Black/Dark gray for buttons/primary */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;           /* Very light gray */
+    --secondary: 0 0% 96%;
+    /* Very light gray */
     --secondary-foreground: 0 0% 10%;
 
     --muted: 0 0% 96%;
@@ -30,10 +35,12 @@
     --accent: 0 0% 96%;
     --accent-foreground: 0 0% 10%;
 
-    --destructive: 0 84% 60%;        /* Red for critical */
+    --destructive: 0 84% 60%;
+    /* Red for critical */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;              /* Light gray borders */
+    --border: 0 0% 90%;
+    /* Light gray borders */
     --input: 0 0% 90%;
     --ring: 0 0% 80%;
 
@@ -47,7 +54,8 @@
     --surface-bright: 0 0% 100%;
 
     /* Red tokens */
-    --sentinel-red: 0 72% 51%;       /* Exact Red */
+    --sentinel-red: 0 72% 51%;
+    /* Exact Red */
     --sentinel-text: 0 72% 51%;
 
     --on-surface: 0 0% 10%;
@@ -56,7 +64,8 @@
     /* Tertiary (dim text) */
     --tertiary: 0 0% 45%;
 
-    --sidebar-background: 0 0% 11%;  /* #1c1c1c */
+    --sidebar-background: 0 0% 11%;
+    /* #1c1c1c */
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 0 0% 100%;
     --sidebar-primary-foreground: 0 0% 11%;
@@ -94,32 +103,32 @@
     --border-subtle: #e8e8e8;
 
     --overlay-subtle: rgba(0, 0, 0, 0.02);
-    --overlay-light:  rgba(0, 0, 0, 0.04);
+    --overlay-light: rgba(0, 0, 0, 0.04);
     --overlay-medium: rgba(0, 0, 0, 0.08);
-    --overlay-heavy:  rgba(0, 0, 0, 0.12);
+    --overlay-heavy: rgba(0, 0, 0, 0.12);
     --shadow-color: rgba(0, 0, 0, 0.10);
 
     /* Semantic severity — light-mode contrast-safe variants */
     --semantic-critical: #dc2626;
-    --semantic-high:     #ea580c;
+    --semantic-high: #ea580c;
     --semantic-elevated: #d97706;
-    --semantic-normal:   #15803d;
-    --semantic-info:     #2563eb;
+    --semantic-normal: #15803d;
+    --semantic-info: #2563eb;
     --semantic-positive: #16a34a;
 
     /* Threat levels */
     --threat-critical: #ef4444;
-    --threat-high:     #c2410c;
-    --threat-medium:   #ca8a04;
-    --threat-low:      #15803d;
+    --threat-high: #c2410c;
+    --threat-medium: #ca8a04;
+    --threat-low: #15803d;
 
     /* Status */
-    --status-live:        #16a34a;
-    --status-cached:      #d97706;
+    --status-live: #16a34a;
+    --status-cached: #d97706;
     --status-unavailable: #dc2626;
 
     /* Legacy aliases */
-    --red:   #dc2626;
+    --red: #dc2626;
     --green: #16a34a;
     --yellow: #d97706;
 
@@ -129,7 +138,8 @@
   }
 
   .dark {
-    --background: 222 47% 11%;       /* #0f172a Dark Slate */
+    --background: 222 47% 11%;
+    /* #0f172a Dark Slate */
     --foreground: 210 40% 98%;
     --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
@@ -171,12 +181,13 @@
     --threat-medium: #f59e0b;
     --threat-low: #10b981;
   }
-  
+
   .maplibregl-popup-content {
-    @apply bg-transparent! shadow-none! p-0! rounded-[var(--radius)]!;
+    @apply !bg-transparent !shadow-none !p-0 !rounded-[var(--radius)];
   }
+
   .maplibregl-popup-tip {
-    @apply hidden!;
+    @apply !hidden;
   }
 }
 
@@ -196,12 +207,18 @@
     animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-headline;
   }
 }
 
 @layer components {
+
   /* ── Surface utilities ── */
   .surface-container {
     background-color: hsl(var(--muted));
@@ -247,11 +264,25 @@
   }
 
   /* Route legend colour swatches (functional — kept for map) */
-  .legend-swatch-land  { background: #ef4444; }
-  .legend-swatch-sea   { background: #0ea5e9; }
-  .legend-swatch-air   { background: #a855f7; }
-  .legend-swatch-custom { background: #f59e0b; }
-  .legend-swatch-alt   { background: #22c55e; }
+  .legend-swatch-land {
+    background: #ef4444;
+  }
+
+  .legend-swatch-sea {
+    background: #0ea5e9;
+  }
+
+  .legend-swatch-air {
+    background: #a855f7;
+  }
+
+  .legend-swatch-custom {
+    background: #f59e0b;
+  }
+
+  .legend-swatch-alt {
+    background: #22c55e;
+  }
 }
 
 @layer utilities {
@@ -279,9 +310,11 @@
   .animate-scan {
     animation: scan 4s linear infinite;
   }
+
   .animate-pulse-subtle {
     animation: pulseSubtle 2s ease-in-out infinite;
   }
+
   .animate-flicker {
     animation: flicker 0.3s steps(3, end) infinite;
   }
@@ -291,39 +324,75 @@
     width: 4px;
     height: 4px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: hsl(var(--border) / 0.4);
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--sentinel-red) / 0.6);
   }
 }
 
 @keyframes scan {
-  from { top: -100%; opacity: 0; }
-  10% { opacity: 0.4; }
-  90% { opacity: 0.4; }
-  to { top: 200%; opacity: 0; }
+  from {
+    top: -100%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.4;
+  }
+
+  90% {
+    opacity: 0.4;
+  }
+
+  to {
+    top: 200%;
+    opacity: 0;
+  }
 }
 
 @keyframes pulseSubtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @keyframes flicker {
-  0%, 100% { opacity: 1; filter: brightness(1); }
-  33% { opacity: 0.8; filter: brightness(0.9); }
-  66% { opacity: 0.95; filter: brightness(1.1); }
+
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+
+  33% {
+    opacity: 0.8;
+    filter: brightness(0.9);
+  }
+
+  66% {
+    opacity: 0.95;
+    filter: brightness(1.1);
+  }
 }
 
 @theme inline {
   --color-sentinel: hsl(var(--sentinel-red));
   --color-sentinel-foreground: #ffffff;
-  
+
   --color-sidebar: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
