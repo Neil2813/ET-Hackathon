@@ -20,6 +20,13 @@ def _conn() -> sqlite3.Connection:
 
 
 def init_local_store() -> None:
+    # Initialize SQLAlchemy ORM tables
+    try:
+        from db.orm_models import init_orm_db
+        init_orm_db()
+    except Exception as exc:
+        logger.warning("Failed to initialize SQLAlchemy ORM tables: %s", exc)
+
     with _conn() as con:
         con.execute("PRAGMA journal_mode=WAL")
         con.execute("PRAGMA foreign_keys=ON")

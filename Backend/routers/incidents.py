@@ -420,3 +420,55 @@ async def api_intelligence_monte_carlo(
         "data_quality": dq,
         "simulation_only": True,
     }
+
+
+@router.post("/api/incidents/{incident_id}/dispatch-rfq")
+async def api_dispatch_rfq(
+    incident_id: str,
+    user=Depends(verify_firebase_or_local_token),
+) -> dict:
+    """Drafts an intelligent RFQ and stages a smart contract cargo booking."""
+    user_id = str(user.get("sub") or "").strip()
+    tenant_id = _resolved_request_tenant(user)
+    _require_incident_permission(user, Permission.INCIDENT_APPROVE, tenant_id)
+
+    incident = get_incident(incident_id, tenant_id=tenant_id)
+    if not incident:
+        # Check simulation incidents as well
+        simulation_incidents = list_simulation_incidents(tenant_id=tenant_id)
+        incident = next((i for i in simulation_incidents if i.get("id") == incident_id), None)
+        if not incident:
+            raise HTTPException(status_code=404, detail="Incident not found")
+
+    route_options = incident.get("route_options") or []
+    
+    # Import dispatcher and mailer
+    from services.rfq_dispatcher import draft_intelligent_rfq
+    from services.mailer import send_rfq_email
+
+    rfq_payload = await draft_intelligent_rfq(
+        incident_id=incident_id,
+        incident_payload=incident,
+        route_options=route_options,
+        user_id=user_id
+    )
+
+    # Attempt to send via mailer
+    mail_result = send_rfq_email(
+        recipient=rfq_payload["recipient"],
+        subject=rfq_payload["subject"],
+        body=rfq_payload["body"],
+        workflow_id=incident_id,
+        tenant_id=tenant_id
+    )
+
+    return {
+        "status": "success",
+        "incident_id": incident_id,
+        "recipient": rfq_payload["recipient"],
+        "subject": rfq_payload["subject"],
+        "body": rfq_payload["body"],
+        "mail_result": mail_result,
+        "staged_contract": rfq_payload["staged_contract"]
+    }
+

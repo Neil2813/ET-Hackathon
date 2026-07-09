@@ -159,6 +159,7 @@ async def workflow_routes(payload: RouteRequest, user=Depends(verify_firebase_or
         f"{payload.destination.city or dest_lat},{payload.destination.country or ''}",
         payload.target_currency.upper(),
         payload.commodity,
+        workflow_id=payload.workflow_id,
     )
     comparison = result.get("route_comparison") if isinstance(result.get("route_comparison"), list) else []
     network_routes = _context_network_routes(owner_id)

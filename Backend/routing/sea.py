@@ -80,6 +80,29 @@ def crude_tanker_route(
     transit_days = distance_km / (profile["speed_kmh"] * 24.0)
     if force_cape:
         transit_days += 14.0
+
+    # Weather delay calculations
+    weather_delay = 0.0
+    choke_key = ""
+    if chokepoint:
+        choke_name = chokepoint.lower()
+        if "hormuz" in choke_name:
+            choke_key = "hormuz"
+        elif "mandeb" in choke_name:
+            choke_key = "bab_el_mand"
+        elif "red sea" in choke_name or "suez" in choke_name:
+            choke_key = "suez_s"
+
+    if choke_key and not force_cape:
+        try:
+            from services.marine_weather import get_chokepoint_weather
+            weather_info = get_chokepoint_weather(choke_key)
+            weather_delay = weather_info.get("weather_delay_days", 0.0)
+        except Exception:
+            pass
+
+    transit_days += weather_delay
+
     bunker_cost = distance_km * 18.0
     charter_cost = transit_days * profile["charter_usd_day"]
     war_risk_premium = 0.18 if chokepoint in {"Strait of Hormuz", "Bab el-Mandeb", "Red Sea"} and not force_cape else 0.06
@@ -97,6 +120,7 @@ def crude_tanker_route(
         "chokepoint": chokepoint,
         "distance_km": round(distance_km, 2),
         "transit_days": round(transit_days, 1),
+        "weather_delay_days": weather_delay,
         "cost_usd": round(total_cost, 2),
         "capacity_mmbbl": profile["capacity_mmbbl"],
         "draft_m": profile["draft_m"],

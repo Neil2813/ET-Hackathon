@@ -11,10 +11,11 @@ import { incidentDisplayTitle, incidentContextTag } from "@/lib/incident-title";
 import React from "react";
 import {
   RefreshCw, Target, Shield, Network,
-  TrendingUp, AlertTriangle, Eye, ChevronDown, ChevronUp, Link as LinkIcon, Cpu, GitMerge
+  TrendingUp, AlertTriangle, Eye, ChevronDown, ChevronUp, Link as LinkIcon, Cpu, GitMerge, Mail
 } from "lucide-react";
 import { fmtINR } from "@/lib/currency";
 import ROIWidget from "@/components/ui/ROIWidget";
+import { RFQDispatchPanel } from "@/components/ui/RFQDispatchPanel";
 
 
 
@@ -226,6 +227,7 @@ const CommandCenter = () => {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isRfqOpen, setIsRfqOpen] = useState(false);
 
   const { data: briefing, isLoading } = useQuery({
     queryKey: ["command", "briefing"],
@@ -255,6 +257,26 @@ const CommandCenter = () => {
     ),
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: suppliersRaw = [] } = useQuery({
+    queryKey: ["risks", "suppliers"],
+    queryFn: () => api.risks.suppliers(),
+    staleTime: 15 * 60 * 1000,
+  });
+
+  const suppliersMap = useMemo(() => {
+    const map = new globalThis.Map<string, { lat: number; lng: number; name: string }>();
+    const list = Array.isArray(suppliersRaw) ? suppliersRaw : ((suppliersRaw as any)?.data || []);
+    list.forEach((s: any) => {
+      const id = String(s.id || s.supplier_id || "").trim();
+      const lat = Number(s.lat || s.latitude);
+      const lng = Number(s.lng || s.longitude);
+      if (id && lat && lng) {
+        map.set(id, { lat, lng, name: String(s.name || id) });
+      }
+    });
+    return map;
+  }, [suppliersRaw]);
 
 
   const b = (briefing || {}) as Record<string, any>;
@@ -433,6 +455,15 @@ const CommandCenter = () => {
                           ${colors.dot}
                           ${isSelected ? "ring-2 ring-blue-500 ring-offset-1 scale-125" : "group-hover:scale-110"}
                         `} />
+
+                        {isSelected && (
+                          <>
+                            {/* Concentric red blast radius rings */}
+                            <div className="absolute -inset-12 rounded-full border border-red-500/30 bg-red-500/5 animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
+                            <div className="absolute -inset-8 rounded-full border border-red-400/40 bg-red-400/10 animate-pulse pointer-events-none" style={{ animationDuration: '2s' }} />
+                            <div className="absolute -inset-4 rounded-full border border-red-300/50 bg-red-300/20 animate-pulse pointer-events-none" style={{ animationDuration: '1.5s' }} />
+                          </>
+                        )}
                       </div>
                     </MarkerContent>
                     <MarkerPopup className="w-56 p-0 rounded-lg shadow-xl border border-border bg-card">
@@ -453,6 +484,26 @@ const CommandCenter = () => {
                   </MapMarker>
                 );
               })}
+
+            {/* Downstream affected suppliers (Knowledge Graph Blast Radius) */}
+            {selectedIncident?.affected_nodes?.map((node: any, idx: number) => {
+              const node_id = String(node.id || node.node_id || "").trim();
+              const coords = suppliersMap.get(node_id);
+              if (coords) {
+                return (
+                  <MapMarker key={`affected-${node_id || idx}`} longitude={coords.lng} latitude={coords.lat}>
+                    <MarkerContent>
+                      <div className="relative group cursor-pointer">
+                        {/* Red glow pulse on affected supplier */}
+                        <div className="absolute -inset-1 rounded-full bg-red-600 animate-ping opacity-75" />
+                        <div className="size-2.5 rounded-full bg-red-600 border border-white shadow-md relative" title={coords.name} />
+                      </div>
+                    </MarkerContent>
+                  </MapMarker>
+                );
+              }
+              return null;
+            })}
           </Map>
 
           <div className="absolute bottom-3 left-3 z-10 bg-card/90 backdrop-blur-sm border border-border rounded-md px-3 py-2 space-y-1.5">
@@ -514,7 +565,14 @@ const CommandCenter = () => {
             </div>
           )}
 
-          <div className="p-3 border-t border-border">
+          <div className="p-3 border-t border-border flex flex-col gap-2">
+            <Button
+              className="w-full font-mono text-xs uppercase tracking-wider h-9 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1.5"
+              disabled={!selectedIncident}
+              onClick={() => setIsRfqOpen(true)}
+            >
+              <Mail size={12} /> Dispatch RFQ & Stage Contract
+            </Button>
             <Button
               className="w-full font-mono text-xs uppercase tracking-wider h-9 bg-blue-600 hover:bg-blue-700 text-white"
               disabled={!selectedIncident}
@@ -646,6 +704,14 @@ const CommandCenter = () => {
           </div>
         </div>
       </div>
+
+      {isRfqOpen && selectedIncident && (
+        <RFQDispatchPanel
+          incidentId={selectedIncident.id}
+          incidentTitle={incidentDisplayTitle(selectedIncident as Record<string, unknown>)}
+          onClose={() => setIsRfqOpen(false)}
+        />
+      )}
     </div>
   );
 };

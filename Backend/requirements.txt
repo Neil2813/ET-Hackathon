@@ -20,10 +20,12 @@ redis==5.2.1
 google-generativeai==0.8.0
 groq==1.1.2
 stable-baselines3==2.8.0
+gymnasium==0.29.1
 scikit-learn==1.8.0
 pandas==3.0.2
 openpyxl==3.1.5
 langgraph==1.1.6
+sqlalchemy==2.0.27
 mcp==1.27.0
 celery==5.4.0
 # Pin Python via Backend/runtime.txt + Render PYTHON_VERSION / .python-version (3.11.x). SB3 2.8.x requires torch>=2.3,<3.

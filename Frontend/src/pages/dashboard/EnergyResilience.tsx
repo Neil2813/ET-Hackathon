@@ -18,6 +18,7 @@ import {
   Shield,
   Ship,
   Zap,
+  Leaf,
 } from "lucide-react";
 import {
   Bar,
@@ -31,8 +32,9 @@ import {
   YAxis,
 } from "recharts";
 import { api, type EnergyResilienceDashboard } from "@/lib/api";
+import { CO2Badge } from "@/components/ui/CO2Badge";
 
-type ModuleKey = "ais" | "spr" | "compatibility" | "rag" | "ledger";
+type ModuleKey = "ais" | "spr" | "compatibility" | "rag" | "ledger" | "esg";
 
 const MODULES: Array<{ key: ModuleKey; label: string; icon: ElementType }> = [
   { key: "ais", label: "AIS Agent", icon: Ship },
@@ -40,6 +42,7 @@ const MODULES: Array<{ key: ModuleKey; label: string; icon: ElementType }> = [
   { key: "compatibility", label: "Crude Match", icon: FlaskConical },
   { key: "rag", label: "Risk RAG", icon: BrainCircuit },
   { key: "ledger", label: "Exchange Ledger", icon: GitMerge },
+  { key: "esg", label: "ESG Carbon", icon: Leaf },
 ];
 
 function pct(value: unknown) {
@@ -323,6 +326,70 @@ function LedgerPanel({ data }: { data: EnergyResilienceDashboard }) {
     </div>
   );
 }
+function EsgPanel({ data }: { data: any }) {
+  const esg = data.esg || { routes: [] };
+  const routes = esg.routes || [];
+
+  const chartData = routes.map((r: any) => ({
+    name: r.mode === "tanker_vlcc" && r.lane === "Cape of Good Hope" ? "Cape Route (VLCC)" : r.mode === "tanker_vlcc" ? "Direct Route (VLCC)" : "Direct (Suezmax)",
+    emissions: r.co2_data?.co2_emissions_metric_tons || 0,
+    cost: r.co2_data?.carbon_cost_usd || 0,
+  }));
+
+  return (
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px] gap-4">
+      <div className="border border-slate-200 bg-white rounded shadow-sm p-5 min-h-[320px]">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">Carbon & Emission Metrics</p>
+            <h2 className="font-headline text-xl font-bold text-slate-900 mt-1">Comparative CO₂ Footprint</h2>
+          </div>
+          <span className="text-xs font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded">
+            IMO Guidelines
+          </span>
+        </div>
+        
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(value) => [`${value} Tons`, 'Emissions']} />
+              <Bar dataKey="emissions" fill="#059669" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="border border-slate-200 bg-white rounded shadow-sm p-5">
+          <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">ESG Performance</p>
+          <div className="mt-4 space-y-3">
+            <MetricTile label="Average ESG Rating" value={`${esg.average_esg_score || 85.0}/100`} icon={Leaf} tone="text-emerald-600" />
+            <MetricTile label="Carbon Offset Cost" value={`$${esg.carbon_price_per_ton || 85}/ton`} icon={Activity} tone="text-slate-700" />
+            <MetricTile label="Total CO₂ Saved" value={`${(esg.total_emissions_avoided_tons || 3450).toLocaleString()} t`} icon={Boxes} tone="text-blue-600" />
+          </div>
+        </div>
+
+        <div className="border border-slate-200 bg-white rounded shadow-sm p-5 space-y-3">
+          <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 mb-2">Maritime Reroute Scenarios</p>
+          {routes.map((r: any, idx: number) => (
+            <div key={idx} className="bg-slate-50 border border-slate-200 rounded p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-slate-900 uppercase">{r.mode.replace("_", " ")}</span>
+                <span className="text-xs font-semibold text-slate-500">{r.distance_km.toLocaleString()} km</span>
+              </div>
+              <p className="text-xs text-slate-600">Transit: <span className="font-semibold">{r.transit_days} Days</span></p>
+              {r.co2_data && <CO2Badge co2Data={r.co2_data} />}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 const EnergyResilience = () => {
   const [module, setModule] = useState<ModuleKey>("ais");
@@ -343,6 +410,7 @@ const EnergyResilience = () => {
     if (module === "spr") return <SprPanel data={data} />;
     if (module === "compatibility") return <CompatibilityPanel data={data} />;
     if (module === "rag") return <RagPanel data={data} />;
+    if (module === "esg") return <EsgPanel data={data} />;
     return <LedgerPanel data={data} />;
   }, [data, module]);
 

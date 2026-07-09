@@ -12,26 +12,11 @@ import sys
 import types
 import unittest
 
-# ---------------------------------------------------------------------------
-# Minimal stubs so we can import routing_utils without a live FastAPI stack
-# ---------------------------------------------------------------------------
+from unittest.mock import patch, MagicMock
 
-def _stub_module(name: str, **attrs):
-    """Insert a stub module into sys.modules so imports don't fail."""
-    mod = types.ModuleType(name)
-    for k, v in attrs.items():
-        setattr(mod, k, v)
-    sys.modules.setdefault(name, mod)
-    return mod
-
-
-# Currency stubs
-currency_pkg = _stub_module("currency")
-frankfurter = _stub_module("currency.frankfurter", get_exchange_rate=lambda *a, **k: 1.0)
-worldbank = _stub_module("currency.worldbank", get_inflation_rate=lambda *a, **k: 0.0)
-
-# FastAPI stubs (we only need APIRouter + HTTPException for import)
-import fastapi as _fastapi  # noqa: E402 — FastAPI is in requirements, should be available
+# Ensure project root is on path first so standard imports work
+import pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 
 # ---------------------------------------------------------------------------
