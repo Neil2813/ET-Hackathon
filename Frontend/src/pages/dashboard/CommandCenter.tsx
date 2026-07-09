@@ -516,26 +516,6 @@ const CommandCenter = () => {
                   </MapMarker>
                 );
               })}
-
-            {/* Downstream affected suppliers (Knowledge Graph Blast Radius) */}
-            {selectedIncident?.affected_nodes?.map((node: any, idx: number) => {
-              const node_id = String(node.id || node.node_id || "").trim();
-              const coords = suppliersMap.get(node_id);
-              if (coords) {
-                return (
-                  <MapMarker key={`affected-${node_id || idx}`} longitude={coords.lng} latitude={coords.lat}>
-                    <MarkerContent>
-                      <div className="relative group cursor-pointer">
-                        {/* Red glow pulse on affected supplier */}
-                        <div className="absolute -inset-1 rounded-full bg-red-600 animate-ping opacity-75" />
-                        <div className="size-2.5 rounded-full bg-red-600 border border-white shadow-md relative" title={coords.name} />
-                      </div>
-                    </MarkerContent>
-                  </MapMarker>
-                );
-              }
-              return null;
-            })}
           </Map>
 
           <div className="absolute bottom-3 left-3 z-10 bg-card/90 backdrop-blur-sm border border-border rounded-md px-3 py-2 space-y-1.5">
