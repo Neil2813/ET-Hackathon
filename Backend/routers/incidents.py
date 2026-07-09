@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from starlette.concurrency import run_in_threadpool
 
 from services.firebase_auth import verify_firebase_or_local_token
-from services.firestore import read_context, get_context
+from services.firestore import read_context
 from services.firestore_store import (
     upsert_incident,
     get_incident,
@@ -17,6 +17,7 @@ from services.firestore_store import (
     update_incident_status,
     list_simulation_incidents,
     add_audit,
+    get_context,
 )
 from services.decision_authority import evaluate_stage_authority
 from services.data_quality_guard import assess_context_quality
