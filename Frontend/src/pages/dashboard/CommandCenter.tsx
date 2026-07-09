@@ -320,12 +320,36 @@ const CommandCenter = () => {
     ? b.active_incidents
     : [...(b.critical_incidents || []), ...(b.watch_incidents || [])]) as Record<string, unknown>[];
   const activePool = mergedLivePool.length > 0 ? mergedLivePool : briefingPool;
-  const incidents = activePool;
+
+  const filteredIncidents = useMemo(() => {
+    const list = Array.isArray(suppliersRaw) ? suppliersRaw : ((suppliersRaw as any)?.data || []);
+    if (list.length === 0) {
+      return activePool;
+    }
+    return activePool.filter((inc: any) => {
+      // 1. Check affected_nodes list
+      const nodes = Array.isArray(inc.affected_nodes) ? inc.affected_nodes : [];
+      if (nodes.length > 0) {
+        return nodes.some((node: any) => {
+          const nid = String(node.id || node.node_id || "").trim();
+          return suppliersMap.has(nid);
+        });
+      }
+      // 2. Check supplier_id or node_id
+      const sid = String(inc.supplier_id || inc.node_id || "").trim();
+      if (sid) {
+        return suppliersMap.has(sid);
+      }
+      return false;
+    });
+  }, [activePool, suppliersRaw, suppliersMap]);
+
+  const incidents = filteredIncidents;
   const listedCriticalCount = incidents.filter((inc) => ["CRITICAL", "HIGH"].includes(String(inc.severity || "").toUpperCase())).length;
   const listedWatchCount = incidents.filter((inc) => ["MODERATE", "MEDIUM", "WARNING", "LOW"].includes(String(inc.severity || "").toUpperCase())).length;
-  const criticalCount = Number(b.critical_count ?? listedCriticalCount) || listedCriticalCount;
-  const watchCount = Number(b.watch_count ?? listedWatchCount) || listedWatchCount;
-  const activeIncidentCount = Number(b.critical_count ?? 0) + Number(b.watch_count ?? 0) || incidents.length;
+  const criticalCount = listedCriticalCount;
+  const watchCount = listedWatchCount;
+  const activeIncidentCount = criticalCount + watchCount;
 
   const selectedIncident = (selectedId
     ? incidents.find((i: any) => String(i.id) === selectedId)

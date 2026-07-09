@@ -105,6 +105,115 @@ async def api_incidents_summary(response: Response, user=Depends(verify_firebase
     return await _cached_json(cache_key, 60, _compute)
 
 
+@router.get("/api/command/briefing")
+async def api_command_briefing(response: Response, user=Depends(verify_firebase_or_local_token)) -> dict:
+    """
+    The Command dashboard data — everything in one call.
+    This is what the user sees when they open the app.
+    """
+    _set_cache_headers(response, public=False, max_age=60)
+    tenant_id = _resolved_request_tenant(user)
+    _maybe_purge_stale(tenant_id)
+    cache_key = f"api:command:briefing:{tenant_id}"
+
+    def _compute() -> dict[str, Any]:
+        from collections import Counter
+        from services.event_freshness import is_incident_fresh
+
+        active_statuses = ("DETECTED", "ANALYZED", "AWAITING_APPROVAL")
+
+        operational = [i for i in list_incidents(limit=INCIDENT_SUMMARY_SCAN_LIMIT, tenant_id=tenant_id) if is_incident_fresh(i)]
+        simulation = [i for i in list_simulation_incidents(limit=SIMULATION_LIST_LIMIT, tenant_id=tenant_id) if is_incident_fresh(i)]
+
+        seen_keys: set[str] = set()
+        merged_incidents: list[dict[str, Any]] = []
+        for inc in [*operational, *simulation]:
+            key = str(inc.get("id") or "").strip() or (
+                f"{str(inc.get('event_title') or inc.get('title') or '').strip().lower()}|"
+                f"{str(inc.get('created_at') or '').strip()}"
+            )
+            if not key or key in seen_keys:
+                continue
+            seen_keys.add(key)
+            merged_incidents.append(inc)
+
+        summary_incidents = merged_incidents
+        all_incidents = merged_incidents[:100]
+
+        counts = dict(Counter(
+            str(i.get("status") or "").strip()
+            for i in summary_incidents
+            if i.get("status")
+        ))
+        critical_count = len([
+            i for i in summary_incidents
+            if i.get("severity") in ("CRITICAL", "HIGH")
+            and i.get("status") in active_statuses
+        ])
+        watch_count = len([
+            i for i in summary_incidents
+            if i.get("severity") in ("MODERATE", "LOW")
+            and i.get("status") in active_statuses
+        ])
+        resolved_count = counts.get("RESOLVED", 0) + counts.get("AUTO_RESOLVED", 0) + counts.get("DISMISSED", 0)
+
+        def _dedupe_incidents(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            seen: set[str] = set()
+            deduped: list[dict[str, Any]] = []
+            for inc in items:
+                key = str(inc.get("id") or "").strip() or (
+                    f"{str(inc.get('event_title') or inc.get('title') or '').strip().lower()}|"
+                    f"{str(inc.get('created_at') or '').strip()}"
+                )
+                if not key or key in seen:
+                    continue
+                seen.add(key)
+                deduped.append(inc)
+            return deduped
+
+        def _has_node_impact(inc: dict[str, Any]) -> bool:
+            try:
+                return int(inc.get("affected_node_count") or 0) > 0
+            except (TypeError, ValueError):
+                return False
+
+        active_incidents = _dedupe_incidents([
+            i for i in all_incidents
+            if i.get("status") in active_statuses and _has_node_impact(i)
+        ])
+        critical_incidents = [i for i in active_incidents if i.get("severity") in ("CRITICAL", "HIGH")]
+        watch_incidents = [i for i in active_incidents if i.get("severity") in ("MODERATE", "LOW")]
+        recent_resolved = [
+            i for i in all_incidents
+            if i.get("status") in ("RESOLVED", "APPROVED", "DISMISSED")
+        ][:5]
+
+        suppliers = _context_suppliers_or_empty(str(user.get("sub") or "").strip())
+        exposure_scores = [s["exposureScore"] for s in suppliers]
+        avg_exposure = sum(exposure_scores) / max(1, len(exposure_scores))
+
+        return {
+            "critical_count": critical_count,
+            "watch_count": watch_count,
+            "resolved_count": resolved_count,
+            "nominal_nodes": max(0, len(suppliers) - critical_count - watch_count),
+            "total_nodes": len(suppliers),
+            "status_breakdown": counts,
+            "active_incidents": active_incidents,
+            "critical_incidents": critical_incidents,
+            "watch_incidents": watch_incidents,
+            "recent_resolved": recent_resolved,
+            "network_health": {
+                "total_nodes": len(suppliers),
+                "avg_exposure": round(avg_exposure, 1),
+                "critical_nodes": len([s for s in suppliers if s["exposureScore"] >= 75]),
+                "healthy_nodes": len([s for s in suppliers if s["exposureScore"] < 40]),
+            },
+        }
+
+    return await _cached_json(cache_key, 60, _compute)
+
+
 @router.get("/api/incidents/{incident_id}")
 async def api_get_incident(incident_id: str, user=Depends(verify_firebase_or_local_token)) -> dict:
     """Get full incident detail."""
