@@ -50,8 +50,11 @@ router = APIRouter(tags=["Incidents"])
 
 
 @router.get("/api/incidents")
-async def api_list_incidents(status: str | None = None, user=Depends(verify_firebase_or_local_token)) -> list[dict]:
+async def api_list_incidents(response: Response, status: str | None = None, user=Depends(verify_firebase_or_local_token)) -> list[dict]:
     """List all incidents, optionally filtered by status."""
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     tenant_id = _resolved_request_tenant(user)
     _maybe_purge_stale(tenant_id)
     _require_incident_permission(user, Permission.INCIDENT_READ, tenant_id)
@@ -111,7 +114,9 @@ async def api_command_briefing(response: Response, user=Depends(verify_firebase_
     The Command dashboard data — everything in one call.
     This is what the user sees when they open the app.
     """
-    _set_cache_headers(response, public=False, max_age=60)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     tenant_id = _resolved_request_tenant(user)
     _maybe_purge_stale(tenant_id)
     cache_key = f"api:command:briefing:{tenant_id}"
@@ -211,7 +216,7 @@ async def api_command_briefing(response: Response, user=Depends(verify_firebase_
             },
         }
 
-    return await _cached_json(cache_key, 60, _compute)
+    return await _cached_json(cache_key, 0, _compute)
 
 
 @router.get("/api/incidents/{incident_id}")
