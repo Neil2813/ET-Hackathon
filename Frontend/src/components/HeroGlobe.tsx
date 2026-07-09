@@ -52,13 +52,13 @@ export function HeroGlobe() {
   ]);
 
   return (
-    <div ref={containerRef} className="w-full h-full min-h-[400px] md:min-h-[600px] cursor-grab active:cursor-grabbing bg-black relative overflow-hidden flex items-center justify-center rounded-xl">
+    <div ref={containerRef} className="w-full h-full min-h-[400px] md:min-h-[600px] cursor-grab active:cursor-grabbing bg-transparent relative overflow-visible flex items-center justify-center">
       <Globe
         ref={globeRef}
         width={dimensions.width}
         height={dimensions.height}
-        backgroundColor="rgba(0,0,0,1)"
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg" // Dark globe with light areas
+        backgroundColor="rgba(0,0,0,0)"
+        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
         arcsData={sampleArcs}
         arcStartLat="startLat"
         arcStartLng="startLng"
@@ -80,7 +80,7 @@ export function HeroGlobe() {
         pointAltitude={0}
         pointRadius={1.5} // Thicker points
       />
-      <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,1)]" />
+
     </div>
   );
 }
