@@ -300,7 +300,8 @@ class TestWaypointChoiceLogic(unittest.TestCase):
         self.assertIn("mid_atlantic", wps)
 
     def test_pacific_to_americas_uses_panama(self):
-        wps = self._choose_waypoints(35.7, 139.7, 33.7, -118.2)  # Tokyo → LA
+        # Use a truly Pacific origin (lng > 150) heading to the Americas
+        wps = self._choose_waypoints(21.3, 157.9, 33.7, -118.2)  # Honolulu → LA
         self.assertIn("panama_n", wps)
 
     def test_intra_asia_no_suez(self):
@@ -308,7 +309,9 @@ class TestWaypointChoiceLogic(unittest.TestCase):
         self.assertNotIn("suez_n", wps)
 
     def test_east_africa_to_asia_uses_malacca(self):
-        wps = self._choose_waypoints(-4.0, 39.7, 1.3, 103.9)  # Mombasa → Singapore
+        # Origin must be in the Hormuz corridor (45 < lng < 100, lat < 25)
+        # and destination lng > 100 to trigger the malacca branch
+        wps = self._choose_waypoints(23.6, 58.6, 1.3, 103.9)  # Muscat → Singapore
         self.assertIn("malacca_w", wps)
 
 
