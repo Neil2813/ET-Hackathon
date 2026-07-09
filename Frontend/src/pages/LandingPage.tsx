@@ -389,7 +389,7 @@ const LandingPage = () => {
           >
             <CountUp
               from={0}
-              to={4}
+              to={26}
               duration={1.8}
               delay={0.2}
               direction="up"
