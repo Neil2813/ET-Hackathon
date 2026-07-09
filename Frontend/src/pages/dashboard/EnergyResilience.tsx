@@ -238,7 +238,7 @@ function CompatibilityPanel({ data }: { data: EnergyResilienceDashboard }) {
 }
 
 function RagPanel({ data }: { data: EnergyResilienceDashboard }) {
-  const corridors = Object.entries(data.rag.risk_by_corridor).map(([name, values]) => ({ name, ...values }));
+  const corridors = Object.entries(data.rag.risk_by_corridor).map(([name, values]) => ({ name, ...values })) as any[];
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-4">
       <div className="border border-slate-200 bg-white rounded shadow-sm p-5">
