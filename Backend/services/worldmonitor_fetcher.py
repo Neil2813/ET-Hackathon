@@ -98,21 +98,84 @@ PORTWATCH_TRANSIT_URL = (
 
 # ── Canonical chokepoints (worldmonitor chokepoint-registry.ts) ───────────────
 
-CHOKEPOINTS = [
-    {"id": "suez",              "name": "Suez Canal",           "lng": 32.3,   "lat": 30.5,   "traffic_pct": 12, "category": "trade",          "portwatch_name": "Suez Canal"},
-    {"id": "malacca_strait",    "name": "Strait of Malacca",    "lng": 101.5,  "lat": 2.5,    "traffic_pct": 30, "category": "trade",          "portwatch_name": "Malacca Strait"},
-    {"id": "hormuz_strait",     "name": "Strait of Hormuz",     "lng": 56.5,   "lat": 26.5,   "traffic_pct": 22, "category": "oil",            "portwatch_name": "Strait of Hormuz"},
-    {"id": "bab_el_mandeb",     "name": "Bab el-Mandeb",        "lng": 43.3,   "lat": 12.5,   "traffic_pct": 9,  "category": "oil",            "portwatch_name": "Bab el-Mandeb Strait"},
-    {"id": "panama",            "name": "Panama Canal",         "lng": -79.7,  "lat": 9.1,    "traffic_pct": 5,  "category": "trade",          "portwatch_name": "Panama Canal"},
-    {"id": "taiwan_strait",     "name": "Taiwan Strait",        "lng": 119.5,  "lat": 24.0,   "traffic_pct": 48, "category": "semiconductors", "portwatch_name": "Taiwan Strait"},
-    {"id": "cape_of_good_hope", "name": "Cape of Good Hope",    "lng": 18.49,  "lat": -34.36, "traffic_pct": 6,  "category": "trade",          "portwatch_name": "Cape of Good Hope"},
-    {"id": "gibraltar",         "name": "Strait of Gibraltar",  "lng": -5.6,   "lat": 35.9,   "traffic_pct": 8,  "category": "trade",          "portwatch_name": "Gibraltar Strait"},
-    {"id": "bosphorus",         "name": "Bosporus Strait",      "lng": 29.0,   "lat": 41.1,   "traffic_pct": 3,  "category": "oil",            "portwatch_name": "Bosporus Strait"},
-    {"id": "korea_strait",      "name": "Korea Strait",         "lng": 129.0,  "lat": 34.0,   "traffic_pct": 4,  "category": "trade",          "portwatch_name": "Korea Strait"},
-    {"id": "dover_strait",      "name": "Dover Strait",         "lng": 1.5,    "lat": 51.0,   "traffic_pct": 8,  "category": "trade",          "portwatch_name": "Dover Strait"},
-    {"id": "kerch_strait",      "name": "Kerch Strait",         "lng": 36.6,   "lat": 45.3,   "traffic_pct": 2,  "category": "trade",          "portwatch_name": "Kerch Strait"},
-    {"id": "lombok_strait",     "name": "Lombok Strait",        "lng": 115.7,  "lat": -8.5,   "traffic_pct": 4,  "category": "oil",            "portwatch_name": "Lombok Strait"},
-]
+def load_chokepoints_geojson():
+    import json
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    geojson_path = os.path.join(base_dir, "..", "Dataset", "Chokepoints.geojson")
+    if not os.path.exists(geojson_path):
+        geojson_path = os.path.join(os.getcwd(), "Dataset", "Chokepoints.geojson")
+    
+    if not os.path.exists(geojson_path):
+        return []
+        
+    try:
+        with open(geojson_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        chokepoints = []
+        features = data.get("features", [])
+        for feat in features:
+            props = feat.get("properties", {})
+            portname = props.get("portname") or props.get("fullname")
+            if not portname:
+                continue
+            # Map category based on name
+            category = "trade"
+            if any(tok in portname.lower() for tok in ["hormuz", "bab", "malacca", "bosphorus", "lombok"]):
+                category = "oil"
+            elif "taiwan" in portname.lower():
+                category = "semiconductors"
+                
+            # Standardize ID to match existing downstream logic
+            cid = portname.lower().replace(" strait", "").replace(" canal", "").replace(" ", "_")
+            if cid == "bab_el-mandeb":
+                cid = "bab_el_mandeb"
+            elif cid == "malacca":
+                cid = "malacca_strait"
+            elif cid == "hormuz":
+                cid = "hormuz_strait"
+            elif cid == "bosporus":
+                cid = "bosphorus"
+                
+            # Determine traffic share or estimate it from vessel count
+            vessel_total = props.get("vessel_count_total", 10000)
+            traffic_pct = max(2, min(50, round(vessel_total / 1800)))
+            
+            chokepoints.append({
+                "id": cid,
+                "name": portname,
+                "lng": float(props.get("lon") or feat.get("geometry", {}).get("coordinates", [0, 0])[0]),
+                "lat": float(props.get("lat") or feat.get("geometry", {}).get("coordinates", [0, 0])[1]),
+                "traffic_pct": traffic_pct,
+                "category": category,
+                "portwatch_name": props.get("fullname") or portname,
+                "vessel_count_total": props.get("vessel_count_total"),
+                "vessel_count_tanker": props.get("vessel_count_tanker")
+            })
+        return chokepoints
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Failed to load Chokepoints.geojson: %s", e)
+        return []
+
+CHOKEPOINTS = load_chokepoints_geojson()
+if not CHOKEPOINTS:
+    CHOKEPOINTS = [
+        {"id": "suez",              "name": "Suez Canal",           "lng": 32.3,   "lat": 30.5,   "traffic_pct": 12, "category": "trade",          "portwatch_name": "Suez Canal"},
+        {"id": "malacca_strait",    "name": "Strait of Malacca",    "lng": 101.5,  "lat": 2.5,    "traffic_pct": 30, "category": "trade",          "portwatch_name": "Malacca Strait"},
+        {"id": "hormuz_strait",     "name": "Strait of Hormuz",     "lng": 56.5,   "lat": 26.5,   "traffic_pct": 22, "category": "oil",            "portwatch_name": "Strait of Hormuz"},
+        {"id": "bab_el_mandeb",     "name": "Bab el-Mandeb",        "lng": 43.3,   "lat": 12.5,   "traffic_pct": 9,  "category": "oil",            "portwatch_name": "Bab el-Mandeb Strait"},
+        {"id": "panama",            "name": "Panama Canal",         "lng": -79.7,  "lat": 9.1,    "traffic_pct": 5,  "category": "trade",          "portwatch_name": "Panama Canal"},
+        {"id": "taiwan_strait",     "name": "Taiwan Strait",        "lng": 119.5,  "lat": 24.0,   "traffic_pct": 48, "category": "semiconductors", "portwatch_name": "Taiwan Strait"},
+        {"id": "cape_of_good_hope", "name": "Cape of Good Hope",    "lng": 18.49,  "lat": -34.36, "traffic_pct": 6,  "category": "trade",          "portwatch_name": "Cape of Good Hope"},
+        {"id": "gibraltar",         "name": "Strait of Gibraltar",  "lng": -5.6,   "lat": 35.9,   "traffic_pct": 8,  "category": "trade",          "portwatch_name": "Gibraltar Strait"},
+        {"id": "bosphorus",         "name": "Bosporus Strait",      "lng": 29.0,   "lat": 41.1,   "traffic_pct": 3,  "category": "oil",            "portwatch_name": "Bosporus Strait"},
+        {"id": "korea_strait",      "name": "Korea Strait",         "lng": 129.0,  "lat": 34.0,   "traffic_pct": 4,  "category": "trade",          "portwatch_name": "Korea Strait"},
+        {"id": "dover_strait",      "name": "Dover Strait",         "lng": 1.5,    "lat": 51.0,   "traffic_pct": 8,  "category": "trade",          "portwatch_name": "Dover Strait"},
+        {"id": "kerch_strait",      "name": "Kerch Strait",         "lng": 36.6,   "lat": 45.3,   "traffic_pct": 2,  "category": "trade",          "portwatch_name": "Kerch Strait"},
+        {"id": "lombok_strait",     "name": "Lombok Strait",        "lng": 115.7,  "lat": -8.5,   "traffic_pct": 4,  "category": "oil",            "portwatch_name": "Lombok Strait"},
+    ]
 
 # ── Shipping indices (worldmonitor tracks these) ──────────────────────────────
 
