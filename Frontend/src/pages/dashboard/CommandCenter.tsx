@@ -14,6 +14,8 @@ import {
   TrendingUp, AlertTriangle, Eye, ChevronDown, ChevronUp, Link as LinkIcon, Cpu, GitMerge
 } from "lucide-react";
 import { fmtINR } from "@/lib/currency";
+import ROIWidget from "@/components/ui/ROIWidget";
+
 
 
 /* ── tiny sparkline (pure SVG) ── */
@@ -246,6 +248,15 @@ const CommandCenter = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["command"] }),
   });
 
+  const { data: resolvedIncidentsRaw = [] } = useQuery({
+    queryKey: ["incidents", "resolved", "roi"],
+    queryFn: () => api.incidents.list().then((all: Record<string, unknown>[]) =>
+      all.filter((i) => String(i.status ?? "").toUpperCase() === "RESOLVED")
+    ),
+    staleTime: 5 * 60 * 1000,
+  });
+
+
   const b = (briefing || {}) as Record<string, any>;
   const health = b.network_health || {};
   const totalNodes = b.total_nodes || 0;
@@ -378,6 +389,16 @@ const CommandCenter = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ═══ ROI / BUSINESS IMPACT WIDGET ═══ */}
+      <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
+        <ROIWidget
+          resolvedIncidents={resolvedIncidentsRaw as Record<string, unknown>[]}
+          activeIncidents={incidents as Record<string, unknown>[]}
+          auditRows={[]}
+          isLoading={isLoading}
+        />
       </div>
 
       {/* ═══ MAP + DECISION PANEL ═══ */}
