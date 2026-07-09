@@ -326,17 +326,19 @@ const CommandCenter = () => {
       // 1. Check affected_nodes list
       const nodes = Array.isArray(inc.affected_nodes) ? inc.affected_nodes : [];
       if (nodes.length > 0) {
-        return nodes.some((node: any) => {
+        const hasMatchedNode = nodes.some((node: any) => {
           const nid = String(node.id || node.node_id || "").trim();
           return suppliersMap.has(nid);
         });
+        if (hasMatchedNode) return true;
       }
       // 2. Check supplier_id or node_id
       const sid = String(inc.supplier_id || inc.node_id || "").trim();
-      if (sid) {
-        return suppliersMap.has(sid);
+      if (sid && suppliersMap.has(sid)) {
+        return true;
       }
-      return false;
+      // Fallback: If it has coordinates, show it on the map!
+      return !!(inc.event_lat || inc.latitude || inc.lat || inc.event_lng || inc.longitude || inc.lng);
     });
   }, [activePool, suppliersMap]);
 
@@ -464,6 +466,13 @@ const CommandCenter = () => {
                   const sid = String(inc.supplier_id || inc.node_id || "").trim();
                   const sup = suppliersMap.get(sid);
                   if (sup) return { lat: sup.lat, lng: sup.lng };
+
+                  // Fallback: Use the incident's event coordinates directly!
+                  const eventLat = Number(inc.event_lat || inc.latitude || inc.lat);
+                  const eventLng = Number(inc.event_lng || inc.longitude || inc.lng);
+                  if (eventLat && eventLng) {
+                    return { lat: eventLat, lng: eventLng };
+                  }
                   
                   return null;
                 })();
