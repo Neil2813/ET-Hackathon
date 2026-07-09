@@ -10,7 +10,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from services.firebase_auth import verify_firebase_or_local_token
-from services.firestore import read_workflow_event, write_workflow_event, read_context, write_context
+from services.firestore import read_workflow_event, write_workflow_event, read_context, write_context, read_reasoning_steps
 from services.firestore_store import (
     add_audit,
     create_rfq_event_linked,
@@ -19,7 +19,6 @@ from services.firestore_store import (
     list_rfq_events,
     list_workflow_reports,
     upsert_workflow_report,
-    read_reasoning_steps,
 )
 from services.master_data_validator import validate_network_graph
 from services.tenant_quota import quota_manager
