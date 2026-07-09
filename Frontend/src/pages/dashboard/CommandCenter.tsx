@@ -327,43 +327,45 @@ const CommandCenter = () => {
     return Array.from(outByKey.values());
   }, [incidentsRaw, simulationIncidentsRaw]);
 
-  const briefingPool = (b.active_incidents?.length
-    ? b.active_incidents
-    : [...(b.critical_incidents || []), ...(b.watch_incidents || [])]) as Record<string, unknown>[];
+  // Properly memoize briefingPool so it has a stable reference and doesn't
+  // cause stale-closure issues inside activePool's useMemo
+  const briefingPool = useMemo(() => {
+    const bData = (briefing || {}) as Record<string, any>;
+    if (bData.active_incidents?.length) return bData.active_incidents as Record<string, unknown>[];
+    return [
+      ...(bData.critical_incidents || []),
+      ...(bData.watch_incidents || []),
+    ] as Record<string, unknown>[];
+  }, [briefing]);
 
-  // Only switch to the real merged pool once BOTH live queries have finished loading.
-  // If we switch while one is still in-flight, mergedLivePool is partially populated
-  // and the count flashes from 31 → 4 → 31 as queries resolve sequentially.
-  const bothLiveQueriesLoaded = !isIncidentsLoading && !isSimulationLoading;
-  const activePool = (bothLiveQueriesLoaded && mergedLivePool.length > 0)
-    ? mergedLivePool
-    : briefingPool;
-
-  const filteredIncidents = useMemo(() => {
-    return activePool.filter((inc: any) => {
-      // 1. Check affected_nodes list
-      const nodes = Array.isArray(inc.affected_nodes) ? inc.affected_nodes : [];
-      if (nodes.length > 0) {
-        const hasMatchedNode = nodes.some((node: any) => {
-          const nid = String(node.id || node.node_id || "").trim();
-          return suppliersMap.has(nid);
-        });
-        if (hasMatchedNode) return true;
+  // STRATEGY: briefingPool is the authoritative source — it's the server's pre-computed,
+  // deduplicated, quality-filtered list of active incidents. mergedLivePool (from the
+  // separate list+simulation queries) may include RESOLVED incidents and causes the
+  // 31→4 flash when it overrides briefingPool. Instead: start from briefingPool and
+  // only SUPPLEMENT with any items from mergedLivePool not already present.
+  const activePool = useMemo(() => {
+    const base = [...briefingPool];
+    const existingIds = new Set(
+      base.map((inc: any) => String(inc.id || inc.incident_id || "").trim()).filter(Boolean)
+    );
+    // Add any live-pool incidents not already represented in the briefing
+    for (const inc of mergedLivePool) {
+      const id = String((inc as any).id || (inc as any).incident_id || "").trim();
+      if (id && !existingIds.has(id)) {
+        base.push(inc);
+        existingIds.add(id);
       }
-      // 2. Check supplier_id or node_id
-      const sid = String(inc.supplier_id || inc.node_id || "").trim();
-      if (sid && suppliersMap.has(sid)) {
-        return true;
-      }
-      // Fallback: Use the same isFiniteCoord check as the map renderer uses
-      return (
-        isFiniteCoord(inc.event_lat || inc.latitude || inc.lat) &&
-        isFiniteCoord(inc.event_lng || inc.longitude || inc.lng)
-      );
-    });
-  }, [activePool, suppliersMap]);
+    }
+    return base;
+  }, [briefingPool, mergedLivePool]);
 
-  const incidents = filteredIncidents;
+  // incidents = the full authoritative pool — do NOT filter by suppliersMap or coordinates here.
+  // suppliersMap is used only by the MAP RENDERER for coordinate lookup, not as a data gate.
+  // Filtering incidents by whether they have matching supplier IDs caused the 31→4 flash:
+  // briefing incidents without event_lat/lng AND without matching suppliersMap IDs were dropped
+  // as soon as suppliersRaw finished loading and replaced the empty map.
+  const incidents = activePool;
+
   const listedCriticalCount = incidents.filter((inc) => ["CRITICAL", "HIGH"].includes(String(inc.severity || "").toUpperCase())).length;
   const listedWatchCount = incidents.filter((inc) => ["MODERATE", "MEDIUM", "WARNING", "LOW"].includes(String(inc.severity || "").toUpperCase())).length;
   const criticalCount = listedCriticalCount;
