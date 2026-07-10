@@ -26,7 +26,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  LabelList,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -101,12 +100,12 @@ function AisPanel({ data }: { data: EnergyResilienceDashboard }) {
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={vessels} margin={{ top: 30, right: 10, left: 10, bottom: 5 }}>
+            <BarChart data={vessels} barCategoryGap={0} margin={{ top: 30, right: 10, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} height={54} />
               <YAxis domain={[0, 1.1]} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(value) => pct(value)} />
-              <Bar dataKey="anomaly_score" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={52}>
+              <Bar dataKey="anomaly_score" fill="#dc2626" stroke="#fff" strokeWidth={2} radius={0}>
                 <LabelList
                   dataKey="name"
                   position="top"
@@ -117,7 +116,7 @@ function AisPanel({ data }: { data: EnergyResilienceDashboard }) {
                   dataKey="anomaly_score"
                   position="top"
                   offset={4}
-                  formatter={(val) => pct(val)}
+                  formatter={(val: any) => pct(val)}
                   style={{ fontSize: 11, fill: '#0f172a', fontWeight: 'bold' }}
                 />
               </Bar>
@@ -178,12 +177,12 @@ function SprPanel({ data }: { data: EnergyResilienceDashboard }) {
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorSpr" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#93c5fd" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#93c5fd" stopOpacity={0.1} />
                 </linearGradient>
                 <linearGradient id="colorStress" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#fca5a5" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#fca5a5" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
