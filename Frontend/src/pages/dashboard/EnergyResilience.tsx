@@ -176,8 +176,8 @@ function SprPanel({ data }: { data: EnergyResilienceDashboard }) {
               <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
               <YAxis yAxisId="right" orientation="right" domain={[0, 1]} tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Area yAxisId="left" type="monotone" dataKey="spr_cover_days_remaining" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorSpr)" dot={false} />
-              <Area yAxisId="right" type="monotone" dataKey="stress_index" stroke="#dc2626" strokeWidth={3} fillOpacity={1} fill="url(#colorStress)" dot={false} />
+              <Area yAxisId="left" type="monotone" dataKey="spr_cover_days_remaining" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorSpr)" dot={false} />
+              <Area yAxisId="right" type="monotone" dataKey="stress_index" stroke="#dc2626" strokeWidth={2} fillOpacity={1} fill="url(#colorStress)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
