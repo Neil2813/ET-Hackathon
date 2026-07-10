@@ -105,7 +105,7 @@ function AisPanel({ data }: { data: EnergyResilienceDashboard }) {
               <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} height={54} />
               <YAxis domain={[0, 1]} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(value) => pct(value)} />
-              <Bar dataKey="anomaly_score" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={32} />
+              <Bar dataKey="anomaly_score" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={20} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -163,12 +163,12 @@ function SprPanel({ data }: { data: EnergyResilienceDashboard }) {
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorSpr" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25}/>
-                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0}/>
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
                 </linearGradient>
                 <linearGradient id="colorStress" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.25}/>
-                  <stop offset="95%" stopColor="#dc2626" stopOpacity={0.0}/>
+                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#dc2626" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -360,7 +360,7 @@ function EsgPanel({ data }: { data: any }) {
             IMO Guidelines
           </span>
         </div>
-        
+
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
@@ -483,9 +483,8 @@ const EnergyResilience = () => {
               key={item.key}
               type="button"
               onClick={() => setModule(item.key)}
-              className={`inline-flex items-center gap-2 px-3 py-2 rounded text-xs font-mono font-bold uppercase tracking-widest transition-colors ${
-                selected ? "bg-red-50 text-red-600 border border-red-200" : "text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-transparent"
-              }`}
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded text-xs font-mono font-bold uppercase tracking-widest transition-colors ${selected ? "bg-red-50 text-red-600 border border-red-200" : "text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-transparent"
+                }`}
             >
               <Icon size={14} />
               {item.label}
