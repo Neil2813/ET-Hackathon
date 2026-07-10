@@ -26,6 +26,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  LabelList,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -100,12 +101,26 @@ function AisPanel({ data }: { data: EnergyResilienceDashboard }) {
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={vessels}>
+            <BarChart data={vessels} margin={{ top: 30, right: 10, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} height={54} />
-              <YAxis domain={[0, 1]} tick={{ fontSize: 11 }} />
+              <YAxis domain={[0, 1.1]} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(value) => pct(value)} />
-              <Bar dataKey="anomaly_score" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={52} />
+              <Bar dataKey="anomaly_score" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={52}>
+                <LabelList
+                  dataKey="name"
+                  position="top"
+                  offset={18}
+                  style={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }}
+                />
+                <LabelList
+                  dataKey="anomaly_score"
+                  position="top"
+                  offset={4}
+                  formatter={(val) => pct(val)}
+                  style={{ fontSize: 11, fill: '#0f172a', fontWeight: 'bold' }}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
