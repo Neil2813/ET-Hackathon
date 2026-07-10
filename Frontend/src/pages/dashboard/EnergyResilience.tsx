@@ -21,6 +21,8 @@ import {
   Leaf,
 } from "lucide-react";
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -158,15 +160,25 @@ function SprPanel({ data }: { data: EnergyResilienceDashboard }) {
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorSpr" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.12}/>
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0}/>
+                </linearGradient>
+                <linearGradient id="colorStress" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.12}/>
+                  <stop offset="95%" stopColor="#dc2626" stopOpacity={0.0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="day" tick={{ fontSize: 11 }} />
               <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
               <YAxis yAxisId="right" orientation="right" domain={[0, 1]} tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Line yAxisId="left" type="monotone" dataKey="spr_cover_days_remaining" stroke="#2563eb" dot={false} strokeWidth={2} />
-              <Line yAxisId="right" type="monotone" dataKey="stress_index" stroke="#dc2626" dot={false} strokeWidth={2} />
-            </LineChart>
+              <Area yAxisId="left" type="monotone" dataKey="spr_cover_days_remaining" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorSpr)" dot={false} />
+              <Area yAxisId="right" type="monotone" dataKey="stress_index" stroke="#dc2626" strokeWidth={3} fillOpacity={1} fill="url(#colorStress)" dot={false} />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
