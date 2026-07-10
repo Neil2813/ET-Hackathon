@@ -368,7 +368,7 @@ function EsgPanel({ data }: { data: any }) {
               <XAxis dataKey="name" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip formatter={(value) => [`${value} Tons`, 'Emissions']} />
-              <Bar dataKey="emissions" fill="#059669" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="emissions" fill="#059669" radius={[4, 4, 0, 0]} barSize={52} />
             </BarChart>
           </ResponsiveContainer>
         </div>
