@@ -105,7 +105,7 @@ function AisPanel({ data }: { data: EnergyResilienceDashboard }) {
               <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} height={54} />
               <YAxis domain={[0, 1]} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(value) => pct(value)} />
-              <Bar dataKey="anomaly_score" fill="#dc2626" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="anomaly_score" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={32} />
             </BarChart>
           </ResponsiveContainer>
         </div>
