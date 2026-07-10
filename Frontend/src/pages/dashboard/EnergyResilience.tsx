@@ -163,11 +163,11 @@ function SprPanel({ data }: { data: EnergyResilienceDashboard }) {
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorSpr" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.12}/>
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25}/>
                   <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0}/>
                 </linearGradient>
                 <linearGradient id="colorStress" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.12}/>
+                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.25}/>
                   <stop offset="95%" stopColor="#dc2626" stopOpacity={0.0}/>
                 </linearGradient>
               </defs>
