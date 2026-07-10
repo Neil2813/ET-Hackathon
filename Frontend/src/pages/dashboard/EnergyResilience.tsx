@@ -124,10 +124,10 @@ function AisPanel({ data }: { data: EnergyResilienceDashboard }) {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={vessels} barCategoryGap={0} margin={{ top: 40, right: 10, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+              <CartesianGrid strokeDasharray="0" stroke="#f1f5f9" vertical={true} horizontal={false} />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} height={54} />
               <YAxis domain={[0, 1.2]} tick={{ fontSize: 11 }} />
-              <Tooltip cursor={false} content={<AisTooltip />} />
+              <Tooltip cursor={{ fill: 'rgba(241, 245, 249, 0.45)' }} content={<AisTooltip />} />
               <Bar
                 dataKey="anomaly_score"
                 radius={0}
