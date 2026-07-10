@@ -355,17 +355,23 @@ const LandingPage = () => {
               borderColor: "rgba(239, 68, 68, 0.3)" // subtle red highlight matching existing brand red
             }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center cursor-default shadow-sm transition-all duration-300"
+            className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 flex flex-col items-center justify-center cursor-default shadow-sm transition-all duration-300"
           >
-            <CountUp
-              from={0}
-              to={139}
-              duration={2}
-              delay={0}
-              direction="up"
-              className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-slate-900"
-            />
-            <p className="text-label-sm text-red-500 uppercase tracking-widest mt-2">{"Countries Monitored"}</p>
+            <div className="flex h-full flex-col items-center justify-center gap-3">
+              <div className="h-14 flex items-center justify-center text-center">
+                <CountUp
+                  from={0}
+                  to={139}
+                  duration={2}
+                  delay={0}
+                  direction="up"
+                  className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-slate-900"
+                />
+              </div>
+              <div className="h-8 flex items-start justify-center text-center">
+                <p className="text-label-sm text-red-500 uppercase tracking-widest">{"Countries Monitored"}</p>
+              </div>
+            </div>
           </motion.div>
 
           {/* Card 2: Live Data Sources */}
@@ -381,17 +387,23 @@ const LandingPage = () => {
               borderColor: "rgba(239, 68, 68, 0.3)" // subtle red highlight matching existing brand red
             }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center cursor-default shadow-sm transition-all duration-300"
+            className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 flex flex-col items-center justify-center cursor-default shadow-sm transition-all duration-300"
           >
-            <CountUp
-              from={0}
-              to={26}
-              duration={1.8}
-              delay={0.2}
-              direction="up"
-              className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-slate-900"
-            />
-            <p className="text-label-sm text-red-500 uppercase tracking-widest mt-2">{"Live Data Sources"}</p>
+            <div className="flex h-full flex-col items-center justify-center gap-3">
+              <div className="h-14 flex items-center justify-center text-center">
+                <CountUp
+                  from={0}
+                  to={26}
+                  duration={1.8}
+                  delay={0.2}
+                  direction="up"
+                  className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-slate-900"
+                />
+              </div>
+              <div className="h-8 flex items-start justify-center text-center">
+                <p className="text-label-sm text-red-500 uppercase tracking-widest">{"Live Data Sources"}</p>
+              </div>
+            </div>
           </motion.div>
 
           {/* Card 3: Time to Response */}
@@ -407,25 +419,31 @@ const LandingPage = () => {
               borderColor: "rgba(239, 68, 68, 0.3)" // subtle red highlight matching existing brand red
             }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center cursor-default shadow-sm transition-all duration-300"
+            className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 flex flex-col items-center justify-center cursor-default shadow-sm transition-all duration-300"
           >
-            <div className="flex items-center justify-center gap-1">
-              <span className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-slate-900">
-                &lt;
-              </span>
-              <CountUp
-                from={0}
-                to={15}
-                duration={2}
-                delay={0.4}
-                direction="up"
-                className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-slate-900"
-              />
-              <span className="font-headline text-xl md:text-2xl lg:text-3xl font-black text-slate-900">
-                min
-              </span>
+            <div className="flex h-full flex-col items-center justify-center gap-3">
+              <div className="h-14 flex items-center justify-center text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <span className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-slate-900">
+                    &lt;
+                  </span>
+                  <CountUp
+                    from={0}
+                    to={15}
+                    duration={2}
+                    delay={0.4}
+                    direction="up"
+                    className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-slate-900"
+                  />
+                  <span className="font-headline text-xl md:text-2xl lg:text-3xl font-black text-slate-900">
+                    min
+                  </span>
+                </div>
+              </div>
+              <div className="h-8 flex items-start justify-center text-center">
+                <p className="text-label-sm text-red-500 uppercase tracking-widest">{"Time to Response"}</p>
+              </div>
             </div>
-            <p className="text-label-sm text-red-500 uppercase tracking-widest mt-2">{"Time to Response"}</p>
           </motion.div>
 
           {/* Card 4: Threat Detection Rate */}
@@ -441,22 +459,28 @@ const LandingPage = () => {
               borderColor: "rgba(239, 68, 68, 0.3)" // subtle red highlight matching other cards
             }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center cursor-default shadow-sm transition-all duration-300"
+            className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 flex flex-col items-center justify-center cursor-default shadow-sm transition-all duration-300"
           >
-            <div className="flex items-center justify-center gap-1">
-              <CountUp
-                from={0}
-                to={99.9}
-                duration={2}
-                delay={0.6}
-                direction="up"
-                className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-red-500"
-              />
-              <span className="font-headline text-2xl md:text-3xl lg:text-4xl font-black text-red-500">
-                %
-              </span>
+            <div className="flex h-full flex-col items-center justify-center gap-3">
+              <div className="h-14 flex items-center justify-center text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <CountUp
+                    from={0}
+                    to={99.9}
+                    duration={2}
+                    delay={0.6}
+                    direction="up"
+                    className="font-headline text-3xl md:text-4xl lg:text-5xl font-black text-red-500"
+                  />
+                  <span className="font-headline text-2xl md:text-3xl lg:text-4xl font-black text-red-500">
+                    %
+                  </span>
+                </div>
+              </div>
+              <div className="h-8 flex items-start justify-center text-center">
+                <p className="text-label-sm text-red-500 uppercase tracking-widest">Threat Detection Rate</p>
+              </div>
             </div>
-            <p className="text-label-sm text-red-500 uppercase tracking-widest mt-2">Threat Detection Rate</p>
           </motion.div>
         </motion.div>
       </section>
