@@ -39,3 +39,4 @@ langdetect==1.0.9
 searoute==1.6.0
 geojson==3.3.0
 yfinance>=0.2.54
+scipy>=1.11.0

@@ -836,3 +836,329 @@ def build_energy_resilience_dashboard(tenant_id: str) -> dict[str, Any]:
             "total_emissions_avoided_tons": 3450.0,
         }
     }
+
+
+# ── Linear Programming Crude Blend Optimizer ─────────────────────────────────
+#
+# Uses scipy HiGHS LP solver to find the least-cost mixture of available crude
+# grades that meets a refinery's assay spec (API gravity, sulfur %, viscosity).
+# Returns fraction weights per grade, blended properties, and feasibility flag.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def optimize_crude_blend(
+    refinery_id: str = "jamnagar",
+    blocked_grade: str = "iranian_light",
+) -> dict[str, Any]:
+    """
+    Compute the optimal multi-crude blend recipe for a refinery when its primary
+    feedstock grade is disrupted.
+
+    Objective
+    ---------
+    Maximise total available throughput (proxy for supply security) subject to:
+      • API gravity falls within refinery min/max specification
+      • Sulfur content ≤ refinery sulfur cap
+      • Viscosity ≤ refinery viscosity cap
+      • Blend fractions sum to 1.0 (full substitute for the blocked volume)
+      • No single crude dominates > 60% (concentration risk guard)
+
+    Returns
+    -------
+    dict with keys:
+        status          — "optimal" | "infeasible" | "no_alternatives"
+        recipe          — list of {crude, fraction, fraction_pct, daily_mbd}
+        blend_properties — {api_gravity, sulfur_pct, viscosity_cst}
+        meets_spec      — bool: does the blend satisfy all refinery constraints?
+        solver          — solver used ("scipy HiGHS LP")
+        refinery        — refinery dict used
+        blocked_grade   — the blocked crude profile
+    """
+    try:
+        from scipy.optimize import linprog
+    except ImportError:
+        return {"status": "error", "message": "scipy not installed — run pip install scipy"}
+
+    refinery = next((r for r in REFINERY_CAPABILITIES if r["id"] == refinery_id), REFINERY_CAPABILITIES[0])
+    blocked  = next((c for c in CRUDE_PROFILES if c["id"] == blocked_grade), CRUDE_PROFILES[0])
+
+    # Available crudes: exclude the blocked grade and any explicitly marked as blocked
+    available = [c for c in CRUDE_PROFILES if c["id"] != blocked["id"] and not c.get("blocked")]
+    if len(available) < 2:
+        return {
+            "status": "no_alternatives",
+            "message": "Fewer than 2 non-blocked crudes available — cannot build a blend.",
+            "refinery": refinery,
+            "blocked_grade": blocked,
+        }
+
+    n = len(available)
+
+    # ── Objective: maximise total daily_available_mbd (supply security) ──────
+    # linprog minimises, so negate the objective
+    cost_c = [-float(c["daily_available_mbd"]) for c in available]
+
+    # ── Inequality constraints (A_ub @ x <= b_ub) ────────────────────────────
+    A_ub: list[list[float]] = []
+    b_ub: list[float] = []
+
+    # API gravity lower bound:  api_i*x_i >= api_min  →  -api_i*x_i <= -api_min
+    A_ub.append([-float(c["api_gravity"]) for c in available])
+    b_ub.append(-float(refinery["api_min"]))
+
+    # API gravity upper bound:  api_i*x_i <= api_max
+    A_ub.append([float(c["api_gravity"]) for c in available])
+    b_ub.append(float(refinery["api_max"]))
+
+    # Sulfur cap:  sulfur_i*x_i <= sulfur_max_pct
+    A_ub.append([float(c["sulfur_pct"]) for c in available])
+    b_ub.append(float(refinery["sulfur_max_pct"]))
+
+    # Viscosity cap:  viscosity_i*x_i <= viscosity_max_cst
+    A_ub.append([float(c["viscosity_cst"]) for c in available])
+    b_ub.append(float(refinery["viscosity_max_cst"]))
+
+    # ── Equality constraint: fractions must sum to 1.0 ───────────────────────
+    A_eq = [[1.0] * n]
+    b_eq = [1.0]
+
+    # ── Bounds: 0 <= x_i <= 0.60  (max 60% concentration per grade) ─────────
+    bounds = [(0.0, 0.60) for _ in range(n)]
+
+    result = linprog(cost_c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
+                     bounds=bounds, method="highs")
+
+    if not result.success:
+        # Relax concentration limit to 80% and retry — some specs only admit one grade
+        bounds_relaxed = [(0.0, 0.80) for _ in range(n)]
+        result = linprog(cost_c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
+                         bounds=bounds_relaxed, method="highs")
+
+    if not result.success:
+        return {
+            "status": "infeasible",
+            "message": (
+                f"No compatible blend found for {refinery['name']} "
+                f"given available alternatives. Refinery spec may be too tight "
+                f"or all compatible crudes are unavailable."
+            ),
+            "refinery": refinery,
+            "blocked_grade": blocked,
+            "solver": "scipy HiGHS LP",
+        }
+
+    # ── Build recipe (drop trivial fractions < 2%) ───────────────────────────
+    recipe: list[dict[str, Any]] = []
+    for crude, fraction in zip(available, result.x):
+        if fraction >= 0.02:
+            daily_volume = round(float(fraction) * float(refinery["demand_mbd"]), 3)
+            recipe.append({
+                "crude": crude,
+                "fraction": round(float(fraction), 4),
+                "fraction_pct": round(float(fraction) * 100.0, 1),
+                "daily_mbd": daily_volume,
+            })
+    recipe.sort(key=lambda r: r["fraction"], reverse=True)
+
+    # ── Compute blended assay properties ─────────────────────────────────────
+    blend_api       = sum(r["crude"]["api_gravity"] * r["fraction"] for r in recipe)
+    blend_sulfur    = sum(r["crude"]["sulfur_pct"]  * r["fraction"] for r in recipe)
+    blend_viscosity = sum(r["crude"]["viscosity_cst"] * r["fraction"] for r in recipe)
+
+    meets_spec = (
+        float(refinery["api_min"]) <= blend_api <= float(refinery["api_max"])
+        and blend_sulfur    <= float(refinery["sulfur_max_pct"])
+        and blend_viscosity <= float(refinery["viscosity_max_cst"])
+    )
+
+    return {
+        "status": "optimal",
+        "refinery": refinery,
+        "blocked_grade": blocked,
+        "recipe": recipe,
+        "blend_properties": {
+            "api_gravity":   round(blend_api, 2),
+            "sulfur_pct":    round(blend_sulfur, 4),
+            "viscosity_cst": round(blend_viscosity, 2),
+        },
+        "meets_spec": meets_spec,
+        "solver": "scipy HiGHS LP",
+        "generated_at": _now(),
+    }
+
+
+def build_all_blend_recipes(blocked_grade: str = "iranian_light") -> dict[str, Any]:
+    """
+    Run optimize_crude_blend for every refinery and return a consolidated result.
+    Used by the /api/energy-resilience/blend-optimizer endpoint.
+    """
+    results = []
+    for refinery in REFINERY_CAPABILITIES:
+        result = optimize_crude_blend(
+            refinery_id=refinery["id"],
+            blocked_grade=blocked_grade,
+        )
+        results.append(result)
+
+    feasible = [r for r in results if r.get("status") == "optimal"]
+    infeasible = [r for r in results if r.get("status") == "infeasible"]
+
+    return {
+        "blocked_grade": next((c for c in CRUDE_PROFILES if c["id"] == blocked_grade), CRUDE_PROFILES[0]),
+        "refineries_analysed": len(results),
+        "feasible_count": len(feasible),
+        "infeasible_count": len(infeasible),
+        "blend_recipes": results,
+        "generated_at": _now(),
+    }
+
+
+# ── Cape of Good Hope vs Suez Canal Route Comparison ─────────────────────────
+#
+# When Red Sea / Bab el-Mandeb corridor risk is elevated, tankers must decide
+# whether to transit Suez (shorter but riskier) or detour via the Cape of Good
+# Hope (longer but safer). This engine computes both routes for VLCC and
+# Suezmax tanker classes and quantifies the cost, time, and risk delta.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Typical Gulf-to-India tanker corridor anchor points
+_GULF_ORIGIN   = (26.5, 56.0)   # Strait of Hormuz exit (Fujairah area)
+_INDIA_DEST_W  = (18.96, 72.82) # Mumbai / BPCL terminal (west coast refineries)
+_INDIA_DEST_E  = (20.26, 86.73) # Paradip / IOCL east coast
+_SUEZ_WAYPOINT = (29.9, 32.6)   # Suez Canal northern entrance
+
+# War-risk insurance premium uplift for Red Sea / Bab el-Mandeb
+_WAR_RISK_SUEZ_NORMAL  = 0.06   # 6% uplift in normal times
+_WAR_RISK_SUEZ_CRISIS  = 0.28   # 28% uplift when corridor is at high risk
+_WAR_RISK_CAPE          = 0.04   # Cape route baseline (no active threat zone)
+
+# Daily charter rate premiums for the extended voyage (Cape adds ~14 days)
+_CAPE_EXTRA_DAYS_VLCC    = 14.0
+_CAPE_EXTRA_DAYS_SUEZMAX = 13.0
+
+
+def build_route_comparison(
+    corridor_risk_score: float = 0.65,
+    origin: tuple[float, float] | None = None,
+    destination: tuple[float, float] | None = None,
+) -> dict[str, Any]:
+    """
+    Compare Suez Canal vs Cape of Good Hope routing for a Gulf → India crude cargo.
+
+    Parameters
+    ----------
+    corridor_risk_score : float
+        Current Bab el-Mandeb / Red Sea risk score (0–1). Used to scale war-risk
+        insurance premium. Above 0.60 triggers the crisis premium.
+    origin      : (lat, lng) of loading port. Defaults to Strait of Hormuz exit.
+    destination : (lat, lng) of discharge port. Defaults to Mumbai.
+
+    Returns
+    -------
+    dict with keys:
+        suez_route      — metrics for the Suez Canal option (both tanker classes)
+        cape_route      — metrics for the Cape of Good Hope detour
+        recommendation  — "suez" | "cape" | "cape_strongly_recommended"
+        cost_delta_usd  — extra cost of taking Cape vs Suez route
+        time_delta_days — extra transit days via Cape
+        risk_reduction  — how much risk goes down by taking Cape
+        breakeven_risk  — the risk score at which Cape becomes cheaper
+        corridor_risk_score — input score used
+    """
+    from routing.sea import crude_tanker_route, TANKER_PROFILES
+
+    orig_lat, orig_lng = origin or _GULF_ORIGIN
+    dest_lat, dest_lng = destination or _INDIA_DEST_W
+
+    # Select war-risk premium based on current corridor risk
+    war_risk_suez = _WAR_RISK_SUEZ_CRISIS if corridor_risk_score >= 0.60 else _WAR_RISK_SUEZ_NORMAL
+
+    classes = ["VLCC", "Suezmax"]
+    suez_routes: list[dict[str, Any]] = []
+    cape_routes: list[dict[str, Any]] = []
+
+    for tanker_class in classes:
+        profile = TANKER_PROFILES[tanker_class]
+
+        # ── Suez / direct route ──────────────────────────────────────────────
+        suez = crude_tanker_route(
+            orig_lat, orig_lng, dest_lat, dest_lng,
+            tanker_class=tanker_class,
+            force_cape=False,
+            chokepoint="Bab el-Mandeb",
+        )
+        # Override war-risk based on live corridor risk score
+        suez_bunker  = suez["distance_km"] * 18.0
+        suez_charter = suez["transit_days"] * profile["charter_usd_day"]
+        suez_cost    = round((suez_bunker + suez_charter) * (1 + war_risk_suez), 0)
+        suez["cost_usd"]        = suez_cost
+        suez["war_risk_premium"]= war_risk_suez
+        suez["route_label"]     = f"Suez Canal / Red Sea — {tanker_class}"
+        suez["tanker_class"]    = tanker_class
+        suez["co2_tons"]        = round(suez["distance_km"] * 0.0078, 1)  # ~7.8g CO2/tonne-km approx
+
+        # ── Cape of Good Hope detour ─────────────────────────────────────────
+        cape = crude_tanker_route(
+            orig_lat, orig_lng, dest_lat, dest_lng,
+            tanker_class=tanker_class,
+            force_cape=True,
+            chokepoint="Cape of Good Hope",
+        )
+        cape_bunker  = cape["distance_km"] * 18.0
+        cape_extra_days = _CAPE_EXTRA_DAYS_VLCC if tanker_class == "VLCC" else _CAPE_EXTRA_DAYS_SUEZMAX
+        cape_charter = (suez["transit_days"] + cape_extra_days) * profile["charter_usd_day"]
+        cape_cost    = round((cape_bunker + cape_charter) * (1 + _WAR_RISK_CAPE), 0)
+        cape["cost_usd"]         = cape_cost
+        cape["war_risk_premium"] = _WAR_RISK_CAPE
+        cape["route_label"]      = f"Cape of Good Hope — {tanker_class}"
+        cape["tanker_class"]     = tanker_class
+        cape["co2_tons"]         = round(cape["distance_km"] * 0.0078, 1)
+        cape["extra_days_vs_suez"] = round(cape["transit_days"] - suez["transit_days"], 1)
+
+        suez_routes.append(suez)
+        cape_routes.append(cape)
+
+    # ── Aggregate metrics (VLCC as primary for headline numbers) ─────────────
+    suez_vlcc = suez_routes[0]
+    cape_vlcc  = cape_routes[0]
+    cost_delta = round(cape_vlcc["cost_usd"] - suez_vlcc["cost_usd"], 0)
+    time_delta = round(cape_vlcc["transit_days"] - suez_vlcc["transit_days"], 1)
+    risk_reduction = round(suez_vlcc.get("risk_score", 0.58) - cape_vlcc.get("risk_score", 0.31), 3)
+
+    # Breakeven: at what risk score does Cape become cheaper than Suez?
+    # cost_suez(r) = (bunker + charter) * (1 + r)
+    # cost_cape    = (cape_bunker + cape_charter) * (1 + 0.04) [fixed]
+    suez_base = suez_vlcc["distance_km"] * 18.0 + suez_vlcc["transit_days"] * TANKER_PROFILES["VLCC"]["charter_usd_day"]
+    cape_total_fixed = cape_vlcc["cost_usd"]
+    # suez_base * (1 + r) = cape_total_fixed → r = cape_total_fixed/suez_base - 1
+    breakeven_risk = round(max(0.0, min(1.0, cape_total_fixed / max(1, suez_base) - 1.0)), 3)
+
+    # Recommendation logic
+    if corridor_risk_score >= 0.75:
+        recommendation = "cape_strongly_recommended"
+    elif cost_delta <= 0 or corridor_risk_score >= breakeven_risk:
+        recommendation = "cape"
+    else:
+        recommendation = "suez"
+
+    recommendation_text = {
+        "suez":                    "Suez Canal is viable — monitor corridor risk closely.",
+        "cape":                    "Cape of Good Hope offers better risk/cost balance at current threat level.",
+        "cape_strongly_recommended": "Red Sea threat is CRITICAL — reroute via Cape of Good Hope immediately.",
+    }[recommendation]
+
+    return {
+        "suez_routes": suez_routes,
+        "cape_routes": cape_routes,
+        "corridor_risk_score": corridor_risk_score,
+        "war_risk_suez": war_risk_suez,
+        "war_risk_cape": _WAR_RISK_CAPE,
+        "cost_delta_usd": cost_delta,
+        "time_delta_days": time_delta,
+        "risk_reduction": risk_reduction,
+        "breakeven_risk": breakeven_risk,
+        "recommendation": recommendation,
+        "recommendation_text": recommendation_text,
+        "origin_label": "Strait of Hormuz / Fujairah",
+        "destination_label": "Mumbai / BPCL",
+        "generated_at": _now(),
+    }

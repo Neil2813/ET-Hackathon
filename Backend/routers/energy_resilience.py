@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from services.firebase_auth import verify_firebase_or_local_token
 from services.firestore_store import add_audit
@@ -12,6 +12,8 @@ from services.energy_resilience import (
     build_exchange_ledger,
     build_geopolitical_rag,
     build_spr_policy,
+    build_all_blend_recipes,
+    build_route_comparison,
 )
 from routers.schemas import EnergyResilienceSPRRequest, CrudeCompatibilityRequest
 from routers.helpers import _resolved_request_tenant, _enqueue_celery_task
@@ -69,6 +71,34 @@ async def api_energy_resilience_exchange_ledger(user=Depends(verify_firebase_or_
     tenant_id = _energy_tenant(user)
     add_audit("energy_resilience_exchange_ledger", tenant_id)
     return build_exchange_ledger(tenant_id)
+
+
+@router.get("/api/energy-resilience/blend-optimizer")
+async def api_blend_optimizer(
+    blocked_grade: str = Query(default="iranian_light", description="ID of the blocked crude grade"),
+    user=Depends(verify_firebase_or_local_token),
+) -> dict[str, Any]:
+    """
+    LP-optimised multi-crude blend recipes for all refineries when a primary
+    grade is disrupted. Uses scipy HiGHS solver to find the optimal mixture
+    satisfying each refinery's API gravity, sulfur %, and viscosity spec.
+    """
+    add_audit("energy_resilience_blend_optimizer", f"{user.get('sub', 'local')}:{blocked_grade}")
+    return build_all_blend_recipes(blocked_grade)
+
+
+@router.get("/api/energy-resilience/route-comparison")
+async def api_route_comparison(
+    corridor_risk: float = Query(default=0.65, ge=0.0, le=1.0, description="Bab el-Mandeb risk score 0–1"),
+    user=Depends(verify_firebase_or_local_token),
+) -> dict[str, Any]:
+    """
+    Suez Canal vs Cape of Good Hope routing comparison for Gulf→India crude tankers.
+    Returns cost, transit time, war-risk premium, CO2, and a recommendation
+    ('suez' | 'cape' | 'cape_strongly_recommended') driven by the live corridor risk score.
+    """
+    add_audit("energy_resilience_route_comparison", user.get("sub", "local"))
+    return build_route_comparison(corridor_risk_score=corridor_risk)
 
 
 @router.post("/ml/train/xgboost")
