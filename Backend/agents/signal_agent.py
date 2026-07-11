@@ -48,14 +48,29 @@ async def fetch_nasa_eonet() -> list[dict]:
 async def fetch_gdelt() -> list[dict]:
     """
     GDELT Doc 2.0 API — completely free, no API key.
-    Uses the correct timespan format (string suffix) and supply-chain query terms.
+    Queries both general supply-chain terms AND energy/oil-specific terms
+    (OPEC decisions, Iran crude, Hormuz tanker incidents, refinery disruptions)
+    for the Geopolitical Risk Intelligence Agent.
     """
     global _GDELT_RATE_LIMIT_UNTIL
     now_ts = time.monotonic()
     if now_ts < _GDELT_RATE_LIMIT_UNTIL:
         return []
 
-    queries = ["supply chain"]
+    # General supply chain + Energy/oil-specific queries for energy resilience
+    queries = [
+        "supply chain",
+        "crude oil sanctions Iran OPEC",
+        "Strait Hormuz tanker oil disruption",
+        "refinery disruption petroleum shortage",
+    ]
+    # Severity hints: energy-specific queries get higher baseline severity
+    _query_severity: dict[str, float] = {
+        "supply chain": 5.5,
+        "crude oil sanctions Iran OPEC": 7.2,
+        "Strait Hormuz tanker oil disruption": 8.0,
+        "refinery disruption petroleum shortage": 6.8,
+    }
     seen: set[str] = set()
     results: list[dict] = []
 
@@ -69,7 +84,7 @@ async def fetch_gdelt() -> list[dict]:
                         "mode": "artlist",
                         "maxrecords": 10,
                         "format": "json",
-                        "timespan": "24h",   # ← correct format: "24h" not 1440
+                        "timespan": "24h",
                         "sort": "DateDesc",
                     },
                 )
@@ -82,6 +97,15 @@ async def fetch_gdelt() -> list[dict]:
             except Exception:
                 continue
 
+            base_severity = _query_severity.get(q, 5.5)
+            # Classify event type based on query category
+            if "oil" in q or "Hormuz" in q or "refinery" in q or "OPEC" in q:
+                event_type = "energy_geopolitical"
+                source_category = "energy_risk"
+            else:
+                event_type = "geopolitical_news"
+                source_category = "geopolitical"
+
             for article in (data.get("articles") or []):
                 url = str(article.get("url") or "")
                 if url in seen:
@@ -90,16 +114,17 @@ async def fetch_gdelt() -> list[dict]:
                 sid = f"sig_{hashlib.sha256(f'gdelt|{url}'.encode('utf-8')).hexdigest()[:16]}"
                 results.append({
                     "id": sid,
-                    "event_type": "geopolitical_news",
+                    "event_type": event_type,
                     "location": str(article.get("sourcecountry") or "Global"),
-                    "severity": 5.5,
+                    "severity": base_severity,
                     "lat": 0.0,
                     "lng": 0.0,
                     "source": "gdelt",
-                    "source_category": "geopolitical",
+                    "source_category": source_category,
                     "title": str(article.get("title") or "GDELT Signal"),
                     "url": url,
                     "created_at": datetime.now(timezone.utc).isoformat(),
+                    "query_context": q,
                 })
     return results
 
@@ -112,6 +137,10 @@ async def fetch_newsapi(api_key: str | None) -> list[dict]:
         "port congestion freight delay",
         "factory shutdown manufacturing",
         "customs backlog logistics",
+        # Energy/oil-specific queries for the energy resilience module
+        "crude oil price OPEC Iran sanctions",
+        "Strait of Hormuz shipping tanker",
+        "India crude oil import refinery",
     ]
     seen: set[str] = set()
     results: list[dict] = []

@@ -38,3 +38,4 @@ langdetect==1.0.9
 # Maritime routing (Eurostat searoute) — powers /api/sea-route endpoint
 searoute==1.6.0
 geojson==3.3.0
+yfinance>=0.2.54

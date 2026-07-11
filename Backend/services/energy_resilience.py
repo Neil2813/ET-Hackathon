@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from agents.spr_optimization_agent import optimize_spr_drawdown
+from services.worldbank import fetch_india_energy_vulnerability, build_vulnerability_narrative
 
 DB_PATH = Path(os.getenv("LOCAL_DB_PATH") or (Path(__file__).resolve().parent.parent / "local_fallback.db"))
 LIVE_API_ENABLED = os.getenv("ENERGY_RESILIENCE_USE_LIVE_APIS", "true").strip().lower() in {"1", "true", "yes"}
@@ -212,39 +213,98 @@ def _latest_portwatch_transit(portwatch_name: str) -> dict[str, Any] | None:
     }
 
 
-def _fetch_brent_trend() -> dict[str, Any] | None:
-    if not EIA_API_KEY:
-        return None
-    data = _http_json(
-        EIA_BRENT_URL,
-        {
-            "frequency": "daily",
-            "data[0]": "value",
-            "facets[series][]": "RBRTE",
-            "sort[0][column]": "period",
-            "sort[0][direction]": "desc",
-            "offset": "0",
-            "length": "10",
-            "api_key": EIA_API_KEY,
-        },
-    )
-    if not isinstance(data, dict):
-        return None
-    rows = (((data.get("response") or {}) if isinstance(data.get("response"), dict) else {}).get("data") or [])
-    if not isinstance(rows, list) or len(rows) < 2:
-        return None
+def _fetch_brent_yfinance() -> dict[str, Any] | None:
+    """
+    Fetch live Brent crude price via yfinance (Yahoo Finance scraper).
+    Completely free, no API key required. Used as fallback when EIA_API_KEY is absent.
+
+    Uses a 10-day history window (not 2d) so weekend/holiday gaps don't yield empty
+    DataFrames. Tries Brent futures (BZ=F) first, falls back to WTI (CL=F) if needed.
+    """
     try:
-        latest = float(rows[0].get("value"))
-        previous = float(rows[-1].get("value"))
+        import yfinance as yf
+
+        brent_price: float | None = None
+        brent_prev: float | None = None
+        source_symbol = ""
+
+        # Try Brent futures first, then WTI as fallback price basis
+        for symbol in ("BZ=F", "CL=F"):
+            try:
+                hist = yf.Ticker(symbol).history(period="10d", interval="1d")
+                closes = hist["Close"].dropna() if not hist.empty else None
+                if closes is not None and len(closes) >= 2:
+                    brent_price = float(closes.iloc[-1])
+                    brent_prev = float(closes.iloc[0])
+                    source_symbol = symbol
+                    break
+            except Exception:
+                continue
+
+        if brent_price is None:
+            return None
+
+        trend_pct = ((brent_price - brent_prev) / brent_prev * 100.0) if brent_prev else 0.0
+
+        # Also grab WTI for spread calculation (only if Brent was from BZ=F)
+        wti_latest: float | None = None
+        if source_symbol == "BZ=F":
+            try:
+                wti_hist = yf.Ticker("CL=F").history(period="5d", interval="1d")
+                wti_closes = wti_hist["Close"].dropna() if not wti_hist.empty else None
+                if wti_closes is not None and not wti_closes.empty:
+                    wti_latest = float(wti_closes.iloc[-1])
+            except Exception:
+                pass
+
+        return {
+            "brent_latest_usd": round(brent_price, 2),
+            "brent_trend_pct": round(trend_pct, 2),
+            "wti_latest_usd": round(wti_latest, 2) if wti_latest else None,
+            "brent_wti_spread_usd": round(brent_price - wti_latest, 2) if wti_latest else None,
+            "symbol_used": source_symbol,
+            "observations": 10,
+            "source": "Yahoo Finance (yfinance)",
+        }
     except Exception:
         return None
-    trend_pct = ((latest - previous) / previous * 100.0) if previous else 0.0
-    return {
-        "brent_latest_usd": round(latest, 2),
-        "brent_trend_pct": round(trend_pct, 2),
-        "observations": len(rows),
-        "source": "U.S. EIA",
-    }
+
+
+
+def _fetch_brent_trend() -> dict[str, Any] | None:
+    # Primary: EIA (authoritative US government data, requires API key)
+    if EIA_API_KEY:
+        data = _http_json(
+            EIA_BRENT_URL,
+            {
+                "frequency": "daily",
+                "data[0]": "value",
+                "facets[series][]": "RBRTE",
+                "sort[0][column]": "period",
+                "sort[0][direction]": "desc",
+                "offset": "0",
+                "length": "10",
+                "api_key": EIA_API_KEY,
+            },
+        )
+        if isinstance(data, dict):
+            rows = (((data.get("response") or {}) if isinstance(data.get("response"), dict) else {}).get("data") or [])
+            if isinstance(rows, list) and len(rows) >= 2:
+                try:
+                    latest = float(rows[0].get("value"))
+                    previous = float(rows[-1].get("value"))
+                    trend_pct = ((latest - previous) / previous * 100.0) if previous else 0.0
+                    return {
+                        "brent_latest_usd": round(latest, 2),
+                        "brent_trend_pct": round(trend_pct, 2),
+                        "observations": len(rows),
+                        "source": "U.S. EIA",
+                    }
+                except Exception:
+                    pass
+
+    # Fallback: yfinance — free, no key, live Yahoo Finance scraper
+    return _fetch_brent_yfinance()
 
 
 def _connect() -> sqlite3.Connection:
@@ -548,6 +608,35 @@ def build_geopolitical_rag() -> dict[str, Any]:
     ]
     live_documents = _fetch_gdelt_maritime_documents()
     documents = live_documents or fallback_documents
+
+    # ── World Bank economic vulnerability context ──────────────────────────────
+    wb_profile: dict[str, Any] = {}
+    wb_document: dict[str, Any] | None = None
+    try:
+        wb_profile = fetch_india_energy_vulnerability()
+        narrative = build_vulnerability_narrative(wb_profile)
+        wb_document = {
+            "source": "World Bank Open Data",
+            "title": f"India Energy Vulnerability Profile ({wb_profile.get('data_year', 'latest')})",
+            "corridor": "Global",
+            "actors": ["India MoPNG", "World Bank"],
+            "threat_type": "structural vulnerability",
+            "likelihood": 1.0,   # Structural — always applicable
+            "severity": min(0.95, (wb_profile.get("energy_import_pct", 38.5) / 100.0) * 1.8),
+            "narrative": narrative,
+            "indicators": {
+                "energy_import_pct": wb_profile.get("energy_import_pct"),
+                "fuel_import_pct_merch": wb_profile.get("fuel_import_pct_merch"),
+                "gdp_usd": wb_profile.get("gdp_usd"),
+            },
+        }
+    except Exception:
+        pass
+
+    if wb_document:
+        documents = [wb_document] + documents
+    # ─────────────────────────────────────────────────────────────────────────
+
     risk_by_corridor: dict[str, dict[str, Any]] = {}
     for doc in documents:
         key = str(doc["corridor"])
@@ -564,9 +653,11 @@ def build_geopolitical_rag() -> dict[str, Any]:
         "vector_store": "GDELT maritime-risk corpus" if live_documents else "local maritime-risk corpus",
         "documents": documents,
         "risk_by_corridor": risk_by_corridor,
+        "india_vulnerability": wb_profile,
         "live_sources": {
             "gdelt_enabled": LIVE_API_ENABLED,
             "gdelt_used": bool(live_documents),
+            "worldbank_used": bool(wb_profile),
             "fallback_used": not bool(live_documents),
         },
         "generated_at": _now(),

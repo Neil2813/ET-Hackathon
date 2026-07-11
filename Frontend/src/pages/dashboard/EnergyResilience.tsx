@@ -318,42 +318,141 @@ function CompatibilityPanel({ data }: { data: EnergyResilienceDashboard }) {
 
 function RagPanel({ data }: { data: EnergyResilienceDashboard }) {
   const corridors = Object.entries(data.rag.risk_by_corridor).map(([name, values]) => ({ name, ...values })) as any[];
+  const wb = (data.rag as any).india_vulnerability as Record<string, any> | undefined;
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-4">
-      <div className="border border-slate-200 bg-white rounded shadow-sm p-5">
-        <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">Vector Risk Store</p>
-        <h2 className="font-headline text-xl font-bold text-slate-900 mt-1">{data.rag.vector_store}</h2>
-        <div className="mt-5 space-y-3">
-          {corridors.map((corridor) => (
-            <div key={corridor.name} className="bg-slate-50 border border-slate-200 rounded p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-900">{corridor.name}</span>
-                <span className="text-xs font-mono font-bold text-red-600">{pct(corridor.risk_score)}</span>
-              </div>
-              <div className="mt-3 h-2 bg-white border border-slate-200 rounded overflow-hidden">
-                <div className="h-full bg-red-500" style={{ width: pct(corridor.risk_score) }} />
-              </div>
+    <div className="space-y-4">
+      {/* India Vulnerability Card — World Bank PPP vs Nominal */}
+      {wb && (
+        <div className="border border-blue-200 bg-blue-50 rounded shadow-sm p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
+            <div>
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-blue-500">World Bank Open Data · {wb.data_year}</p>
+              <h2 className="font-headline text-lg font-bold text-slate-900 mt-1">India Energy Vulnerability Profile</h2>
             </div>
-          ))}
-        </div>
-      </div>
-      <div className="border border-slate-200 bg-white rounded shadow-sm p-5">
-        <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 mb-4">Extracted Threat Documents</p>
-        <div className="space-y-3">
-          {data.rag.documents.map((doc, index) => (
-            <div key={index} className="border border-slate-200 rounded p-4">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded">
-                  {String(doc.source)}
-                </span>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">{String(doc.threat_type)}</span>
-              </div>
-              <p className="text-sm font-bold text-slate-900">{String(doc.title)}</p>
-              <p className="text-xs text-slate-500 font-mono font-bold mt-2">
-                {String(doc.corridor)} / likelihood {pct(doc.likelihood)} / severity {pct(doc.severity)}
+            <div className="text-right">
+              <p className="text-[10px] font-mono font-bold text-blue-700 bg-blue-100 border border-blue-200 px-2 py-1 rounded">
+                ₹{wb.usd_inr_rate}/USD nominal &nbsp;·&nbsp; ₹{wb.ppp_rate}/intl$ PPP
               </p>
             </div>
-          ))}
+          </div>
+
+          {/* PPP explanation banner */}
+          <div className="mt-3 mb-4 bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-800 leading-relaxed">
+            <span className="font-bold">Why two numbers?</span> Nominal (₹{wb.usd_inr_rate}/USD) = what India
+            pays in <span className="font-bold">foreign exchange</span> — the actual forex outflow.
+            PPP (₹{wb.ppp_rate}/intl$) = the <span className="font-bold">real domestic impact</span> — what
+            the same cost means in Indian purchasing power terms.
+            At a PPP ratio of <span className="font-bold">{wb.ppp_ratio}×</span>, ₹1 in India
+            buys {wb.ppp_ratio}× more than the nominal rate implies,
+            because wages, land and services are far cheaper than in the US.
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Nominal forex cost */}
+            <div className="bg-white border border-slate-200 rounded p-4">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 mb-3">
+                Forex / Nominal (₹{wb.usd_inr_rate}/USD)
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-mono uppercase">GDP (nominal)</p>
+                  <p className="text-xl font-bold text-slate-900 mt-0.5">{String(wb.gdp_inr_formatted ?? "N/A")}</p>
+                  <p className="text-[10px] text-slate-400">Actual forex value of economy</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-mono uppercase">Annual Fuel Import Bill</p>
+                  <p className="text-xl font-bold text-red-700 mt-0.5">{String(wb.fuel_import_value_inr ?? "N/A")}</p>
+                  <p className="text-[10px] text-slate-400">Foreign exchange actually spent on fuel ({String(wb.fuel_import_value_usd_display ?? "")})</p>
+                </div>
+              </div>
+            </div>
+
+            {/* PPP real domestic impact */}
+            <div className="bg-white border border-emerald-200 rounded p-4">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-600 mb-3">
+                PPP / Real Domestic Impact (₹{wb.ppp_rate}/intl$)
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-mono uppercase">GDP (PPP)</p>
+                  <p className="text-xl font-bold text-slate-900 mt-0.5">{String(wb.gdp_ppp_intl_formatted ?? "N/A")}</p>
+                  <p className="text-[10px] text-slate-400">Actual purchasing power of economy</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-mono uppercase">Fuel Cost — Domestic Impact</p>
+                  <p className="text-xl font-bold text-emerald-700 mt-0.5">{String(wb.fuel_import_value_ppp_inr ?? "N/A")}</p>
+                  <p className="text-[10px] text-slate-400">Real burden in Indian purchasing-power terms</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Supplemental indicators */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+            <div className="bg-white border border-blue-100 rounded p-3">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Energy Import %</p>
+              <p className="text-lg font-bold text-amber-700 mt-1">{fixed(wb.energy_import_pct)}%</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Of total energy consumed</p>
+            </div>
+            <div className="bg-white border border-blue-100 rounded p-3">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Fuel of Imports</p>
+              <p className="text-lg font-bold text-slate-900 mt-1">{fixed(wb.fuel_import_pct_merch)}%</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Of merchandise imports</p>
+            </div>
+            <div className="bg-white border border-blue-100 rounded p-3">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">PPP Ratio</p>
+              <p className="text-lg font-bold text-blue-700 mt-1">{fixed(wb.ppp_ratio, 2)}×</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Domestic vs nominal</p>
+            </div>
+            <div className="bg-white border border-blue-100 rounded p-3">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">CO₂ per Capita</p>
+              <p className="text-lg font-bold text-emerald-700 mt-1">{fixed(wb.co2_per_capita, 2)}t</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Metric tons CO₂/year</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-4">
+        <div className="border border-slate-200 bg-white rounded shadow-sm p-5">
+          <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">Vector Risk Store</p>
+          <h2 className="font-headline text-xl font-bold text-slate-900 mt-1">{data.rag.vector_store}</h2>
+          <div className="mt-5 space-y-3">
+            {corridors.map((corridor) => (
+              <div key={corridor.name} className="bg-slate-50 border border-slate-200 rounded p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-900">{corridor.name}</span>
+                  <span className="text-xs font-mono font-bold text-red-600">{pct(corridor.risk_score)}</span>
+                </div>
+                <div className="mt-3 h-2 bg-white border border-slate-200 rounded overflow-hidden">
+                  <div className="h-full bg-red-500" style={{ width: pct(corridor.risk_score) }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="border border-slate-200 bg-white rounded shadow-sm p-5">
+          <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 mb-4">Extracted Threat Documents</p>
+          <div className="space-y-3">
+            {data.rag.documents.map((doc, index) => (
+              <div key={index} className="border border-slate-200 rounded p-4">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded">
+                    {String(doc.source)}
+                  </span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">{String(doc.threat_type)}</span>
+                </div>
+                <p className="text-sm font-bold text-slate-900">{String(doc.title)}</p>
+                {(doc as any).narrative && (
+                  <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">{String((doc as any).narrative)}</p>
+                )}
+                <p className="text-xs text-slate-500 font-mono font-bold mt-2">
+                  {String(doc.corridor)} / likelihood {pct(doc.likelihood)} / severity {pct(doc.severity)}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
