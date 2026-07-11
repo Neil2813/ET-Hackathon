@@ -19,6 +19,8 @@ import {
   Ship,
   Zap,
   Leaf,
+  GitBranch,
+  Navigation,
 } from "lucide-react";
 import {
   Area,
@@ -37,13 +39,27 @@ import {
 } from "recharts";
 import { api, type EnergyResilienceDashboard } from "@/lib/api";
 import { CO2Badge } from "@/components/ui/CO2Badge";
+import { getAccessToken, getUserId } from "@/lib/api";
 
-type ModuleKey = "ais" | "spr" | "compatibility" | "rag" | "ledger" | "esg";
+const BASE = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/+$/, "");
+
+function authHeaders(): HeadersInit {
+  const token = getAccessToken();
+  return {
+    "Content-Type": "application/json",
+    "X-User-Id": getUserId(),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+type ModuleKey = "ais" | "spr" | "compatibility" | "rag" | "ledger" | "esg" | "blend" | "routes";
 
 const MODULES: Array<{ key: ModuleKey; label: string; icon: ElementType }> = [
   { key: "ais", label: "AIS Agent", icon: Ship },
   { key: "spr", label: "SPR Policy", icon: Gauge },
   { key: "compatibility", label: "Crude Match", icon: FlaskConical },
+  { key: "blend", label: "Blend LP", icon: GitBranch },
+  { key: "routes", label: "Route Compare", icon: Navigation },
   { key: "rag", label: "Risk RAG", icon: BrainCircuit },
   { key: "ledger", label: "Exchange Ledger", icon: GitMerge },
   { key: "esg", label: "ESG Carbon", icon: Leaf },
@@ -312,6 +328,365 @@ function CompatibilityPanel({ data }: { data: EnergyResilienceDashboard }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/* ── Blend LP Optimizer Panel ──────────────────────────────────────────────── */
+function BlendPanel({ data }: { data: EnergyResilienceDashboard }) {
+  const blockedGrade = String(data.compatibility.blocked_grade.id || "iranian_light");
+  const [blendData, setBlendData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchBlend = async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await fetch(
+        `${BASE}/api/energy-resilience/blend-optimizer?blocked_grade=${encodeURIComponent(blockedGrade)}`,
+        { headers: authHeaders() }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setBlendData(await res.json());
+    } catch (e: any) {
+      setError(e.message || "Failed to fetch blend recipes");
+    } finally { setLoading(false); }
+  };
+
+  const BLEND_COLORS = ["#2563eb", "#16a34a", "#dc2626", "#f59e0b", "#7c3aed", "#0891b2"];
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="border border-violet-200 bg-violet-50 rounded shadow-sm p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-violet-500">Linear Programming · scipy HiGHS Solver</p>
+            <h2 className="font-headline text-lg font-bold text-slate-900 mt-1">Optimal Crude Blend Recipes</h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Blocked: <span className="font-bold text-red-600">{String(data.compatibility.blocked_grade.name)}</span>
+              {" "}— finds minimum-cost multi-crude blend satisfying each refinery's API gravity, sulfur &amp; viscosity spec.
+            </p>
+          </div>
+          <button
+            onClick={fetchBlend}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-xs font-bold rounded hover:bg-violet-700 disabled:opacity-50 transition-colors"
+          >
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <GitBranch size={13} />}
+            {loading ? "Solving…" : "Run LP Solver"}
+          </button>
+        </div>
+        {error && <p className="mt-3 text-xs text-red-600 font-mono">{error}</p>}\
+      </div>
+
+      {!blendData && !loading && (
+        <div className="border border-dashed border-slate-300 rounded p-10 text-center">
+          <GitBranch size={32} className="text-violet-300 mx-auto mb-3" />
+          <p className="text-sm text-slate-500 font-medium">Click "Run LP Solver" to compute optimal blend recipes</p>
+          <p className="text-xs text-slate-400 mt-1">scipy HiGHS finds the minimum-cost crude mix satisfying all refinery assay constraints</p>
+        </div>
+      )}
+
+      {blendData && (
+        <>
+          {/* Summary */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="border border-slate-200 bg-white rounded p-4 text-center">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Refineries</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{blendData.refineries_analysed}</p>
+            </div>
+            <div className="border border-emerald-200 bg-emerald-50 rounded p-4 text-center">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-600">Feasible</p>
+              <p className="text-2xl font-bold text-emerald-700 mt-1">{blendData.feasible_count}</p>
+            </div>
+            <div className="border border-red-200 bg-red-50 rounded p-4 text-center">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-500">Infeasible</p>
+              <p className="text-2xl font-bold text-red-700 mt-1">{blendData.infeasible_count}</p>
+            </div>
+          </div>
+
+          {/* Per-refinery blend cards */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {(blendData.blend_recipes as any[]).map((result: any, idx: number) => (
+              <div key={idx} className={`border rounded shadow-sm p-5 ${
+                result.status === "optimal"
+                  ? "border-emerald-200 bg-white"
+                  : "border-red-200 bg-red-50"
+              }`}>
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{String(result.refinery?.name)}</p>
+                    <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 mt-0.5">
+                      {String(result.refinery?.operator)} · API {fixed(result.refinery?.api_min)}-{fixed(result.refinery?.api_max)} / S≤{fixed(result.refinery?.sulfur_max_pct)}%
+                    </p>
+                  </div>
+                  <span className={`text-[10px] font-mono font-bold uppercase px-2 py-1 rounded border ${
+                    result.status === "optimal"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-red-50 text-red-700 border-red-200"
+                  }`}>
+                    {result.status}
+                  </span>
+                </div>
+
+                {result.status === "optimal" && result.recipe && (
+                  <>
+                    {/* Blend bar chart */}
+                    <div className="space-y-2 mb-4">
+                      {(result.recipe as any[]).map((item: any, i: number) => (
+                        <div key={i}>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="font-bold text-slate-800">{String(item.crude?.name)}</span>
+                            <span className="font-mono font-bold" style={{ color: BLEND_COLORS[i % BLEND_COLORS.length] }}>
+                              {Number(item.fraction_pct).toFixed(1)}% · {Number(item.daily_mbd).toFixed(3)} mbd
+                            </span>
+                          </div>
+                          <div className="h-2.5 bg-slate-100 rounded overflow-hidden">
+                            <div
+                              className="h-full rounded transition-all duration-500"
+                              style={{
+                                width: `${Number(item.fraction_pct)}%`,
+                                backgroundColor: BLEND_COLORS[i % BLEND_COLORS.length],
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Blended assay properties */}
+                    <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
+                      <div className="text-center">
+                        <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">Blend API</p>
+                        <p className={`text-sm font-bold mt-0.5 ${
+                          result.meets_spec ? "text-emerald-700" : "text-red-600"
+                        }`}>{fixed(result.blend_properties?.api_gravity)}°</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">Sulfur</p>
+                        <p className={`text-sm font-bold mt-0.5 ${
+                          result.meets_spec ? "text-emerald-700" : "text-red-600"
+                        }`}>{fixed(result.blend_properties?.sulfur_pct, 3)}%</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">Viscosity</p>
+                        <p className={`text-sm font-bold mt-0.5 ${
+                          result.meets_spec ? "text-emerald-700" : "text-red-600"
+                        }`}>{fixed(result.blend_properties?.viscosity_cst, 1)} cSt</p>
+                      </div>
+                    </div>
+                    {result.meets_spec !== undefined && (
+                      <div className={`mt-3 text-[10px] font-mono font-bold uppercase px-2 py-1 rounded text-center ${
+                        result.meets_spec
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : "bg-amber-50 text-amber-700 border border-amber-200"
+                      }`}>\
+                        {result.meets_spec ? "✓ All assay constraints satisfied" : "⚠ Blend outside spec — manual review needed"}\
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {result.status !== "optimal" && (
+                  <p className="text-xs text-red-700 font-medium">{String(result.message || "No feasible blend found.")}</p>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-400 font-mono text-center">Solver: scipy HiGHS LP · Max 60% single-grade concentration · Objective: maximise throughput availability</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ── Route Comparison Panel (Suez vs Cape) ─────────────────────────────────── */
+function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
+  // Derive corridor risk from live RAG data
+  const corridorRisk = useMemo(() => {
+    const ragRisk = data.rag?.risk_by_corridor as Record<string, any> | undefined;
+    if (!ragRisk) return 0.65;
+    const babScore = ragRisk["Bab el-Mandeb"]?.risk_score ?? 0;
+    const hormuzScore = ragRisk["Strait of Hormuz"]?.risk_score ?? 0;
+    return Math.max(babScore, hormuzScore);
+  }, [data]);
+
+  const [routeData, setRouteData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchRoutes = async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await fetch(
+        `${BASE}/api/energy-resilience/route-comparison?corridor_risk=${corridorRisk.toFixed(3)}`,
+        { headers: authHeaders() }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setRouteData(await res.json());
+    } catch (e: any) {
+      setError(e.message || "Failed to fetch route comparison");
+    } finally { setLoading(false); }
+  };
+
+  const recColor: Record<string, string> = {
+    suez: "border-blue-300 bg-blue-50",
+    cape: "border-amber-300 bg-amber-50",
+    cape_strongly_recommended: "border-red-300 bg-red-50",
+  };
+  const recTextColor: Record<string, string> = {
+    suez: "text-blue-800",
+    cape: "text-amber-800",
+    cape_strongly_recommended: "text-red-800",
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="border border-blue-200 bg-blue-50 rounded shadow-sm p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-blue-500">Geospatial Routing Engine · Gulf → India</p>
+            <h2 className="font-headline text-lg font-bold text-slate-900 mt-1">Suez Canal vs Cape of Good Hope</h2>
+            <p className="text-xs text-slate-600 mt-1">
+              Live corridor risk: <span className={`font-bold ${
+                corridorRisk >= 0.75 ? "text-red-600" : corridorRisk >= 0.5 ? "text-amber-600" : "text-emerald-600"
+              }`}>{pct(corridorRisk)}</span> · War-risk insurance and charter rate impact computed per tanker class.
+            </p>
+          </div>
+          <button
+            onClick={fetchRoutes}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Navigation size={13} />}
+            {loading ? "Computing…" : "Compare Routes"}
+          </button>
+        </div>
+        {error && <p className="mt-3 text-xs text-red-600 font-mono">{error}</p>}
+      </div>
+
+      {!routeData && !loading && (
+        <div className="border border-dashed border-slate-300 rounded p-10 text-center">
+          <Navigation size={32} className="text-blue-300 mx-auto mb-3" />
+          <p className="text-sm text-slate-500 font-medium">Click "Compare Routes" to run the routing engine</p>
+          <p className="text-xs text-slate-400 mt-1">Computes cost, transit days, war-risk premium &amp; CO₂ for Suez and Cape routes</p>
+        </div>
+      )}
+
+      {routeData && (
+        <>
+          {/* Recommendation banner */}
+          <div className={`border-2 rounded p-4 ${recColor[routeData.recommendation] || "border-slate-200 bg-slate-50"}`}>
+            <p className={`text-sm font-bold ${recTextColor[routeData.recommendation] || "text-slate-800"}`}>
+              {routeData.recommendation === "cape_strongly_recommended" ? "🚨" : routeData.recommendation === "cape" ? "⚠️" : "✅"}
+              {" "}{String(routeData.recommendation_text)}
+            </p>
+            <p className="text-xs text-slate-500 mt-1 font-mono">
+              Breakeven risk threshold: {pct(routeData.breakeven_risk)} · Current: {pct(routeData.corridor_risk_score)}
+            </p>
+          </div>
+
+          {/* Key metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="border border-slate-200 bg-white rounded p-3 text-center">
+              <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">Extra Days (Cape)</p>
+              <p className="text-xl font-bold text-amber-700 mt-1">+{fixed(routeData.time_delta_days, 1)}d</p>
+            </div>
+            <div className="border border-slate-200 bg-white rounded p-3 text-center">
+              <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">Extra Cost (Cape)</p>
+              <p className={`text-xl font-bold mt-1 ${
+                routeData.cost_delta_usd <= 0 ? "text-emerald-700" : "text-red-600"
+              }`}>{routeData.cost_delta_usd <= 0 ? "−" : "+"}${Math.abs(routeData.cost_delta_usd / 1000).toFixed(0)}K</p>
+            </div>
+            <div className="border border-slate-200 bg-white rounded p-3 text-center">
+              <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">Risk Reduction</p>
+              <p className="text-xl font-bold text-emerald-700 mt-1">{pct(routeData.risk_reduction)}</p>
+            </div>
+            <div className="border border-slate-200 bg-white rounded p-3 text-center">
+              <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">War Risk (Suez)</p>
+              <p className="text-xl font-bold text-red-600 mt-1">{pct(routeData.war_risk_suez)}</p>
+            </div>
+          </div>
+
+          {/* Route table — VLCC + Suezmax side by side */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {/* Suez routes */}
+            <div className="border border-blue-200 bg-white rounded shadow-sm p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" />
+                <p className="text-xs font-mono font-bold uppercase tracking-widest text-blue-600">Suez Canal / Red Sea</p>
+                <span className="ml-auto text-[10px] font-mono font-bold text-slate-400">War risk: {pct(routeData.war_risk_suez)}</span>
+              </div>
+              <div className="space-y-3">
+                {(routeData.suez_routes as any[]).map((r: any, i: number) => (
+                  <div key={i} className="bg-slate-50 border border-slate-200 rounded p-3">
+                    <p className="text-xs font-bold text-slate-800 mb-2">{String(r.tanker_class)}</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <p className="text-[9px] font-mono font-bold uppercase text-slate-400">Distance</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{Math.round(r.distance_km).toLocaleString()} km</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-mono font-bold uppercase text-slate-400">Transit</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{fixed(r.transit_days, 1)} days</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-mono font-bold uppercase text-slate-400">Cost</p>
+                        <p className="font-bold text-blue-700 mt-0.5">${(r.cost_usd / 1_000_000).toFixed(2)}M</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-2">
+                      <span className="text-[9px] font-mono text-slate-400">CO₂: {fixed(r.co2_tons, 0)}t</span>
+                      <span className="text-[9px] font-mono text-red-500">Risk: {pct(r.risk_score)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Cape routes */}
+            <div className="border border-emerald-200 bg-white rounded shadow-sm p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />
+                <p className="text-xs font-mono font-bold uppercase tracking-widest text-emerald-600">Cape of Good Hope</p>
+                <span className="ml-auto text-[10px] font-mono font-bold text-slate-400">War risk: {pct(routeData.war_risk_cape)}</span>
+              </div>
+              <div className="space-y-3">
+                {(routeData.cape_routes as any[]).map((r: any, i: number) => (
+                  <div key={i} className="bg-slate-50 border border-slate-200 rounded p-3">
+                    <p className="text-xs font-bold text-slate-800 mb-2">{String(r.tanker_class)}</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <p className="text-[9px] font-mono font-bold uppercase text-slate-400">Distance</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{Math.round(r.distance_km).toLocaleString()} km</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-mono font-bold uppercase text-slate-400">Transit</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{fixed(r.transit_days, 1)} days</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-mono font-bold uppercase text-slate-400">Cost</p>
+                        <p className="font-bold text-emerald-700 mt-0.5">${(r.cost_usd / 1_000_000).toFixed(2)}M</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-2">
+                      <span className="text-[9px] font-mono text-slate-400">CO₂: {fixed(r.co2_tons, 0)}t</span>
+                      <span className="text-[9px] font-mono text-emerald-600">Risk: {pct(r.risk_score)}</span>
+                      <span className="text-[9px] font-mono text-amber-600">+{fixed(r.extra_days_vs_suez, 1)}d vs Suez</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-slate-400 font-mono text-center">
+            Origin: {String(routeData.origin_label)} → Destination: {String(routeData.destination_label)}
+          </p>
+        </>
+      )}
     </div>
   );
 }
@@ -587,6 +962,8 @@ const EnergyResilience = () => {
     if (module === "ais") return <AisPanel data={data} />;
     if (module === "spr") return <SprPanel data={data} />;
     if (module === "compatibility") return <CompatibilityPanel data={data} />;
+    if (module === "blend") return <BlendPanel data={data} />;
+    if (module === "routes") return <RouteComparePanel data={data} />;
     if (module === "rag") return <RagPanel data={data} />;
     if (module === "esg") return <EsgPanel data={data} />;
     return <LedgerPanel data={data} />;
