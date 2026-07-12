@@ -1,5 +1,5 @@
 import sys, os
-sys.path.insert(0, r'd:\Praecantator\Backend')
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('NEWSAPI_API_KEY', 'ca5b4242c8f748649ae721a1a5ff022a')
 os.environ.setdefault('GNEWS_API_KEY', '8fc968d93d6742693a6714f2440cd869')
 os.environ.setdefault('NASA_FIRMS_MAP_KEY', 'd13ea2d01a49c3e04930501af8ba7006')
