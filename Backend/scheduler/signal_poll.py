@@ -50,6 +50,7 @@ from agents.extended_signal_agent import (
     fetch_portwatch_transit_alerts,
     fetch_social_sentiment,
     fetch_wto_trade_signals,
+    fetch_straits_live,
 )
 from services.firestore_store import (
     add_audit,
@@ -247,6 +248,7 @@ async def _poll_sources() -> None:
         run_safe(fetch_wto_trade_signals),
         run_safe(fetch_ofac_sanctions),
         run_safe(fetch_social_sentiment),
+        run_safe(fetch_straits_live),
     ]
 
     results = await asyncio.gather(*tasks)

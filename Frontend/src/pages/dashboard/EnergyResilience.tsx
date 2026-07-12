@@ -21,6 +21,7 @@ import {
   Leaf,
   GitBranch,
   Navigation,
+  BookOpen,
 } from "lucide-react";
 import {
   Area,
@@ -1026,7 +1027,8 @@ function EsgPanel({ data }: { data: any }) {
 }
 
 function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
-  const [scenarioType, setScenarioType] = useState<"hormuz_closure" | "red_sea_suspension" | "opec_cut" | "custom">("hormuz_closure");
+  const [scenarioType, setScenarioType] = useState<"hormuz_closure" | "red_sea_suspension" | "opec_cut" | "double_choke" | "custom">("hormuz_closure");
+  const [country, setCountry] = useState<string>("India");
   const [lossPct, setLossPct] = useState<number>(40);
   const [durationDays, setDurationDays] = useState<number>(30);
   const [sprActive, setSprActive] = useState<boolean>(true);
@@ -1034,21 +1036,40 @@ function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Policy Briefing State
+  const [briefing, setBriefing] = useState<string | null>(null);
+  const [generatingBrief, setGeneratingBrief] = useState<boolean>(false);
+
   const runSimulation = async () => {
     setLoading(true);
     setError(null);
+    setBriefing(null);
     try {
       const res = await api.energyResilience.simulateScenario({
         scenario_type: scenarioType,
         loss_pct: lossPct,
         duration_days: durationDays,
         spr_drawdown_active: sprActive,
+        country: country,
       });
       setSimResult(res);
     } catch (err: any) {
       setError(err.message || "Failed to run simulation");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateBriefing = async () => {
+    if (!simResult) return;
+    setGeneratingBrief(true);
+    try {
+      const res = await api.energyResilience.policyBriefing(simResult);
+      setBriefing(res.briefing);
+    } catch (err: any) {
+      setBriefing(`**Error generating briefing:** ${err.message || "Request failed"}`);
+    } finally {
+      setGeneratingBrief(false);
     }
   };
 
@@ -1066,6 +1087,20 @@ function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
             <h2 className="font-headline text-lg font-bold text-slate-900 mt-1">Disruption Scenario Modeller</h2>
           </div>
 
+          {/* Target Economy Profile Selection */}
+          <div className="space-y-1.5 font-sans">
+            <label className="text-xs font-mono font-bold text-slate-500 uppercase">Target Economy Profile</label>
+            <select
+              value={country}
+              onChange={(e: any) => setCountry(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded p-2 text-sm text-slate-800 focus:outline-none focus:border-red-500 font-medium"
+            >
+              <option value="India">India (Medium SPR, High dependency)</option>
+              <option value="Japan">Japan (Steep SPR, Extremely high Hormuz share)</option>
+              <option value="South Korea">South Korea (Steep SPR, High dependency)</option>
+            </select>
+          </div>
+
           {/* Scenario Type Select */}
           <div className="space-y-1.5 font-sans">
             <label className="text-xs font-mono font-bold text-slate-500 uppercase">Scenario Type</label>
@@ -1077,6 +1112,7 @@ function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
               <option value="hormuz_closure">Strait of Hormuz Partial Closure</option>
               <option value="red_sea_suspension">Red Sea Shipping Disruption</option>
               <option value="opec_cut">OPEC+ Emergency Supply Cut</option>
+              <option value="double_choke">Double-Choke Suez & Hormuz Disruption</option>
               <option value="custom">Custom Import Disruption</option>
             </select>
           </div>
@@ -1140,34 +1176,46 @@ function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
 
         {/* Assumptions Box */}
         <div className="border border-slate-200 bg-white rounded shadow-sm p-5 space-y-3 font-sans">
-          <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">Model Assumptions</p>
+          <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">Model Assumptions ({country})</p>
           <div className="text-[11px] text-slate-500 font-medium space-y-2 leading-relaxed">
             <div className="flex justify-between border-b border-slate-100 pb-1">
-              <span>National Crude Demand</span>
-              <span className="font-bold text-slate-800 font-mono">5.1 MBD</span>
+              <span>National Demand</span>
+              <span className="font-bold text-slate-800 font-mono">
+                {country === "India" ? "5.1" : country === "Japan" ? "3.4" : "2.6"} MBD
+              </span>
             </div>
             <div className="flex justify-between border-b border-slate-100 pb-1">
-              <span>Crude Import Dependency</span>
-              <span className="font-bold text-slate-800 font-mono">88% (~4.49 MBD)</span>
+              <span>Import Dependency</span>
+              <span className="font-bold text-slate-800 font-mono">
+                {country === "India" ? "88%" : country === "Japan" ? "99.7%" : "100%"}
+              </span>
             </div>
             <div className="flex justify-between border-b border-slate-100 pb-1">
               <span>Strait of Hormuz Share</span>
-              <span className="font-bold text-slate-800 font-mono">42.5% (~1.91 MBD)</span>
+              <span className="font-bold text-slate-800 font-mono">
+                {country === "India" ? "42.5%" : country === "Japan" ? "90.0%" : "72.0%"}
+              </span>
             </div>
             <div className="flex justify-between border-b border-slate-100 pb-1">
-              <span>Red Sea Shipping Share</span>
-              <span className="font-bold text-slate-800 font-mono">25.0% (~1.12 MBD)</span>
+              <span>Red Sea/Suez Share</span>
+              <span className="font-bold text-slate-800 font-mono">
+                {country === "India" ? "25.0%" : country === "Japan" ? "5.0%" : "10.0%"}
+              </span>
             </div>
             <div className="flex justify-between border-b border-slate-100 pb-1">
-              <span>Total National SPR Capacity</span>
-              <span className="font-bold text-slate-800 font-mono">39 MMBbl (~9.5 days)</span>
+              <span>SPR Reserve Cover</span>
+              <span className="font-bold text-slate-800 font-mono">
+                {country === "India" ? "39 MMBbl (~9.5d)" : country === "Japan" ? "305 MMBbl (~90d)" : "234 MMBbl (~90d)"}
+              </span>
             </div>
             <div className="flex justify-between border-b border-slate-100 pb-1">
-              <span>Refinery Operational Floor</span>
-              <span className="font-bold text-slate-800 font-mono">86.0%</span>
+              <span>Refinery Floor</span>
+              <span className="font-bold text-slate-800 font-mono">
+                {country === "India" ? "86%" : country === "Japan" ? "80%" : "82%"}
+              </span>
             </div>
             <p className="text-[10px] text-slate-400 italic mt-2">
-              Note: GDP growth is impacted by -0.15% per $10/bbl Brent price spike and -0.12% per 10% refinery run rate reduction. Retail fuel increases by ₹0.45 per $1/bbl Brent spike.
+              Note: GDP drag scales with the country's price sensitivity and refinery run-rate floor violations.
             </p>
           </div>
         </div>
@@ -1187,16 +1235,28 @@ function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
         ) : simResult ? (
           <div className="space-y-6">
             {/* Header */}
-            <div>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Simulation results</span>
-              <h2 className="font-headline text-2xl font-bold text-slate-900 mt-1">{simResult.scenario_label}</h2>
-              <p className="text-sm text-slate-500 mt-1 font-medium font-sans">
-                Simulation run over a {simResult.duration_days}-day planning horizon with SPR drawdown mitigation {simResult.spr_drawdown_active ? "ENABLED" : "DISABLED"}.
-              </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Simulation results</span>
+                <h2 className="font-headline text-2xl font-bold text-slate-900 mt-1">{simResult.scenario_label} ({simResult.assumptions?.country})</h2>
+                <p className="text-sm text-slate-500 mt-1 font-medium font-sans">
+                  Simulation run over a {simResult.duration_days}-day planning horizon with SPR drawdown mitigation {simResult.spr_drawdown_active ? "ENABLED" : "DISABLED"}.
+                </p>
+              </div>
+
+              {/* Policy Brief Button */}
+              <button
+                onClick={generateBriefing}
+                disabled={generatingBrief}
+                className="px-4 py-2 bg-slate-900 text-white font-mono font-bold uppercase tracking-widest text-xs rounded hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                {generatingBrief ? <Loader2 size={12} className="animate-spin" /> : <BookOpen size={12} />}
+                {generatingBrief ? "Generating brief..." : "Generate Cabinet Brief"}
+              </button>
             </div>
 
             {/* Summary KPIs */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
               <div className="border border-slate-200 bg-slate-50/50 p-4 rounded shadow-sm min-w-0">
                 <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Gross Import Gap</p>
                 <p className="text-xl font-bold text-red-600 mt-1 font-mono truncate">{fixed(simResult.summary.gross_import_shock_mbd, 3)} MBD</p>
@@ -1212,17 +1272,42 @@ function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
               <div className="border border-slate-200 bg-slate-50/50 p-4 rounded shadow-sm min-w-0">
                 <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Fuel Price Impact</p>
                 <p className="text-xl font-bold text-amber-600 mt-1 font-mono truncate">
-                  +₹{fixed(simResult.summary.peak_fuel_price_increase_inr_per_litre, 2)}/L
+                  +{simResult.currency_symbol}{fixed(simResult.summary.peak_fuel_price_increase_local, 2)}/L
                 </p>
               </div>
               <div className="border border-slate-200 bg-slate-50/50 p-4 rounded shadow-sm min-w-0">
-                <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">GDP Growth Impact</p>
+                <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">GDP Growth Drag</p>
                 <p className="text-xl font-bold text-red-600 mt-1 font-mono truncate">{fixed(simResult.summary.average_gdp_growth_impact_pct, 3)}%</p>
+              </div>
+              <div className="border border-slate-200 bg-emerald-50/50 border-emerald-100 p-4 rounded shadow-sm min-w-0">
+                <p className="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-widest">Expected Loss Avoided</p>
+                <p className="text-xl font-bold text-emerald-700 mt-1 font-mono truncate">
+                  ${fixed(simResult.summary.expected_cost_avoided_usd / 1e6, 1)}M
+                </p>
+              </div>
+              <div className="border border-slate-200 bg-blue-50/50 border-blue-100 p-4 rounded shadow-sm min-w-0">
+                <p className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-widest">Resilience ROI</p>
+                <p className="text-xl font-bold text-blue-700 mt-1 font-mono truncate">
+                  +{fixed(simResult.summary.resilience_roi_pct, 0)}%
+                </p>
               </div>
             </div>
 
+            {/* Policy Briefing Display (Conditional) */}
+            {briefing && (
+              <div className="border border-slate-200 bg-slate-900 text-slate-100 rounded-lg p-5 font-sans leading-relaxed text-xs shadow-md border-l-4 border-l-amber-500">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-4">
+                  <span className="font-mono text-[10px] font-bold uppercase text-amber-500 tracking-wider">Prime Minister's Cabinet Policy Briefing</span>
+                  <span className="text-[10px] font-medium text-slate-400">Classification: Secret // Immediate Action</span>
+                </div>
+                <div className="whitespace-pre-line font-mono text-slate-300 leading-relaxed text-[11px]">
+                  {briefing}
+                </div>
+              </div>
+            )}
+
             {/* Charts section */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
               {/* Chart 1: Supply Shock & SPR Release */}
               <div className="border border-slate-100 rounded-lg p-4 bg-slate-50/30">
                 <p className="text-xs font-mono font-bold text-slate-500 uppercase mb-3">Crude Supply Shock vs SPR Release</p>
@@ -1253,7 +1338,7 @@ function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
 
               {/* Chart 2: Refinery Run Rate & Power Stress */}
               <div className="border border-slate-100 rounded-lg p-4 bg-slate-50/30">
-                <p className="text-xs font-mono font-bold text-slate-500 uppercase mb-3">Refinery Run Rate & Power Sector Stress</p>
+                <p className="text-xs font-mono font-bold text-slate-500 uppercase mb-3">Refinery & Power Grid Stress</p>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={simResult.daily_timeline}>
@@ -1261,31 +1346,81 @@ function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
                       <XAxis dataKey="day" label={{ value: "Day", position: "insideBottom", offset: -2, fontSize: 10 }} tick={{ fontSize: 10 }} />
                       <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                       <Tooltip />
-                      <Line type="monotone" name="Refinery Run Rate %" dataKey="refinery_run_rate_pct" stroke="#10b981" strokeWidth={2} dot={false} />
-                      <Line type="monotone" name="Power Sector Stress %" dataKey="power_sector_stress_pct" stroke="#dc2626" strokeWidth={2} dot={false} />
+                      <Line type="monotone" name="Refinery Run %" dataKey="refinery_run_rate_pct" stroke="#10b981" strokeWidth={2} dot={false} />
+                      <Line type="monotone" name="Grid Stress %" dataKey="power_sector_stress_pct" stroke="#dc2626" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 3: Predicted vs Actual Brent Spot Chart */}
+              <div className="border border-slate-100 rounded-lg p-4 bg-slate-50/30">
+                <p className="text-xs font-mono font-bold text-slate-500 uppercase mb-3">Brent Price: Predicted vs Actual Spot</p>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={simResult.daily_timeline}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="day" label={{ value: "Day", position: "insideBottom", offset: -2, fontSize: 10 }} tick={{ fontSize: 10 }} />
+                      <YAxis label={{ value: "USD/bbl", angle: -90, position: "insideLeft", fontSize: 10 }} tick={{ fontSize: 10 }} domain={['auto', 'auto']} />
+                      <Tooltip />
+                      <Line type="monotone" name="Predicted Brent" dataKey="brent_price_usd" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                      <Line type="monotone" name="Actual Brent (straits.live)" dataKey="actual_brent_price_usd" stroke="#10b981" strokeWidth={2} strokeDasharray="5 5" dot={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
 
-            {/* Narrative text & details */}
-            <div className="bg-slate-50 border border-slate-200 rounded p-4 text-xs leading-relaxed text-slate-600 font-medium font-sans">
-              <span className="font-bold text-slate-800 block text-sm mb-1.5">Simulation Narrative & Downstream Impacts</span>
-              <ul className="list-disc pl-4 space-y-1.5">
-                <li>
-                  <span className="font-bold text-slate-700">Supply Gap:</span> A gross shortfall of <span className="font-bold text-red-600">{fixed(simResult.summary.gross_import_shock_mbd, 3)} MBD</span> is registered. {simResult.spr_drawdown_active ? `The SPR drawdown schedule releases up to ${fixed(simResult.summary.gross_import_shock_mbd - (simResult.summary.total_unmet_demand_mmbbl / simResult.duration_days), 3)} MBD, mitigating ${simResult.summary.mitigation_percentage}% of the shock.` : "Without SPR active, refineries face the full force of the shock."}
-                </li>
-                <li>
-                  <span className="font-bold text-slate-700">Refinery Operations:</span> Run-rates are projected to average <span className="font-bold text-slate-800">{fixed(simResult.summary.average_refinery_run_rate_pct, 1)}%</span>. {simResult.summary.refinery_stress_level === "critical" ? "Warning: Run-rates drop below the 86% operational floor, which may cause equipment damage and plant shutdowns." : "Refinery run-rates remain above the critical operational threshold, maintaining baseline processing."}
-                </li>
-                <li>
-                  <span className="font-bold text-slate-700">Macro Economy:</span> Brent Crude climbs to an average of <span className="font-bold text-amber-700">${fixed(simResult.summary.average_brent_price_usd, 2)}/bbl</span>, driving retail fuel price increases of up to <span className="font-bold text-amber-700">₹{fixed(simResult.summary.peak_fuel_price_increase_inr_per_litre, 2)} per litre</span>. The cumulative GDP growth trajectory drags down by <span className="font-bold text-red-600">{fixed(Math.abs(simResult.summary.average_gdp_growth_impact_pct), 3)} percentage points</span> over the shock period.
-                </li>
-                <li>
-                  <span className="font-bold text-slate-700">Power Grid Stress:</span> Average power-sector stress peaks at <span className="font-bold text-red-600">{fixed(simResult.summary.average_power_sector_stress_pct, 1)}%</span>, indicating {simResult.summary.power_stress_level === "critical" ? "widespread grid alerts and mandatory industrial load shedding." : simResult.summary.power_stress_level === "alert" ? "localized diesel backup constraints and grid watch status." : "normal grid security levels."}
-                </li>
-              </ul>
+            {/* Parameter Sensitivity and Narrative section */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              {/* Tornado / Sensitivity Analysis Table */}
+              <div className="border border-slate-100 rounded-lg p-4 bg-slate-50/30 font-sans">
+                <p className="text-xs font-mono font-bold text-slate-500 uppercase mb-3">Model Parameter Sensitivity (Tornado Analysis)</p>
+                <div className="overflow-x-auto text-[11px]">
+                  <table className="min-w-full divide-y divide-slate-200">
+                    <thead>
+                      <tr className="bg-slate-100 text-left font-mono font-bold text-slate-600 uppercase text-[9px]">
+                        <th className="px-3 py-2">Assumption Parameter</th>
+                        <th className="px-3 py-2 text-right">Low (-20%)</th>
+                        <th className="px-3 py-2 text-right">High (+20%)</th>
+                        <th className="px-3 py-2 text-right">Swing Effect</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                      {simResult.sensitivity_analysis?.map((item: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-slate-50/50">
+                          <td className="px-3 py-2 font-semibold text-slate-800">{item.friendly_name}</td>
+                          <td className="px-3 py-2 text-right text-emerald-600">{item.gdp_drag_at_low}% GDP</td>
+                          <td className="px-3 py-2 text-right text-red-600">{item.gdp_drag_at_high}% GDP</td>
+                          <td className="px-3 py-2 text-right font-mono font-bold text-slate-900">{item.total_swing_pct}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-2.5 italic">
+                  * Swings represent the absolute change in GDP growth drag when perturbing each parameter.
+                </p>
+              </div>
+
+              {/* Narrative text & details */}
+              <div className="bg-slate-50 border border-slate-200 rounded p-4 text-xs leading-relaxed text-slate-600 font-medium font-sans">
+                <span className="font-bold text-slate-800 block text-sm mb-1.5">Simulation Narrative & Downstream Impacts</span>
+                <ul className="list-disc pl-4 space-y-1.5">
+                  <li>
+                    <span className="font-bold text-slate-700">Supply Gap:</span> A gross shortfall of <span className="font-bold text-red-600">{fixed(simResult.summary.gross_import_shock_mbd, 3)} MBD</span> is registered. {simResult.spr_drawdown_active ? `The SPR drawdown schedule releases up to ${fixed(simResult.summary.gross_import_shock_mbd - (simResult.summary.total_unmet_demand_mmbbl / simResult.duration_days), 3)} MBD, mitigating ${simResult.summary.mitigation_percentage}% of the shock.` : "Without SPR active, refineries face the full force of the shock."}
+                  </li>
+                  <li>
+                    <span className="font-bold text-slate-700">Refinery Operations:</span> Run-rates are projected to average <span className="font-bold text-slate-800">{fixed(simResult.summary.average_refinery_run_rate_pct, 1)}%</span>. {simResult.summary.refinery_stress_level === "critical" ? `Warning: Run-rates drop below the ${simResult.assumptions?.refinery_operational_floor_pct}% operational floor, which may cause equipment damage and plant shutdowns.` : "Refinery run-rates remain above the critical operational threshold, maintaining baseline processing."}
+                  </li>
+                  <li>
+                    <span className="font-bold text-slate-700">Macro Economy:</span> Brent Crude climbs to an average of <span className="font-bold text-amber-700">${fixed(simResult.summary.average_brent_price_usd, 2)}/bbl</span>, driving local retail fuel price increases of up to <span className="font-bold text-amber-700">{simResult.currency_symbol}{fixed(simResult.summary.peak_fuel_price_increase_local, 2)} per litre</span>. The cumulative GDP growth trajectory drags down by <span className="font-bold text-red-600">{fixed(Math.abs(simResult.summary.average_gdp_growth_impact_pct), 3)} percentage points</span> over the shock period.
+                  </li>
+                  <li>
+                    <span className="font-bold text-slate-700">Power Grid Stress:</span> Average power-sector stress peaks at <span className="font-bold text-red-600">{fixed(simResult.summary.average_power_sector_stress_pct, 1)}%</span>, indicating {simResult.summary.power_stress_level === "critical" ? "widespread grid alerts and mandatory industrial load shedding." : simResult.summary.power_stress_level === "alert" ? "localized diesel backup constraints and grid watch status." : "normal grid security levels."}
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         ) : (

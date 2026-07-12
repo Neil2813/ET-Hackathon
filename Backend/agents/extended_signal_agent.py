@@ -1109,3 +1109,39 @@ async def fetch_wto_trade_signals() -> list[dict]:
             description="WTO feed returned no qualifying rows; baseline trade-policy monitoring remains visible in development mode.",
         )
     ]
+
+
+async def fetch_straits_live() -> list[dict]:
+    """
+    Fetch live geopolitical and shipping security events from straits.live
+    """
+    url = "https://straits.live/status"
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            r = await client.get(url)
+            r.raise_for_status()
+            data = r.json()
+    except Exception:
+        return []
+
+    events = data.get("events") or []
+    results = []
+    for e in events:
+        severity_map = {"high": 8.5, "medium": 6.0, "low": 3.5}
+        sev = severity_map.get(str(e.get("severity")).lower(), 5.0)
+        results.append({
+            "id": str(e.get("id")),
+            "event_type": str(e.get("type") or "geopolitical_event"),
+            "title": str(e.get("title")),
+            "description": str(e.get("description") or ""),
+            "location": "Strait of Hormuz",
+            "severity": sev,
+            "lat": float(e.get("lat")) if e.get("lat") is not None else 26.58,
+            "lng": float(e.get("lng")) if e.get("lng") is not None else 56.25,
+            "source": "straits.live",
+            "source_category": "geopolitical",
+            "url": str(e.get("url") or "https://straits.live"),
+            "created_at": str(e.get("occurredAt") or datetime.now(timezone.utc).isoformat()),
+        })
+    return results
+

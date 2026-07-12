@@ -131,7 +131,58 @@ async def api_simulate_scenario(
         loss_pct=payload.loss_pct,
         duration_days=payload.duration_days,
         spr_drawdown_active=payload.spr_drawdown_active,
+        country=payload.country,
     )
+
+
+@router.post("/api/energy-resilience/policy-briefing")
+async def api_energy_resilience_policy_briefing(
+    payload: dict,
+    user=Depends(verify_firebase_or_local_token),
+) -> dict:
+    """
+    Generate a formatted cabinet briefing summary (markdown) for the Ministry
+    of Petroleum or National Security Council using LLM provider.
+    """
+    from services.llm_provider import complete
+
+    scenario_label = payload.get("scenario_label", "Disruption")
+    summary = payload.get("summary") or {}
+    assumptions = payload.get("assumptions") or {}
+    country = assumptions.get("country", "India")
+    currency = payload.get("currency_symbol", "$")
+
+    prompt = (
+        f"You are the senior National Security Advisor on Energy Security for {country}.\n"
+        f"Generate a formal, highly concise, 1-page executive policy brief for the Prime Minister's Office.\n"
+        f"The cabinet needs to make an immediate decision under severe time pressure.\n\n"
+        f"--- CRISIS DATA SUMMARY ---\n"
+        f"- Event: {scenario_label}\n"
+        f"- Import Shock Rate: {summary.get('gross_import_shock_mbd')} MBD\n"
+        f"- Refinery Processing Run-Rate: {summary.get('average_refinery_run_rate_pct')}% (Status: {summary.get('refinery_stress_level')})\n"
+        f"- Power Sector Stress: {summary.get('average_power_sector_stress_pct')}% (Status: {summary.get('power_stress_level')})\n"
+        f"- Average Brent Futures: ${summary.get('average_brent_price_usd')}/bbl\n"
+        f"- Retail Fuel Price Spike: {currency}{summary.get('peak_fuel_price_increase_local')}/litre\n"
+        f"- GDP Drag Projection: {summary.get('average_gdp_growth_impact_pct')}% drag\n"
+        f"- SPR Draw Mitigation active: {payload.get('spr_drawdown_active')}\n"
+        f"- Expected GDP Cost Avoided (via SPR release): ${summary.get('expected_cost_avoided_usd'):,.0f} USD\n"
+        f"- Estimated Mitigation ROI: {summary.get('resilience_roi_pct')}% (against platform operations)\n\n"
+        f"--- BRIEFING FORMAT ---\n"
+        f"Structure the briefing with short, bulleted sections:\n"
+        f"1. **EXECUTIVE VERDICT** (2 sentences warning on overall national safety and economic impact)\n"
+        f"2. **CRITICAL BOTTLE-NECKS** (List of 2 bullet points on refineries and electricity grid stress)\n"
+        f"3. **MITIGATION EFFICIENCY** (Brief evaluation of the SPR drawdown - was it sufficient? Mention the GDP savings and return-on-investment)\n"
+        f"4. **RECOMMENDED ACTIONS** (3 concrete, immediate policy actions: procurement, pricing policy, and emergency conservation)\n\n"
+        f"Respond ONLY with the clean Markdown content. Avoid greetings or introductory remarks."
+    )
+
+    try:
+        briefing_text = await complete(prompt=prompt, system="You are an expert energy advisor.")
+    except Exception as exc:
+        briefing_text = f"**Error generating briefing:** {str(exc)}"
+
+    return {"briefing": briefing_text}
+
 
 
 @router.post("/ml/train/xgboost")

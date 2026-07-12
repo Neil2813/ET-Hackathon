@@ -392,6 +392,19 @@ def _score_match(crude: dict[str, Any], refinery: dict[str, Any]) -> dict[str, A
 
 
 def build_ais_anomaly_forecast() -> dict[str, Any]:
+    # Fetch live straits.live AIS gap metrics and vessel risks
+    straits_live_data = _http_json("https://straits.live/status")
+    ais_gaps_metrics = {}
+    vessel_risk_metrics = {}
+    if isinstance(straits_live_data, dict):
+        ais_gaps_metrics = straits_live_data.get("aisGaps") or {}
+        vessel_risk_metrics = straits_live_data.get("vesselRisk") or {}
+
+    live_gap_count = int(ais_gaps_metrics.get("count", 0))
+    ratio = 1.0
+    if live_gap_count > 0:
+        ratio = live_gap_count / max(1.0, float(ais_gaps_metrics.get("baseline7d", 16.0)))
+
     fallback_vessels = [
         {
             "mmsi": "419001241",
@@ -401,8 +414,8 @@ def build_ais_anomaly_forecast() -> dict[str, Any]:
             "lng": 56.28,
             "speed_knots": 5.1,
             "expected_speed_knots": 12.4,
-            "ais_gap_minutes": 148,
-            "route_deviation_nm": 18.7,
+            "ais_gap_minutes": int(round(148 * ratio)),
+            "route_deviation_nm": round(18.7 * max(0.8, min(2.0, ratio)), 1),
         },
         {
             "mmsi": "419008771",
@@ -423,8 +436,8 @@ def build_ais_anomaly_forecast() -> dict[str, Any]:
             "lng": 56.78,
             "speed_knots": 0.8,
             "expected_speed_knots": 11.5,
-            "ais_gap_minutes": 39,
-            "route_deviation_nm": 7.2,
+            "ais_gap_minutes": int(round(39 * ratio)),
+            "route_deviation_nm": round(7.2 * max(0.8, min(2.0, ratio)), 1),
         },
     ]
     portwatch = {
@@ -499,6 +512,15 @@ def build_ais_anomaly_forecast() -> dict[str, Any]:
             "portwatch_enabled": LIVE_API_ENABLED,
             "portwatch_used": any(v is not None for v in portwatch.values()),
             "fallback_used": not any(v is not None for v in portwatch.values()),
+            "straits_live_integrated": straits_live_data is not None,
+        },
+        "straits_live_telemetry": {
+            "live_ais_gaps_detected": ais_gaps_metrics.get("count"),
+            "ais_gaps_baseline_7d": ais_gaps_metrics.get("baseline7d"),
+            "vessels_tracked_count": ais_gaps_metrics.get("vesselsTracked"),
+            "vessel_risk_high_count": vessel_risk_metrics.get("high"),
+            "vessel_risk_moderate_count": vessel_risk_metrics.get("moderate"),
+            "as_of": straits_live_data.get("asOf") if straits_live_data else None,
         },
         "generated_at": _now(),
     }

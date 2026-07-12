@@ -997,14 +997,20 @@ export const api = {
     geopoliticalRag: () => request<EnergyResilienceDashboard["rag"]>("/energy-resilience/geopolitical-rag"),
     exchangeLedger: () => request<EnergyResilienceDashboard["exchange_ledger"]>("/energy-resilience/exchange-ledger"),
     simulateScenario: (payload: {
-      scenario_type: "hormuz_closure" | "red_sea_suspension" | "opec_cut" | "custom";
+      scenario_type: "hormuz_closure" | "red_sea_suspension" | "opec_cut" | "double_choke" | "custom";
       loss_pct: number;
       duration_days: number;
       spr_drawdown_active: boolean;
+      country?: string;
     }) =>
       request<any>("/energy-resilience/simulate-scenario", {
         method: "POST",
         body: JSON.stringify(payload),
+      }),
+    policyBriefing: (simulationResult: any) =>
+      request<{ briefing: string }>("/energy-resilience/policy-briefing", {
+        method: "POST",
+        body: JSON.stringify(simulationResult),
       }),
   },
   signals: {

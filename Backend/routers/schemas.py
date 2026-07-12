@@ -363,10 +363,11 @@ class RouteComparisonResponse(BaseModel):
 
 
 class ScenarioSimulationRequest(BaseModel):
-    scenario_type: Literal["hormuz_closure", "red_sea_suspension", "opec_cut", "custom"] = "hormuz_closure"
+    scenario_type: Literal["hormuz_closure", "red_sea_suspension", "opec_cut", "double_choke", "custom"] = "hormuz_closure"
     loss_pct: float = Field(default=40.0, ge=0.0, le=100.0)
     duration_days: int = Field(default=30, ge=1, le=180)
     spr_drawdown_active: bool = True
+    country: str = "India"
 
 
 class ScenarioSimulationSummary(BaseModel):
@@ -374,12 +375,19 @@ class ScenarioSimulationSummary(BaseModel):
     average_refinery_run_rate_pct: float
     refinery_stress_level: str
     average_brent_price_usd: float
-    peak_fuel_price_increase_inr_per_litre: float
+    peak_fuel_price_increase_inr_per_litre: float = 0.0 # for backward compatibility
+    peak_fuel_price_increase_local: float
     average_power_sector_stress_pct: float
     power_stress_level: str
     average_gdp_growth_impact_pct: float
     total_unmet_demand_mmbbl: float
     mitigation_percentage: float
+    
+    # ROI metrics
+    expected_cost_avoided_usd: float = 0.0
+    resilience_roi_pct: float = 0.0
+    gdp_loss_with_spr_usd: float = 0.0
+    gdp_loss_without_spr_usd: float = 0.0
 
 
 class DailyTimelineItem(BaseModel):
@@ -389,7 +397,9 @@ class DailyTimelineItem(BaseModel):
     net_supply_gap_mbd: float
     refinery_run_rate_pct: float
     brent_price_usd: float
-    fuel_price_increase_inr_per_litre: float
+    actual_brent_price_usd: float | None = None
+    fuel_price_increase_inr_per_litre: float = 0.0 # for backward compatibility
+    fuel_price_increase_local: float
     power_sector_stress_pct: float
     gdp_growth_impact_pct: float
     spr_inventory_mmbbl: float
@@ -403,7 +413,7 @@ class ScenarioSimulationResponse(BaseModel):
     duration_days: int
     spr_drawdown_active: bool
     assumptions: dict[str, Any]
+    currency_symbol: str = "$"
     summary: ScenarioSimulationSummary
+    sensitivity_analysis: list[dict] = []
     daily_timeline: list[DailyTimelineItem]
-
-
