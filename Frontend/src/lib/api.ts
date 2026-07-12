@@ -996,6 +996,16 @@ export const api = {
       }),
     geopoliticalRag: () => request<EnergyResilienceDashboard["rag"]>("/energy-resilience/geopolitical-rag"),
     exchangeLedger: () => request<EnergyResilienceDashboard["exchange_ledger"]>("/energy-resilience/exchange-ledger"),
+    simulateScenario: (payload: {
+      scenario_type: "hormuz_closure" | "red_sea_suspension" | "opec_cut" | "custom";
+      loss_pct: number;
+      duration_days: number;
+      spr_drawdown_active: boolean;
+    }) =>
+      request<any>("/energy-resilience/simulate-scenario", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
   },
   signals: {
     hazards: () => request<NaturalHazard[]>("/signals/hazards"),

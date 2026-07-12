@@ -72,39 +72,56 @@ _worldmonitor_task: asyncio.Task | None = None
 
 
 def _bootstrap_ml_models():
-    """Run model bootstrapping in a background thread to avoid blocking server startup."""
-    import threading
+    """
+    Verify that committed model weight files are loadable at startup.
+
+    We do NOT auto-retrain on a fresh deployment. Reasons:
+    1. GNN weights were trained on 5 synthetic samples — the heuristic fallback
+       in ml/gnn_stub.py is more defensible than a model with that little data.
+    2. SPR PPO needs 50,000+ timesteps (see ml/train_spr_ppo.py) to converge —
+       5,000-timestep bootstrap weights are worse than the deterministic heuristic.
+
+    If weights are missing, the system uses its heuristic fallbacks transparently.
+    Run the dedicated training scripts (ml/train_spr_ppo.py) offline, commit the
+    output weights, and redeploy for the learned model path to activate.
+    """
     from pathlib import Path
-    
     logger = logging.getLogger("main.bootstrap_ml")
     backend_dir = Path(__file__).resolve().parent
-    
-    # GNN Risk Propagation Bootstrap
+
+    # ── Check GNN weights ────────────────────────────────────────────────────
     gnn_weights = backend_dir / "ml" / "gnn_weights.pt"
     if not gnn_weights.exists():
+        logger.warning(
+            "GNN weights not found at %s. "
+            "Graph risk propagation will use the heuristic message-passing fallback "
+            "(ml/gnn_stub.py). This is intentional and auditable. "
+            "To activate the learned GNN layer, train offline and commit the weights.",
+            gnn_weights,
+        )
+    else:
         try:
-            logger.info("GNN weights file not found. Bootstrapping GNN training...")
-            from ml.gnn_model import train_gnn_model
-            from ml.gnn_stub import build_graph_from_dataset
-            from scheduler.tasks import _dataset_suppliers
-            
-            graph = build_graph_from_dataset(_dataset_suppliers())
-            report = train_gnn_model(graph, epochs=30)
-            logger.info("GNN bootstrap completed: %s", report)
-        except Exception as e:
-            logger.exception("Failed to bootstrap GNN: %s", e)
-            
-    # SPR Drawdown PPO Policy Bootstrap
+            import torch
+            state = torch.load(str(gnn_weights), weights_only=True)
+            logger.info("GNN weights loaded OK (%d parameter tensors, %s bytes)",
+                        len(state), gnn_weights.stat().st_size)
+        except Exception as exc:
+            logger.warning("GNN weights file exists but failed to load (%s). "
+                           "Heuristic fallback will be used.", exc)
+
+    # ── Check SPR PPO weights ────────────────────────────────────────────────
     spr_weights = backend_dir / "ml" / "spr_ppo_weights.zip"
     if not spr_weights.exists():
-        try:
-            logger.info("SPR PPO weights file not found. Bootstrapping PPO training...")
-            from ml.train_rl import train_spr_ppo
-            
-            report = train_spr_ppo(timesteps=5000)
-            logger.info("SPR PPO bootstrap completed: %s", report)
-        except Exception as e:
-            logger.exception("Failed to bootstrap SPR PPO: %s", e)
+        logger.warning(
+            "SPR PPO weights not found at %s. "
+            "SPR drawdown will use the deterministic heuristic scheduler. "
+            "To activate the PPO policy, run ml/train_spr_ppo.py and commit the output.",
+            spr_weights,
+        )
+    else:
+        logger.info("SPR PPO weights present (%s bytes). RL policy will be used.",
+                    spr_weights.stat().st_size)
+
 
 
 @app.on_event("startup")

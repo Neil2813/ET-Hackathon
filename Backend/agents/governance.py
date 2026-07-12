@@ -22,6 +22,7 @@ AGENTS_CHAT = {
     "logistics_risk_agent",
     "reporting_agent",
     "assistant_agent",
+    "spr_optimization_agent",
 }
 AGENTS_WORKFLOW = {
     "signal_agent",
@@ -33,6 +34,7 @@ AGENTS_WORKFLOW = {
     "political_risk_agent",
     "tariff_risk_agent",
     "logistics_risk_agent",
+    "spr_optimization_agent",
 }
 AGENTS_AUTONOMOUS = {
     "signal_agent",
@@ -47,6 +49,7 @@ AGENTS_AUTONOMOUS = {
     "notification_agent",
     "action_agent",
     "audit_agent",
+    "spr_optimization_agent",
 }
 
 ALLOWED_AGENTS_BY_PATH: dict[OrchestrationPath, set[str]] = {
@@ -66,6 +69,7 @@ RETRY_POLICY_BY_AGENT: dict[str, tuple[int, float]] = {
     "reporting_agent": (1, 0.0),
     "rfq_agent": (1, 0.0),
     "audit_agent": (1, 0.0),
+    "spr_optimization_agent": (2, 0.0),
 }
 
 
@@ -84,6 +88,7 @@ CONTRACTS: dict[str, AgentContract] = {
     "routing_agent": AgentContract("routing_agent", ("selected_signal", "affected_suppliers"), ("recommended_mode", "route_comparison"), ("recommended_mode", "route_comparison", "rl_confidence"), "error"),
     "rfq_agent": AgentContract("rfq_agent", ("selected_signal",), ("rfq_email_body", "action_state"), ("rfq_sent", "rfq_email_body", "action_state"), "manual_review"),
     "audit_agent": AgentContract("audit_agent", ("action_state",), ("completed_at",), ("completed_at", "final_report_markdown"), "terminal_error"),
+    "spr_optimization_agent": AgentContract("spr_optimization_agent", ("supply_gap_mbd", "spr_cover_days"), ("spr_draw_mbd", "spr_inventory_mmbbl"), ("spr_draw_mbd", "spr_inventory_mmbbl", "stress_index"), "error"),
 }
 
 

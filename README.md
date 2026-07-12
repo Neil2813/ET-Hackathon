@@ -1,10 +1,9 @@
 # Praecantator
 
-**Autonomous AI-Driven Supply Chain Risk Management (SCRM)**
+**AI-Driven Energy Supply Chain Resilience for Import-Dependent Economies**
 
-Praecantator is an enterprise-grade platform that continuously monitors global supply chain networks, predicts cascading disruption risks using graph-based intelligence and machine learning, and autonomously orchestrates mitigation strategies — optimal rerouting, backup supplier engagement, RFQ generation, and audit-grade decision trails — through a multi-agent system with human-in-the-loop governance.
-
-The platform transitions operations from static, backward-looking dashboards to proactive, forward-looking AI workflows. Operators interact through a tactical command center while autonomous pipelines handle detection, assessment, and disruption response in seconds, automatically evaluating every feasible sea, land, and air logistics path to recommend the fastest, cheapest, or lowest-risk option.
+Praecantator is an enterprise-grade energy security resilience platform designed to safeguard crude oil supply chains. It continuously monitors geopolitical, maritime, and commodity risk signals, models major chokepoint disruption scenarios (e.g., Strait of Hormuz partial closures, Red Sea/Bab el-Mandeb shipping attacks, OPEC+ supply cuts), projects downstream macroeconomic impacts (refinery run rates, domestic retail fuel prices, power-sector stress, and GDP growth trajectories), and dynamically generates executable procurement rerouting recommendations — turning a reactive energy crisis response into a managed, anticipatory process.
+Praecantator features a real-time multi-agent OODA pipeline that executes threat detection, supply graph blast-radius assessment, multi-modal routing, and strategic reserve optimization under human-in-the-loop governance. It leverages PyTorch-based Supply Graph neural networks, Stable-Baselines3 reinforcement learning, and scipy-based linear programming to secure crude supply from wellhead to refinery.
 
 ---
 
@@ -33,15 +32,15 @@ The platform transitions operations from static, backward-looking dashboards to 
 
 ## Problem Statement
 
-Modern supply chains span thousands of tier-1, tier-2, and tier-3 suppliers across continents. Disruptions — typhoons closing ports, geopolitical conflicts, tariff changes, labor strikes, wildfires, and shipping chokepoint congestion — propagate nonlinearly through supplier graphs. Traditional SCRM tools:
+India sources approximately 88% of its crude oil from imports, with 40–45% of that volume transiting through the Strait of Hormuz. This is a critical structural vulnerability: geopolitical events, maritime security incidents, and escalating attacks on Red Sea shipping lanes keep the threat to supply live. Meanwhile, India's Strategic Petroleum Reserves (SPR) provide only 9.5 days of national consumption cover — a buffer that would be exhausted quickly in a sustained disruption. Traditional energy supply chain planning:
 
-- React after damage is done, using static spreadsheets and manual escalation
-- Treat suppliers as rows in a table rather than nodes in an interconnected network
-- Lack spatial awareness of how external events overlap with supplier geographies
-- Produce alerts without actionable routing alternatives or procurement drafts
-- Offer no audit trail proving *why* a decision was made
+- Reacts after damage is done, using static spreadsheets and delayed bulletins
+- Fails to model the cascading macroeconomic impacts of physical corridor closures on refineries, consumer fuel prices, and GDP
+- Lacks spatial-temporal AIS tanker tracking and dynamic maritime rerouting capabilities
+- Fails to coordinate response across refiners, logistics providers, and strategic reserves (SPR drawdowns)
+- Lacks assay compatibility optimization to blend alternative crudes dynamically when primary grades are blocked
 
-Praecantator addresses these gaps with continuous signal ingestion, graph-based blast-radius calculation, multi-modal route simulation, LLM-assisted RFQ drafting, and immutable reasoning logs — all gated by role-based access control and governance checkpoints for high-exposure actions.
+Praecantator solves this with continuous geopolitical news monitoring, spatial-temporal AIS anomaly forecasting, Strategic Petroleum Reserve drawdown modeling, LP-based refinery assay grade compatibility matching, Suez vs. Cape of Good Hope cargo rerouting comparison, and secure exchange ledgers for refiners under human-in-the-loop governance.
 
 ---
 
@@ -49,14 +48,17 @@ Praecantator addresses these gaps with continuous signal ingestion, graph-based 
 
 | Capability | Description |
 |---|---|
-| **Continuous Monitoring** | Background cron fetchers ingest earthquakes, disasters, conflicts, news, market data, chokepoint status, shipping stress, and more |
-| **Graph Risk Propagation** | `CustomerSupplyGraph` models suppliers, logistics hubs, and edges; GNN-style propagation estimates downstream exposure |
+| **Continuous Monitoring** | Background fetchers ingest GDELT, OPEC+ press bulletins, EIA/IEA reports, OFAC sanctions registries, and live AIS vessel anomalies |
+| **Disruption Scenario Modeller** | Simulates specific chokepoint events (Hormuz closure, OPEC+ cut, Red Sea blockade) and projects refinery run rates, retail fuel prices, power-sector stress, and GDP growth impacts |
+| **Strategic Reserve Agent** | Models optimal SPR drawdown schedules and replenishment windows against supply gaps and refinery demand curves using trained Reinforcement Learning (PPO/SAC) |
+| **Graph Risk Propagation** | `CustomerSupplyGraph` models oilfields, logistics lanes, and refineries; GNN-style propagation estimates downstream exposure |
 | **Autonomous Response** | Pipeline runs DETECT → ASSESS → DECIDE → ACT → AUDIT in under 3 seconds for qualifying events |
 | **Human Governance** | High-value or high-risk actions pause at checkpoints until an authorized operator approves |
-| **Multi-Modal Routing** | Automatically evaluates every feasible sea, land, and air logistics path and recommends the fastest, cheapest, or lowest-risk option during disruption |
-| **Procurement Automation** | RFQ drafts generated per affected supplier; email dispatch with action confirmation ledger |
+| **Suez vs Cape Router** | Automatically evaluates transit times, fuel consumption, CO2 emissions, and war-risk premiums for Suez vs. Cape of Good Hope shipping lane detours |
+| **LP Assay Optimizer** | Integrates `scipy.optimize.linprog` to calculate the mathematical optimal substitution recipe of alternative crude grades matching refinery assay properties exactly |
+| **Procurement Automation** | RFQ drafts generated per alternative crude supplier; email dispatch with action confirmation ledger |
 | **Audit & Compliance** | Every reasoning step, checkpoint, feedback verdict, and action status is persisted and exportable as PDF |
-| **Multi-Tenancy** | Strict tenant isolation — no cross-customer data bleed; DUNS/LEI entity resolution for shared supplier overlays |
+| **Multi-Tenancy** | Strict tenant isolation — no cross-refiner data bleed; private inventory-band sharing via exchange ledgers |
 
 ---
 
@@ -201,16 +203,13 @@ graph TB
 
     subgraph "GCP — Paid Backend Hosting"
         GCR[Cloud Run / Compute Engine]
-        Nginx[nginx Reverse Proxy :80/:443]
-        AR[Artifact Registry]
-    end
-
-    subgraph "Application Layer"
+        Nginx[nginx Reverse Proxy    subgraph "Application Layer"
         API[FastAPI Backend :8000]
         WS[WebSocket /ws/tenant_id]
-        Scheduler[APScheduler + WorldMonitor Cron]
+        Celery[Celery + Celery Beat Workers]
         Agents[Multi-Agent Orchestrator]
         ML[ML Models — GNN / XGBoost / RL]
+        Alembic[(Alembic Migrations)]
     end
 
     subgraph "Google Cloud Data & AI"
@@ -223,8 +222,8 @@ graph TB
     end
 
     subgraph "Other"
-        SQLite[(SQLite Fallback — dev only)]
-        Redis[(Upstash Redis — cache)]
+        SQLite[(SQLite Local DB — managed by Alembic)]
+        Redis[(Upstash Redis — cache + broker)]
         GDELT[GDELT / GDACS / NASA EONET]
         News[NewsAPI / GNews]
     end
@@ -238,7 +237,11 @@ graph TB
     Nginx --> WS
     API --> Agents
     API --> ML
-    API --> Scheduler
+    API --> Celery
+    Celery --> GDELT
+    Celery --> News
+    API --> Alembic
+    Alembic --> SQLiteler
     Scheduler --> GDELT
     Scheduler --> News
     Agents --> Vertex
@@ -330,13 +333,14 @@ Praecantator operates three orchestration paths defined in `Backend/agents/gover
 
 | Agent | File | Responsibility |
 |---|---|---|
-| **Signal Agent** | `agents/signal_agent.py` | Fetches and normalizes GDELT, NASA EONET, NewsAPI, GNews signals |
-| **Assessment Agent** | `agents/assessment_agent.py` | Quantifies structural disruption impact on affected suppliers |
-| **Routing Agent** | `agents/routing_agent.py` | Multi-modal route evaluation using `routing/sea.py`, `routing/land.py`, `routing/air.py` |
-| **RFQ Agent** | `agents/rfq_agent.py` | LLM-generated procurement drafts customized per supplier |
-| **Reasoning Logger** | `agents/reasoning_logger.py` | Chronological audit of every agent decision |
-| **Risk Calculator** | `agents/risk_calculator.py` | Aggregates exposure scores across the network |
-| **Citation Tracker** | `agents/citation_tracker.py` | Links decisions to source signals |
+| **Signal Agent** | `agents/signal_agent.py` | Ingests news feeds, OFAC registries, tanker AIS positions, and commodity market data |
+| **Strategic Reserve Agent** | `agents/spr_optimization_agent.py` | Models optimal SPR drawdown rates and replenishment windows against supply gap forecasts |
+| **Assessment Agent** | `agents/assessment_agent.py` | Quantifies structural disruption impacts and refinery exposure USD values |
+| **Routing Agent** | `agents/routing_agent.py` | Multi-modal sea/land evaluation comparing Suez vs. Cape detours |
+| **RFQ Agent** | `agents/rfq_agent.py` | LLM-generated procurement draft emails customized per crude cargo supplier |
+| **Reasoning Logger** | `agents/reasoning_logger.py` | Chronological audit of every agent decision in the OODA pipeline |
+| **Risk Calculator** | `agents/risk_calculator.py` | Aggregates exposure scores across the national network |
+| **Citation Tracker** | `agents/citation_tracker.py` | Links routing decisions to source geopolitical news signals |
 
 ### Specialized Analysis Agents
 
@@ -752,15 +756,17 @@ All infrastructure providers are swappable via environment variables in `Backend
 | `GET` | `/currency/inflation/{code}` | Inflation (World Bank) |
 | `WebSocket` | `/ws/{tenant_id}` | Real-time event stream |
 
-### Routing Engine
+### Routing Engine & Supply Chain Optimization
 
-Praecantator automatically evaluates every feasible logistics path and recommends the fastest, cheapest, or lowest-risk option during disruption. The routing engine in `Backend/routing/` supports that recommendation with mode-specific models:
+Praecantator automatically evaluates every feasible logistics path and recommends the fastest, cheapest, or lowest-risk option during disruption. The engine in `Backend/routing/` and `Backend/services/` supports that recommendation with specific models:
 
-| Mode | Module | Logic |
+| Component | Module | Logic |
 |---|---|---|
-| **Sea** | `routing/sea.py` | Haversine distance, lane detection (Pacific/Suez/Atlantic/Indian/Intra-Asia), lane multipliers, vessel speed 26 km/h |
-| **Land** | `routing/land.py` | Google Maps Routes API (when `GOOGLE_MAPS_USE_LIVE=true`) or haversine fallback |
-| **Air** | `routing/air.py` | Great-circle distance, airport dataset lookup |
+| **Sea Routing** | `routing/sea.py` | Haversine distance, lane detection (Pacific/Suez/Atlantic/Indian/Intra-Asia), lane multipliers, vessel speed 26 km/h |
+| **Suez vs Cape** | `services/energy_resilience.py` | Calculates transit times, costs, CO2, and war-risk premium tradeoffs for rerouting Gulf→India tankers via the Cape of Good Hope |
+| **LP Blend Optimizer**| `services/energy_resilience.py` | Uses `scipy.optimize.linprog` to calculate exact multi-crude recipe alternatives satisfying rigid refinery assay properties |
+| **Land Routing** | `routing/land.py` | Google Maps Routes API (when `GOOGLE_MAPS_USE_LIVE=true`) or haversine fallback |
+| **Air Routing** | `routing/air.py` | Great-circle distance, airport dataset lookup |
 
 Dataset references: `Backend/Dataset/ports.json`, airport registries via `services/data_registry.py`.
 
@@ -769,8 +775,8 @@ Dataset references: `Backend/Dataset/ports.json`, airport registries via `servic
 | Store | Module | When Used |
 |---|---|---|
 | **Firestore** | `services/firestore_store.py` | Production default — incidents, signals, contexts, audit, RFQ, orchestration runs |
-| **SQLite** | `services/local_store.py` | Local dev fallback when GCP credentials absent (`local_fallback.db`) |
-| **Redis** | `services/cache_provider.py` | Production caching via Upstash REST API |
+| **SQLite + Alembic**| `alembic/`, `services/local_store.py` | Relational models and schema migrations are robustly versioned using Alembic (WAL + Foreign keys enabled). |
+| **Redis** | `services/cache_provider.py` | Production caching via Upstash REST API and Celery Message Broker |
 
 Firestore collections include tenant-scoped documents for incidents, signals, workflow events, reasoning steps, governance checkpoints, and worldmonitor cache.
 
@@ -779,19 +785,19 @@ Firestore collections include tenant-scoped documents for incidents, signals, wo
 | Service | Module | Cadence |
 |---|---|---|
 | Signal Scheduler | `scheduler/signal_poll.py` | Polls configured signal sources |
-| WorldMonitor Cron | `services/worldmonitor_fetcher.py` | Per-source APScheduler jobs |
-| Celery (optional) | `scheduler/celery_app.py` | Distributed task queue for scale-out |
+| Celery Beat Cron | `scheduler/tasks.py` | Fully decoupled Celery Beat worker running the `worldmonitor_cron_loop` |
+| Celery Workers | `scheduler/celery_app.py` | Distributed task queue for executing heavy ML training and data ingestion tasks |
 | Email | `services/mailer.py` | Gmail API for RFQ dispatch |
 | FCM Push | `services/fcm.py` | Firebase Cloud Messaging notifications |
 
-### LLM Integration
+### LLM Integration & Pydantic Type Hardening
 
 `services/llm_provider.py` supports:
 
-- **Gemini 2.0 Flash** via Google AI API — structured JSON output with Pydantic schemas
-- **Vertex AI Gemini** — Gemini models billed through your GCP project with IAM service-account auth, no API key in container env
+- **Gemini 2.0 Flash** via Google AI API — structured JSON output with **Pydantic schemas** enforcing rigorous payload contracts.
+- **Vertex AI Gemini** — Gemini models billed through your GCP project with IAM service-account auth.
 
-All LLM calls log reasoning steps. Structured outputs enforce fields like re-routed ports, USD savings, and fallback vendors — never unstructured prose for operational decisions.
+All APIs and integrations are fully typed natively with Pydantic in the Backend and strict TypeScript interfaces in the Frontend (0 `any` casts). All LLM calls log reasoning steps. Structured outputs enforce fields like re-routed ports, USD savings, and fallback vendors — never unstructured prose for operational decisions.
 
 ---
 
@@ -805,6 +811,7 @@ Solution-Challenge-2026/
 │   │   ├── autonomous_pipeline.py    # Core OODA loop
 │   │   ├── signal_agent.py
 │   │   ├── assessment_agent.py
+│   │   ├── spr_optimization_agent.py # SPR drawdown agent
 │   │   ├── routing_agent.py
 │   │   ├── rfq_agent.py
 │   │   ├── political_risk_agent.py
@@ -820,7 +827,10 @@ Solution-Challenge-2026/
 │   │   └── supply_graph.py           # Canonical graph model
 │   ├── ml/                           # GNN, XGBoost, RL models
 │   ├── routing/                      # Sea, land, air routing
-│   ├── services/                     # Provider-switchable infrastructure
+│   ├── services/                     # Resilience & simulation engines
+│   │   ├── scenario_modeller.py      # Macro disruption propagator
+│   │   ├── energy_resilience.py      # Assay matching & Suez/Cape comparison
+│   │   └── ...
 │   ├── scheduler/                    # APScheduler + Celery
 │   ├── currency/                     # FX and inflation
 │   ├── pdf/                          # Audit certificate generation
@@ -946,6 +956,41 @@ VITE_ENABLE_DEMO_MODE=false
 | npm | Latest |
 | Docker | Optional (for containerized backend) |
 | GCP credentials | Optional (Firestore; SQLite fallback works without) |
+
+### Judge Demo Setup
+
+> This section is for technical evaluators. It enables authentication so RBAC governance gates fire as designed.
+
+**Step 1 — Use the demo environment config (auth bypasses disabled):**
+```bash
+cd Backend
+cp .env.demo .env
+```
+Key differences from developer `.env`: `DEV_MODE=false`, `LOCAL_AUTH_BYPASS=false`, `AUTH_OPTIONAL=false`.
+
+**Step 2 — Get a Bearer token:**
+```bash
+curl -s -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "demo@praecantator.local", "password": "demo-password-2026"}'
+```
+
+**Step 3 — Verify ML model transparency (no auth needed):**
+```bash
+curl http://localhost:8000/api/ml/model-status
+```
+Shows which computational path is active (learned GNN vs. heuristic, PPO policy vs. deterministic scheduler) and explains weight provenance.
+
+**Step 4 — Reproduce any scenario model figure:**
+```bash
+curl -s -X POST http://localhost:8000/api/energy-resilience/simulate-scenario \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"scenario_type":"hormuz_closure","loss_pct":40,"duration_days":30,"spr_drawdown_active":true}'
+```
+Every figure in the "Simulation-Derived Design Targets" table is a live output of this endpoint.
+
+---
 
 ### Backend
 
@@ -1125,6 +1170,34 @@ CORS_ORIGINS=https://your-app.web.app,https://your-domain.com
 | Data health | `GET /api/data/health` | Dataset registry status |
 | Container health | `docker compose ps` | `healthy` status |
 
+## Simulation-Derived Design Targets
+
+The scenario modelling engine computes all performance metrics from explicit, auditable assumptions. The figures below are **design targets derived from the simulation model** — not backtested results. Each number is traceable to a specific equation in [`Backend/services/scenario_modeller.py`](file:///d:/ET%20Gen%20AI/Solution-Challenge-2026-main/Backend/services/scenario_modeller.py).
+
+> **Transparency note:** These are model outputs, not empirical measurements. A judge can run `POST /api/energy-resilience/simulate-scenario` with any parameters and reproduce every number shown below in real time.
+
+### Scenario Modeller — Design Targets (40% Hormuz closure, 30 days)
+
+| Metric | Design Target | Derived from |
+|---|---|---|
+| Gross crude import shock | ~0.765 MBD | `scenario_modeller.py` L51–52: `import_vol × hormuz_share × loss_pct` |
+| Brent price spike (peak) | ~$105 /bbl | `scenario_modeller.py` L54: `baseline + 15 + 25 × (loss_pct/100)` |
+| Retail fuel price increase | ~₹11.25 /litre | `scenario_modeller.py` L124: `spike × ₹0.45/bbl coefficient` |
+| GDP growth drag (average) | ~−0.48 pp/month | `scenario_modeller.py` L133: `−0.15% per $10 Brent spike − 0.12% per 10% refinery drop` |
+| SPR inventory exhaustion | Day 11–13 (no mitigation) | `spr_optimization_agent.py`: deterministic heuristic schedule |
+| Refinery run-rate floor | 86% (guarded) | `scenario_modeller.py` L42: explicit `refinery_operational_floor_pct` assumption |
+
+### Model Integrity & Component Transparency
+
+| Component | Active Path | Status |
+|---|---|---|
+| Supply graph risk propagation | Heuristic message-passing (`gnn_stub.py`) with optional learned GNN layer (`gnn_model.py`) | Weights committed; real training accumulates from governance feedback |
+| SPR drawdown policy | PPO RL policy (`spr_ppo_weights.zip`) with deterministic heuristic fallback | 50,000-timestep trained model committed |
+| Crude blend optimizer | `scipy.optimize.linprog` (HiGHS solver) | Exact LP — no approximation |
+| Route comparison | Rule-based Suez vs. Cape calculator | Verified unit-tested |
+
+Call `GET /api/ml/model-status` to see which path is active on any deployment.
+
 ---
 
 ## Testing
@@ -1134,14 +1207,16 @@ CORS_ORIGINS=https://your-app.web.app,https://your-domain.com
 ```bash
 cd Backend
 
-# Tenant isolation (requires Firestore project env)
+# Tenant isolation and assertive testing
 python -m pytest tests/test_data_isolation.py
+python -m pytest tests/test_worldbank.py
+python -m pytest tests/test_energy_resilience.py
 
-# Or directly
-python tests/test_data_isolation.py
+# Or run the full suite
+pytest tests/ -v
 ```
 
-Requires `FIREBASE_PROJECT_ID`, `GCP_PROJECT_ID`, or `GCLOUD_PROJECT` in environment. Skips gracefully if absent.
+Requires `FIREBASE_PROJECT_ID`, `GCP_PROJECT_ID`, or `GCLOUD_PROJECT` in environment for Firestore tests. The suite includes robust mock testing for external APIs, constraint checks for the Linear Programming solver, and route engine assertions.
 
 ### Frontend
 

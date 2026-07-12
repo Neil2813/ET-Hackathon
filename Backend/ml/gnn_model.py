@@ -1,8 +1,9 @@
 """
-gnn_model.py — Trained GNN Risk Propagation (PyTorch Geometric)
-================================================================
-Replaces the heuristic distance-based scoring in gnn_stub.py with
-learned GraphSAGE + GAT message-passing on the supply chain graph.
+gnn_model.py — Graph-Based Risk Propagation with Optional Learned GNN Layer
+============================================================================
+Implements a GraphSAGE + GAT message-passing network on the supply chain graph.
+The GNN layer is OPTIONAL — the system uses the heuristic fallback in gnn_stub.py
+when the learned model is not available or not sufficiently trained.
 
 Architecture:
   Input features (per node):   [proximity, severity, tier, criticality,
@@ -13,11 +14,16 @@ Architecture:
   Layer 2: GATConv(32, 16, heads=2) — attention-weighted aggregation
   Layer 3: Linear(32, 1)            — risk score prediction (sigmoid output)
 
-Training data source:
-  Historical incidents from governance_feedback table:
-    - TRUE_POSITIVE incidents → affected nodes get label 1.0
-    - FALSE_POSITIVE incidents → affected nodes get label 0.0
-    - Each incident's graph structure provides edge_index
+Weight file status:
+  The committed gnn_weights.pt is a BOOTSTRAP model trained on 5 synthetic
+  disruption samples. It is NOT trained on real historical incident data.
+  A low sample count means the model may not outperform the heuristic —
+  which is why propagate_risk() in gnn_stub.py remains the primary production path.
+
+  Real training data accumulates as operators submit governance verdicts
+  (TRUE_POSITIVE / FALSE_POSITIVE) via the checkpoint UI. Once sufficient
+  feedback exists, call POST /ml/train/gnn to produce production-quality weights
+  that will then take precedence over the heuristic automatically.
 
 Fallback:
   If no trained model exists at MODEL_WEIGHTS_PATH, propagate_risk()

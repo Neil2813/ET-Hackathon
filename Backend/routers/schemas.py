@@ -332,3 +332,49 @@ class RouteComparisonResponse(BaseModel):
     destination_label: str
     generated_at: str
 
+
+class ScenarioSimulationRequest(BaseModel):
+    scenario_type: Literal["hormuz_closure", "red_sea_suspension", "opec_cut", "custom"] = "hormuz_closure"
+    loss_pct: float = Field(default=40.0, ge=0.0, le=100.0)
+    duration_days: int = Field(default=30, ge=1, le=180)
+    spr_drawdown_active: bool = True
+
+
+class ScenarioSimulationSummary(BaseModel):
+    gross_import_shock_mbd: float
+    average_refinery_run_rate_pct: float
+    refinery_stress_level: str
+    average_brent_price_usd: float
+    peak_fuel_price_increase_inr_per_litre: float
+    average_power_sector_stress_pct: float
+    power_stress_level: str
+    average_gdp_growth_impact_pct: float
+    total_unmet_demand_mmbbl: float
+    mitigation_percentage: float
+
+
+class DailyTimelineItem(BaseModel):
+    day: int
+    gross_import_shock_mbd: float
+    spr_draw_mbd: float
+    net_supply_gap_mbd: float
+    refinery_run_rate_pct: float
+    brent_price_usd: float
+    fuel_price_increase_inr_per_litre: float
+    power_sector_stress_pct: float
+    gdp_growth_impact_pct: float
+    spr_inventory_mmbbl: float
+    unmet_demand_mbd: float
+
+
+class ScenarioSimulationResponse(BaseModel):
+    scenario_type: str
+    scenario_label: str
+    loss_pct: float
+    duration_days: int
+    spr_drawdown_active: bool
+    assumptions: dict[str, Any]
+    summary: ScenarioSimulationSummary
+    daily_timeline: list[DailyTimelineItem]
+
+

@@ -52,11 +52,12 @@ function authHeaders(): HeadersInit {
   };
 }
 
-type ModuleKey = "ais" | "spr" | "compatibility" | "rag" | "ledger" | "esg" | "blend" | "routes";
+type ModuleKey = "ais" | "spr" | "scenarios" | "compatibility" | "rag" | "ledger" | "esg" | "blend" | "routes";
 
 const MODULES: Array<{ key: ModuleKey; label: string; icon: ElementType }> = [
   { key: "ais", label: "AIS Agent", icon: Ship },
   { key: "spr", label: "SPR Policy", icon: Gauge },
+  { key: "scenarios", label: "Scenario Modeller", icon: BarChart3 },
   { key: "compatibility", label: "Crude Match", icon: FlaskConical },
   { key: "blend", label: "Blend LP", icon: GitBranch },
   { key: "routes", label: "Route Compare", icon: Navigation },
@@ -939,6 +940,278 @@ function EsgPanel({ data }: { data: any }) {
           ))}
         </div>
       </div>
+  );
+}
+
+function ScenariosPanel({ data }: { data: EnergyResilienceDashboard }) {
+  const [scenarioType, setScenarioType] = useState<"hormuz_closure" | "red_sea_suspension" | "opec_cut" | "custom">("hormuz_closure");
+  const [lossPct, setLossPct] = useState<number>(40);
+  const [durationDays, setDurationDays] = useState<number>(30);
+  const [sprActive, setSprActive] = useState<boolean>(true);
+  const [simResult, setSimResult] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const runSimulation = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.energyResilience.simulateScenario({
+        scenario_type: scenarioType,
+        loss_pct: lossPct,
+        duration_days: durationDays,
+        spr_drawdown_active: sprActive,
+      });
+      setSimResult(res);
+    } catch (err: any) {
+      setError(err.message || "Failed to run simulation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useState(() => {
+    runSimulation();
+  });
+
+  return (
+    <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-4">
+      {/* Left Column: Controls */}
+      <div className="flex flex-col gap-4">
+        <div className="border border-slate-200 bg-white rounded shadow-sm p-5 space-y-4">
+          <div>
+            <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">Simulation parameters</p>
+            <h2 className="font-headline text-lg font-bold text-slate-900 mt-1">Disruption Scenario Modeller</h2>
+          </div>
+
+          {/* Scenario Type Select */}
+          <div className="space-y-1.5 font-sans">
+            <label className="text-xs font-mono font-bold text-slate-500 uppercase">Scenario Type</label>
+            <select
+              value={scenarioType}
+              onChange={(e: any) => setScenarioType(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded p-2 text-sm text-slate-800 focus:outline-none focus:border-red-500 font-medium"
+            >
+              <option value="hormuz_closure">Strait of Hormuz Partial Closure</option>
+              <option value="red_sea_suspension">Red Sea Shipping Disruption</option>
+              <option value="opec_cut">OPEC+ Emergency Supply Cut</option>
+              <option value="custom">Custom Import Disruption</option>
+            </select>
+          </div>
+
+          {/* Throughput Loss Slider */}
+          <div className="space-y-1.5 font-sans">
+            <div className="flex justify-between text-xs font-mono font-bold text-slate-500 uppercase">
+              <span>Throughput / Import Loss</span>
+              <span className="text-red-600 font-bold">{lossPct}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={lossPct}
+              onChange={(e) => setLossPct(Number(e.target.value))}
+              className="w-full accent-red-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer"
+            />
+          </div>
+
+          {/* Duration Days Slider */}
+          <div className="space-y-1.5 font-sans">
+            <div className="flex justify-between text-xs font-mono font-bold text-slate-500 uppercase">
+              <span>Disruption Duration</span>
+              <span className="text-red-600 font-bold">{durationDays} Days</span>
+            </div>
+            <input
+              type="range"
+              min="10"
+              max="180"
+              value={durationDays}
+              onChange={(e) => setDurationDays(Number(e.target.value))}
+              className="w-full accent-red-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer"
+            />
+          </div>
+
+          {/* SPR Drawdown Toggle */}
+          <div className="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-200 font-sans">
+            <div>
+              <p className="text-xs font-bold text-slate-800">Active SPR Mitigation</p>
+              <p className="text-[10px] text-slate-400 font-medium mt-0.5">Use PPO reserves schedule</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={sprActive}
+              onChange={(e) => setSprActive(e.target.checked)}
+              className="w-4 h-4 accent-red-600 cursor-pointer rounded"
+            />
+          </div>
+
+          {/* Simulate Button */}
+          <button
+            onClick={runSimulation}
+            disabled={loading}
+            className="w-full py-2.5 bg-red-600 text-white font-mono font-bold uppercase tracking-widest text-xs rounded hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+            {loading ? "Simulating..." : "Run Macro Simulation"}
+          </button>
+        </div>
+
+        {/* Assumptions Box */}
+        <div className="border border-slate-200 bg-white rounded shadow-sm p-5 space-y-3 font-sans">
+          <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">Model Assumptions</p>
+          <div className="text-[11px] text-slate-500 font-medium space-y-2 leading-relaxed">
+            <div className="flex justify-between border-b border-slate-100 pb-1">
+              <span>National Crude Demand</span>
+              <span className="font-bold text-slate-800 font-mono">5.1 MBD</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-100 pb-1">
+              <span>Crude Import Dependency</span>
+              <span className="font-bold text-slate-800 font-mono">88% (~4.49 MBD)</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-100 pb-1">
+              <span>Strait of Hormuz Share</span>
+              <span className="font-bold text-slate-800 font-mono">42.5% (~1.91 MBD)</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-100 pb-1">
+              <span>Red Sea Shipping Share</span>
+              <span className="font-bold text-slate-800 font-mono">25.0% (~1.12 MBD)</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-100 pb-1">
+              <span>Total National SPR Capacity</span>
+              <span className="font-bold text-slate-800 font-mono">39 MMBbl (~9.5 days)</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-100 pb-1">
+              <span>Refinery Operational Floor</span>
+              <span className="font-bold text-slate-800 font-mono">86.0%</span>
+            </div>
+            <p className="text-[10px] text-slate-400 italic mt-2">
+              Note: GDP growth is impacted by -0.15% per $10/bbl Brent price spike and -0.12% per 10% refinery run rate reduction. Retail fuel increases by ₹0.45 per $1/bbl Brent spike.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Simulation Results */}
+      <div className="border border-slate-200 bg-white rounded shadow-sm p-5 flex flex-col min-h-[480px]">
+        {loading && !simResult ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+            <Loader2 size={32} className="animate-spin text-red-500 mb-2" />
+            <p className="font-mono text-sm font-bold uppercase tracking-widest">Running scenario simulation...</p>
+          </div>
+        ) : error ? (
+          <div className="flex-1 flex items-center justify-center text-red-600 font-mono text-sm border border-red-100 bg-red-50 p-4 rounded">
+            Error: {error}
+          </div>
+        ) : simResult ? (
+          <div className="space-y-6">
+            {/* Header */}
+            <div>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Simulation results</span>
+              <h2 className="font-headline text-2xl font-bold text-slate-900 mt-1">{simResult.scenario_label}</h2>
+              <p className="text-sm text-slate-500 mt-1 font-medium font-sans">
+                Simulation run over a {simResult.duration_days}-day planning horizon with SPR drawdown mitigation {simResult.spr_drawdown_active ? "ENABLED" : "DISABLED"}.
+              </p>
+            </div>
+
+            {/* Summary KPIs */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="border border-slate-200 bg-slate-50/50 p-4 rounded shadow-sm min-w-0">
+                <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Gross Import Gap</p>
+                <p className="text-xl font-bold text-red-600 mt-1 font-mono truncate">{fixed(simResult.summary.gross_import_shock_mbd, 3)} MBD</p>
+              </div>
+              <div className="border border-slate-200 bg-slate-50/50 p-4 rounded shadow-sm min-w-0">
+                <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Refinery Run Rate</p>
+                <p className={`text-xl font-bold mt-1 font-mono truncate ${
+                  simResult.summary.refinery_stress_level === "critical" ? "text-red-600" : simResult.summary.refinery_stress_level === "alert" ? "text-amber-600" : "text-emerald-600"
+                }`}>
+                  {fixed(simResult.summary.average_refinery_run_rate_pct, 1)}%
+                </p>
+              </div>
+              <div className="border border-slate-200 bg-slate-50/50 p-4 rounded shadow-sm min-w-0">
+                <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Fuel Price Impact</p>
+                <p className="text-xl font-bold text-amber-600 mt-1 font-mono truncate">
+                  +₹{fixed(simResult.summary.peak_fuel_price_increase_inr_per_litre, 2)}/L
+                </p>
+              </div>
+              <div className="border border-slate-200 bg-slate-50/50 p-4 rounded shadow-sm min-w-0">
+                <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">GDP Growth Impact</p>
+                <p className="text-xl font-bold text-red-600 mt-1 font-mono truncate">{fixed(simResult.summary.average_gdp_growth_impact_pct, 3)}%</p>
+              </div>
+            </div>
+
+            {/* Charts section */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+              {/* Chart 1: Supply Shock & SPR Release */}
+              <div className="border border-slate-100 rounded-lg p-4 bg-slate-50/30">
+                <p className="text-xs font-mono font-bold text-slate-500 uppercase mb-3">Crude Supply Shock vs SPR Release</p>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={simResult.daily_timeline}>
+                      <defs>
+                        <linearGradient id="colorShock" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#dc2626" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#dc2626" stopOpacity={0.0} />
+                        </linearGradient>
+                        <linearGradient id="colorDraw" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="day" label={{ value: "Day", position: "insideBottom", offset: -2, fontSize: 10 }} tick={{ fontSize: 10 }} />
+                      <YAxis label={{ value: "MBD", angle: -90, position: "insideLeft", fontSize: 10 }} tick={{ fontSize: 10 }} />
+                      <Tooltip />
+                      <Area type="monotone" name="Gross Shock" dataKey="gross_import_shock_mbd" stroke="#dc2626" strokeWidth={2} fillOpacity={1} fill="url(#colorShock)" dot={false} />
+                      <Area type="monotone" name="SPR Drawdown" dataKey="spr_draw_mbd" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorDraw)" dot={false} />
+                      <Area type="monotone" name="Net Supply Gap" dataKey="net_supply_gap_mbd" stroke="#f59e0b" strokeWidth={1.5} fill="none" dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 2: Refinery Run Rate & Power Stress */}
+              <div className="border border-slate-100 rounded-lg p-4 bg-slate-50/30">
+                <p className="text-xs font-mono font-bold text-slate-500 uppercase mb-3">Refinery Run Rate & Power Sector Stress</p>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={simResult.daily_timeline}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="day" label={{ value: "Day", position: "insideBottom", offset: -2, fontSize: 10 }} tick={{ fontSize: 10 }} />
+                      <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+                      <Tooltip />
+                      <Line type="monotone" name="Refinery Run Rate %" dataKey="refinery_run_rate_pct" stroke="#10b981" strokeWidth={2} dot={false} />
+                      <Line type="monotone" name="Power Sector Stress %" dataKey="power_sector_stress_pct" stroke="#dc2626" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Narrative text & details */}
+            <div className="bg-slate-50 border border-slate-200 rounded p-4 text-xs leading-relaxed text-slate-600 font-medium font-sans">
+              <span className="font-bold text-slate-800 block text-sm mb-1.5">Simulation Narrative & Downstream Impacts</span>
+              <ul className="list-disc pl-4 space-y-1.5">
+                <li>
+                  <span className="font-bold text-slate-700">Supply Gap:</span> A gross shortfall of <span className="font-bold text-red-600">{fixed(simResult.summary.gross_import_shock_mbd, 3)} MBD</span> is registered. {simResult.spr_drawdown_active ? `The SPR drawdown schedule releases up to ${fixed(simResult.summary.gross_import_shock_mbd - (simResult.summary.total_unmet_demand_mmbbl / simResult.duration_days), 3)} MBD, mitigating ${simResult.summary.mitigation_percentage}% of the shock.` : "Without SPR active, refineries face the full force of the shock."}
+                </li>
+                <li>
+                  <span className="font-bold text-slate-700">Refinery Operations:</span> Run-rates are projected to average <span className="font-bold text-slate-800">{fixed(simResult.summary.average_refinery_run_rate_pct, 1)}%</span>. {simResult.summary.refinery_stress_level === "critical" ? "Warning: Run-rates drop below the 86% operational floor, which may cause equipment damage and plant shutdowns." : "Refinery run-rates remain above the critical operational threshold, maintaining baseline processing."}
+                </li>
+                <li>
+                  <span className="font-bold text-slate-700">Macro Economy:</span> Brent Crude climbs to an average of <span className="font-bold text-amber-700">${fixed(simResult.summary.average_brent_price_usd, 2)}/bbl</span>, driving retail fuel price increases of up to <span className="font-bold text-amber-700">₹{fixed(simResult.summary.peak_fuel_price_increase_inr_per_litre, 2)} per litre</span>. The cumulative GDP growth trajectory drags down by <span className="font-bold text-red-600">{fixed(Math.abs(simResult.summary.average_gdp_growth_impact_pct), 3)} percentage points</span> over the shock period.
+                </li>
+                <li>
+                  <span className="font-bold text-slate-700">Power Grid Stress:</span> Average power-sector stress peaks at <span className="font-bold text-red-600">{fixed(simResult.summary.average_power_sector_stress_pct, 1)}%</span>, indicating {simResult.summary.power_stress_level === "critical" ? "widespread grid alerts and mandatory industrial load shedding." : simResult.summary.power_stress_level === "alert" ? "localized diesel backup constraints and grid watch status." : "normal grid security levels."}
+                </li>
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-slate-400 font-mono text-sm font-bold uppercase tracking-widest">
+            Run a simulation to view results.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -961,6 +1234,7 @@ const EnergyResilience = () => {
     if (!data) return null;
     if (module === "ais") return <AisPanel data={data} />;
     if (module === "spr") return <SprPanel data={data} />;
+    if (module === "scenarios") return <ScenariosPanel data={data} />;
     if (module === "compatibility") return <CompatibilityPanel data={data} />;
     if (module === "blend") return <BlendPanel data={data} />;
     if (module === "routes") return <RouteComparePanel data={data} />;

@@ -15,6 +15,7 @@ from services.energy_resilience import (
     build_all_blend_recipes,
     build_route_comparison,
 )
+from services.scenario_modeller import simulate_macro_scenario
 from routers.schemas import (
     EnergyResilienceSPRRequest,
     CrudeCompatibilityRequest,
@@ -26,6 +27,8 @@ from routers.schemas import (
     EnergyResilienceDashboardResponse,
     CrudeBlendRecipeResponse,
     RouteComparisonResponse,
+    ScenarioSimulationRequest,
+    ScenarioSimulationResponse,
 )
 from routers.helpers import _resolved_request_tenant, _enqueue_celery_task
 
@@ -110,6 +113,25 @@ async def api_route_comparison(
     """
     add_audit("energy_resilience_route_comparison", user.get("sub", "local"))
     return build_route_comparison(corridor_risk_score=corridor_risk)
+
+
+@router.post("/api/energy-resilience/simulate-scenario", response_model=ScenarioSimulationResponse)
+async def api_simulate_scenario(
+    payload: ScenarioSimulationRequest,
+    user=Depends(verify_firebase_or_local_token),
+) -> ScenarioSimulationResponse:
+    """
+    Simulate a crude oil supply disruption scenario and propagate its impacts on
+    refinery run rates, Brent oil prices, retail fuel prices, power-sector stress, and GDP growth.
+    """
+    tenant_id = _energy_tenant(user)
+    add_audit("energy_resilience_simulate_scenario", f"{tenant_id}:{payload.scenario_type}")
+    return simulate_macro_scenario(
+        scenario_type=payload.scenario_type,
+        loss_pct=payload.loss_pct,
+        duration_days=payload.duration_days,
+        spr_drawdown_active=payload.spr_drawdown_active,
+    )
 
 
 @router.post("/ml/train/xgboost")

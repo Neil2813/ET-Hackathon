@@ -10,7 +10,8 @@ The frontend is built for speed, precision, and reliable data visualization. It 
 
 - **Operational Nexus (Dashboard)**: Real-time monitoring of KPIs, active risk events, and high-priority exposure nodes.
 - **Risk Map**: A globe-projected intelligence interface using @mapcn/heatmap to visualize risk density (earthquakes, geopolitics, etc.) alongside supplier locations.
-- **Route Intelligence**: Dynamic corridor optimization using OSRM routing and MapCN tracking to monitor cargo in transit across Sea, Land, and Air.
+- **Route Intelligence**: Dynamic corridor optimization using OSRM routing and MapCN tracking to monitor cargo in transit across Sea, Land, and Air. Includes a dedicated **Suez vs Cape Routing Engine** to assess war-risk premiums and breakeven costs dynamically.
+- **LP Blend Optimizer**: Integrates with the backend `scipy` HiGHS solver to compute multi-crude substitution recipes when primary grades are disrupted.
 - **Entity Manager (Onboarding)**: Facilitates staging massive CSV datasets natively against API validators identifying DUNS and geospatial overlaps securely prior to database commitment.
 - **RFQ Manager**: Integrated procurement and request-for-quote handling.
 - **Signal Monitor**: Real-time signal intelligence monitoring for supply chain anomalies.
@@ -49,6 +50,7 @@ graph TD
 
 - **Atomic Design Consistency**: Leveraging Shadcn UI over Radix primitives ensures a consistent design language while maintaining full accessibility (ARIA compliant).
 - **Reactive Data Layer**: TanStack Query manages the transition between server-side truth and client-side UI, handling caching, revalidation, and optimistic updates.
+- **Strict End-to-End Typing**: Completely eliminates `any` casts. Leverages generated TypeScript interfaces mapping exactly to Backend Pydantic models for bulletproof client-server contracts.
 - **Spatial First**: Maps are treated as primary interface elements, not just overlays, utilizing MapLibre for vector tile performance.
 
 ## 🔄 Operational Workflow
