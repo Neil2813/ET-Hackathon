@@ -93,7 +93,6 @@ def read_workflow_outcomes(limit: int = 200) -> list[dict]:
 
 if os.getenv("DB_PROVIDER", "firestore").strip().lower() in ("local", "sqlite") or not gcp_project_id():
     import services.local_store as local_store
-    local_store.init_local_store()
     
     globals()["write_context"] = lambda user_id, payload: local_store.upsert_context(user_id, json.dumps(payload))
     

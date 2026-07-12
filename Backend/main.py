@@ -66,8 +66,6 @@ app.add_middleware(
     max_age=86400,
 )
 
-init_store()
-migrate_energy_resilience_schema()
 _worldmonitor_task: asyncio.Task | None = None
 
 
@@ -127,6 +125,8 @@ def _bootstrap_ml_models():
 @app.on_event("startup")
 async def _start_worldmonitor_cron():
     """Initialize Firebase Admin when configured; start worldmonitor background fetcher."""
+    init_store()
+    migrate_energy_resilience_schema()
     init_firebase_admin_app()
     
     # Trigger GNN and SPR RL bootstrap training in a background thread

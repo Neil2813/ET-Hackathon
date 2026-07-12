@@ -1137,7 +1137,6 @@ def get_global_impacted_tenants(duns_number: str) -> list[str]:
 
 if _should_use_local():
     import services.local_store as local_store
-    local_store.init_local_store()
     for name in list(globals().keys()):
         if name.startswith("_") or name in ("init_store", "init_emulator_db", "gcp_project_id", "DB_PATH"):
             continue

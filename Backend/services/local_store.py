@@ -15,7 +15,13 @@ logger = logging.getLogger(__name__)
 DB_PATH = Path(os.getenv("LOCAL_DB_PATH") or (Path(__file__).resolve().parents[1] / "local_fallback.db"))
 
 
+_db_initialized = False
+
 def _conn() -> sqlite3.Connection:
+    global _db_initialized
+    if not _db_initialized:
+        _db_initialized = True
+        init_local_store()
     con = sqlite3.connect(DB_PATH)
     try:
         con.execute("PRAGMA journal_mode=WAL")
@@ -27,6 +33,27 @@ def _conn() -> sqlite3.Connection:
 
 def init_local_store() -> None:
     """Initialize SQLite database using Alembic migrations."""
+    global _db_initialized
+    _db_initialized = True
+    if getattr(init_local_store, "_has_run", False):
+        return
+    setattr(init_local_store, "_has_run", True)
+    
+    # Check if DB is already migrated to avoid Alembic overhead and lock contentions
+    try:
+        if DB_PATH.exists() and DB_PATH.stat().st_size > 0:
+            con = sqlite3.connect(DB_PATH)
+            try:
+                cur = con.execute("SELECT version_num FROM alembic_version LIMIT 1")
+                row = cur.fetchone()
+                if row and row[0] == 'd588baa6869d':
+                    logger.info("Database schema is already up to date (version: %s).", row[0])
+                    return
+            finally:
+                con.close()
+    except Exception:
+        pass
+
     try:
         from alembic.config import Config
         from alembic import command

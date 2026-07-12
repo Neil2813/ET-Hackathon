@@ -24,7 +24,8 @@ export function RFQDispatchPanel({ incidentId, incidentTitle, onClose }: RFQDisp
         // For preview, let's call the dispatch endpoint directly or mock draft.
         // Actually, we can fetch from backend. Let's make an inline fetch call to simulate.
         const token = localStorage.getItem("firebase_token") || "local-dev-token";
-        const res = await fetch(`http://localhost:8000/api/incidents/${incidentId}/dispatch-rfq`, {
+        const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+        const res = await fetch(`${apiBase}/incidents/${incidentId}/dispatch-rfq`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -327,13 +327,13 @@ export default function RouteViewer() {
   const activeCost = costs[activeCostKey];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", background: "#f8fafc", fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", background: "#f8fafc", fontFamily: "var(--font-body)" }}>
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div style={{ flexShrink: 0, background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "10px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(0,0,0,.06)" }}>
         <button
           onClick={() => navigate(-1)}
-          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "#64748b", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 7, padding: "5px 11px", cursor: "pointer" }}
+          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "#64748b", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 7, padding: "5px 11px", cursor: "pointer" }}
         >
           <ArrowLeft size={13} /> Back
         </button>
@@ -373,7 +373,7 @@ export default function RouteViewer() {
               { label: `${Number(activeCost.transit_days ?? 0).toFixed(1)}d`, icon: <Clock size={10} />, c: "#475569" },
             ] : []),
           ].map((p, i) => (
-            <span key={i} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontFamily: "monospace", fontWeight: 700, color: p.c, border: "1px solid #e2e8f0", background: "#f8fafc", borderRadius: 6, padding: "4px 9px" }}>
+            <span key={i} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, color: p.c, border: "1px solid #e2e8f0", background: "#f8fafc", borderRadius: 6, padding: "4px 9px" }}>
               {p.icon}{p.label}
             </span>
           ))}
@@ -383,14 +383,14 @@ export default function RouteViewer() {
       {/* ── Route subtitle ─────────────────────────────────────────────────── */}
       <div style={{ flexShrink: 0, background: meta.bg, borderBottom: `1px solid ${meta.border}`, padding: "8px 20px", display: "flex", alignItems: "center", gap: 10 }}>
         <ModeIcon size={14} style={{ color: meta.color, flexShrink: 0 }} />
-        <span style={{ fontSize: 11, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: meta.color }}>{meta.label}</span>
+        <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: meta.color }}>{meta.label}</span>
         <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>
           {fromLabel} → {toLabel}
         </span>
-        <span style={{ marginLeft: "auto", fontSize: 10, fontFamily: "monospace", color: "#94a3b8" }}>
+        <span style={{ marginLeft: "auto", fontSize: 10, fontFamily: "var(--font-mono)", color: "#94a3b8" }}>
           Speed: {meta.speed} · CO₂: {meta.co2}
         </span>
-        <span style={{ fontSize: 10, fontFamily: "monospace", color: "#94a3b8" }}>{incTitle}</span>
+        <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "#94a3b8" }}>{incTitle}</span>
       </div>
 
       {/* ── Body ─────────────────────────────────────────────────────────────── */}
@@ -497,11 +497,11 @@ export default function RouteViewer() {
           {/* Map legend */}
           {activeRoutes.length > 1 && (
             <div style={{ position: "absolute", bottom: 52, left: 12, zIndex: 10, background: "rgba(255,255,255,.95)", backdropFilter: "blur(8px)", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 14px", boxShadow: "0 2px 8px rgba(0,0,0,.08)" }}>
-              <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", margin: "0 0 8px" }}>Route Options</p>
+              <p style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", margin: "0 0 8px" }}>Route Options</p>
               {activeRoutes.map((r, i) => (
                 <div key={i} onClick={() => setActiveAirRoute(i)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, cursor: "pointer", opacity: i === activeAirRoute ? 1 : 0.5 }}>
                   <span style={{ display: "inline-block", width: 24, height: 3, borderRadius: 2, background: r.color }} />
-                  <span style={{ fontSize: 11, fontFamily: "monospace", fontWeight: i === activeAirRoute ? 700 : 400, color: "#334155" }}>{r.label}</span>
+                  <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: i === activeAirRoute ? 700 : 400, color: "#334155" }}>{r.label}</span>
                 </div>
               ))}
             </div>
@@ -514,7 +514,7 @@ export default function RouteViewer() {
         <div style={{ width: 320, flexShrink: 0, background: "#fff", borderLeft: "1px solid #e2e8f0", overflowY: "auto", display: "flex", flexDirection: "column", gap: 0 }}>
           {/* Header */}
           <div style={{ padding: "14px 18px", borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
-            <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", margin: 0 }}>
+            <p style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", margin: 0 }}>
               {meta.label} · Route Detail
             </p>
           </div>
@@ -524,7 +524,7 @@ export default function RouteViewer() {
             <div style={{ margin: 14, padding: "14px 16px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <AlertTriangle size={14} style={{ color: "#dc2626", flexShrink: 0 }} />
-                <span style={{ fontSize: 11, fontFamily: "monospace", fontWeight: 700, color: "#dc2626", textTransform: "uppercase" }}>Not Viable by Road</span>
+                <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, color: "#dc2626", textTransform: "uppercase" }}>Not Viable by Road</span>
               </div>
               <p style={{ fontSize: 12, color: "#7f1d1d", margin: 0, lineHeight: 1.5 }}>{landReason}</p>
               <button
@@ -563,7 +563,7 @@ export default function RouteViewer() {
               <div key={m.label} style={{ border: "1px solid #e2e8f0", borderRadius: 9, padding: "11px 14px", background: "#fff" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4, color: "#94a3b8" }}>
                   {m.icon}
-                  <span style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em" }}>{m.label}</span>
+                  <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em" }}>{m.label}</span>
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: m.color }}>{m.value}</div>
               </div>
@@ -572,7 +572,7 @@ export default function RouteViewer() {
             {/* Air sub-routes selector */}
             {activeMode === "air" && airData && activeRoutes.length > 1 && (
               <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 14 }}>
-                <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", marginBottom: 8 }}>Air Route Options</p>
+                <p style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", marginBottom: 8 }}>Air Route Options</p>
                 {activeRoutes.map((r, i) => {
                   const isA = i === activeAirRoute;
                   return (
@@ -594,14 +594,14 @@ export default function RouteViewer() {
             {/* Cost breakdown */}
             {activeCost && (
               <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 14 }}>
-                <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", marginBottom: 8 }}>Cost Breakdown</p>
+                <p style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", marginBottom: 8 }}>Cost Breakdown</p>
                 {Object.entries(activeCost.breakdown).map(([k, v]) => (
                   <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid #f1f5f9" }}>
                     <span style={{ fontSize: 11, color: "#64748b", textTransform: "capitalize" }}>{k.replace(/_/g, " ")}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{fmtINR(v)}</span>
                   </div>
                 ))}
-                <div style={{ fontSize: 9, fontFamily: "monospace", color: "#94a3b8", marginTop: 10, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: "#94a3b8", marginTop: 10, lineHeight: 1.4 }}>
                   Based on 2024 avg freight rates for 5,000 kg cargo. Actual costs vary by carrier and Incoterms.
                 </div>
               </div>
@@ -613,7 +613,7 @@ export default function RouteViewer() {
                 <div key={label} style={{ border: "1px solid #e2e8f0", borderRadius: 9, padding: "10px 12px", background: "#fff", marginBottom: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
-                    <span style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8" }}>{label}</span>
+                    <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8" }}>{label}</span>
                   </div>
                   <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>{name}</p>
                 </div>
@@ -623,10 +623,10 @@ export default function RouteViewer() {
             {/* Routing source attribution */}
             {(sourceMeta[activeMode] || (activeMode === "air" && airData?.source_label)) && (
               <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 14 }}>
-                <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", marginBottom: 6 }}>Routing Source</p>
+                <p style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "#94a3b8", marginBottom: 6 }}>Routing Source</p>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 6, padding: "8px 10px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8 }}>
                   <CheckCircle size={12} style={{ color: "#16a34a", marginTop: 1, flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: "#166534", fontFamily: "monospace", fontWeight: 600, lineHeight: 1.4 }}>
+                  <span style={{ fontSize: 11, color: "#166534", fontFamily: "var(--font-mono)", fontWeight: 600, lineHeight: 1.4 }}>
                     {sourceMeta[activeMode] ||
                       (activeMode === "air" ? airData?.source_label : undefined) ||
                       "Real-time API"}
