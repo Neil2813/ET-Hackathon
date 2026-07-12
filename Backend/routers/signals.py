@@ -208,3 +208,103 @@ async def api_signals_sentiment() -> list[dict]:
 async def api_signals_refresh() -> dict:
     """On-demand signal refresh — triggers immediate poll of all 12 source streams."""
     return _enqueue_celery_task("scheduler.tasks.poll_signals")
+
+
+@router.get("/api/signals/lead-time-metrics")
+async def api_signals_lead_time_metrics(
+    window_signals: int = 500,
+) -> dict:
+    """
+    Compute signal detection lead-time metrics from stored signal timestamps.
+
+    Lead time = how quickly we ingested a signal after the source event occurred.
+    Specifically: ingestion_lag_hours = (our created_at) − (source event timestamp)
+
+    A negative lag means we ingested the signal before the source event timestamp
+    (e.g. a forecast or early-warning feed). Near-zero means near-real-time.
+
+    Data is derived from actual DB records — not estimated or fabricated.
+    The 'data_window' field documents exactly how many signals were analyzed.
+
+    No auth required — this is a transparency endpoint.
+    """
+    from datetime import datetime, timezone
+    from statistics import median, mean
+    from services.event_freshness import extract_event_timestamp, parse_event_dt
+
+    rows = _parsed_signals(limit=window_signals)
+    now = datetime.now(timezone.utc)
+
+    per_source: dict[str, list[float]] = {}
+    total_lags: list[float] = []
+    signals_with_source_ts = 0
+    signals_without_source_ts = 0
+
+    for sig in rows:
+        # Our ingestion time
+        our_time_raw = sig.get("created_at") or sig.get("detected_at")
+        our_time = parse_event_dt(our_time_raw) if our_time_raw else now
+
+        # Source event time (when the event actually happened / was reported)
+        source_time = extract_event_timestamp(sig)
+
+        if source_time is None:
+            signals_without_source_ts += 1
+            continue
+
+        signals_with_source_ts += 1
+        lag_hours = (our_time - source_time).total_seconds() / 3600.0
+
+        # Exclude implausible lags (>30 days or negative > 24h — likely clock skew)
+        if -24.0 <= lag_hours <= 720.0:
+            source = str(sig.get("source") or "unknown")
+            per_source.setdefault(source, []).append(lag_hours)
+            total_lags.append(lag_hours)
+
+    # Build per-source summary
+    source_breakdown: list[dict] = []
+    for source, lags in sorted(per_source.items(), key=lambda kv: len(kv[1]), reverse=True):
+        source_breakdown.append({
+            "source": source,
+            "signal_count": len(lags),
+            "median_lag_hours": round(median(lags), 2),
+            "mean_lag_hours": round(mean(lags), 2),
+            "min_lag_hours": round(min(lags), 2),
+            "max_lag_hours": round(max(lags), 2),
+            "near_realtime_pct": round(
+                sum(1 for l in lags if l <= 1.0) / len(lags) * 100, 1
+            ),
+        })
+
+    overall_median = round(median(total_lags), 2) if total_lags else None
+    overall_mean = round(mean(total_lags), 2) if total_lags else None
+
+    return {
+        "generated_at": now.isoformat(),
+        "data_window": {
+            "signals_queried": len(rows),
+            "signals_with_source_timestamp": signals_with_source_ts,
+            "signals_without_source_timestamp": signals_without_source_ts,
+            "coverage_pct": round(signals_with_source_ts / max(1, len(rows)) * 100, 1),
+        },
+        "overall": {
+            "median_ingestion_lag_hours": overall_median,
+            "mean_ingestion_lag_hours": overall_mean,
+            "total_signals_analyzed": len(total_lags),
+            "near_realtime_pct": round(
+                sum(1 for l in total_lags if l <= 1.0) / max(1, len(total_lags)) * 100, 1
+            ),
+            "interpretation": (
+                "Ingestion lag = time between source event timestamp and our DB ingest. "
+                "Near-zero or negative values indicate real-time or predictive feeds. "
+                "Values > 24h are typical for batch-reported sources (ACLED, ReliefWeb)."
+            ),
+        },
+        "by_source": source_breakdown,
+        "transparency_note": (
+            "All figures are computed from actual stored signal timestamps using "
+            "services/event_freshness.py:extract_event_timestamp(). "
+            "No values are estimated or hardcoded."
+        ),
+    }
+

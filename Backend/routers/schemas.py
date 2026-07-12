@@ -32,8 +32,37 @@ class SPRRequest(BaseModel):
 
 
 class EnergyResilienceSPRRequest(SPRRequest):
-    brent_trend_pct: float = 4.5
-    shipping_queue_days: float = 3.0
+    """
+    SPR policy request with market context fields.
+
+    Extends the base SPRRequest with two additional market signals that directly
+    affect the computed drawdown schedule:
+
+    - brent_trend_pct: your value takes precedence over the live API feed, enabling
+      stress-testing at hypothetical price trajectories (e.g. 20% spike scenario).
+      When > 5% and supply_gap_mbd is not supplied, a proportional gap is inferred.
+
+    - shipping_queue_days: port queue time at alternative terminals, added directly
+      to replenishment_eta_days. Send 10 to simulate a severely congested market —
+      the schedule will draw from SPR for 10 more days before the gap starts closing.
+    """
+    brent_trend_pct: float = Field(
+        default=4.5,
+        description=(
+            "Brent crude price trend % (positive = rising). Caller value overrides live API. "
+            "When >5% and supply_gap_mbd is absent, gap is inferred as 1.4 + trend/20 MBD."
+        ),
+    )
+    shipping_queue_days: float = Field(
+        default=3.0,
+        ge=0.0,
+        le=60.0,
+        description=(
+            "Average port queue delay at alternative crude terminals (days). "
+            "Added to replenishment_eta_days: a 10-day queue extends the ETA from 21 to 31 days, "
+            "requiring deeper SPR draws before alternate cargo arrives."
+        ),
+    )
 
 
 class CrudeCompatibilityRequest(BaseModel):

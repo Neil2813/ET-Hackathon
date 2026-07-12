@@ -505,18 +505,60 @@ def build_ais_anomaly_forecast() -> dict[str, Any]:
 
 
 def build_spr_policy(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """
+    Compute an SPR drawdown schedule for a given import shock.
+
+    All input fields from EnergyResilienceSPRRequest are honoured:
+
+    brent_trend_pct (float, default 4.5):
+        Caller-supplied Brent crude price trend in % over the recent window.
+        If the live EIA/yfinance fetch succeeds AND the caller did not supply
+        this field, the live value is used. If the caller supplies it, their
+        value takes precedence — enabling stress-testing with hypothetical trends.
+        When brent_trend_pct > 5% and no supply_gap_mbd was provided, a
+        proportionally higher gap is inferred: gap = 1.4 + (trend / 20).
+
+    shipping_queue_days (float, default 3.0):
+        Average port queue time at alternative crude terminals (days).
+        Mapped to replenishment_eta_days: a longer shipping queue delays
+        when alternative cargoes can realistically arrive. The effective ETA is:
+            effective_eta = base_replenishment_eta + shipping_queue_days
+        This directly affects the SPR drawdown schedule — more days are drawn
+        before the supply gap starts closing.
+    """
     inputs = dict(payload or {})
+
+    # ── Caller-supplied brent_trend_pct takes precedence ─────────────────────
+    caller_brent_trend = inputs.pop("brent_trend_pct", None)  # extract before passing to SPRInputs
+    caller_shipping_queue = inputs.pop("shipping_queue_days", None)
+
+    # Fetch live Brent data as enrichment (not override)
     brent = _fetch_brent_trend()
-    if brent:
-        trend = float(brent.get("brent_trend_pct") or 0.0)
-        if "supply_gap_mbd" not in inputs and trend > 5:
-            inputs["supply_gap_mbd"] = min(2.4, 1.4 + (trend / 20.0))
-        inputs.setdefault("brent_trend_pct", trend)
+    live_trend = float(brent.get("brent_trend_pct") or 0.0) if brent else 0.0
+
+    # Caller value wins; live API fills the gap only if caller didn't send one
+    effective_brent_trend = caller_brent_trend if caller_brent_trend is not None else live_trend
+
+    # Infer supply gap from Brent trend if caller didn't send supply_gap_mbd
+    if "supply_gap_mbd" not in inputs and effective_brent_trend > 5:
+        inputs["supply_gap_mbd"] = round(min(2.4, 1.4 + (effective_brent_trend / 20.0)), 3)
+
+    # ── Wire shipping_queue_days → replenishment_eta_days ────────────────────
+    if caller_shipping_queue is not None:
+        base_eta = int(inputs.get("replenishment_eta_days", 21))
+        # Queue time extends when alternate cargo can physically arrive
+        effective_eta = base_eta + max(0, int(round(caller_shipping_queue)))
+        inputs["replenishment_eta_days"] = effective_eta
+        queue_effect = f"+{int(round(caller_shipping_queue))} days (port queue)"
+    else:
+        queue_effect = "no adjustment (shipping_queue_days not supplied)"
+
     spr = optimize_spr_drawdown(inputs)
     schedule = spr.get("schedule", [])
     first_week_draw = sum(float(day.get("spr_draw_mbd") or 0.0) for day in schedule[:7])
     avg_draw = first_week_draw / 7 if schedule else 0.0
     peak_stress = max((float(day.get("stress_index") or 0.0) for day in schedule), default=0.0)
+
     return {
         **spr,
         "agent": "PPO/SAC-ready transparent policy controller",
@@ -531,10 +573,20 @@ def build_spr_policy(payload: dict[str, Any] | None = None) -> dict[str, Any]:
         "market_inputs": brent or {
             "source": "curated fallback",
             "brent_latest_usd": None,
-            "brent_trend_pct": inputs.get("brent_trend_pct", 0.0),
+            "brent_trend_pct": effective_brent_trend,
             "fallback_used": True,
         },
+        # Audit trail: shows exactly how caller inputs changed the schedule
+        "market_context": {
+            "brent_trend_pct_used": round(effective_brent_trend, 2),
+            "brent_trend_source": "caller_supplied" if caller_brent_trend is not None else "live_api",
+            "supply_gap_mbd_inferred": "supply_gap_mbd" not in (payload or {}),
+            "shipping_queue_days_supplied": caller_shipping_queue,
+            "replenishment_eta_adjustment": queue_effect,
+            "effective_replenishment_eta_days": inputs.get("replenishment_eta_days", 21),
+        },
     }
+
 
 
 def build_compatibility_matches(blocked_grade: str = "iranian_light") -> dict[str, Any]:
