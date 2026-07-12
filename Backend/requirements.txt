@@ -40,3 +40,7 @@ searoute==1.6.0
 geojson==3.3.0
 yfinance>=0.2.54
 scipy>=1.11.0
+alembic==1.13.1
+pytest==8.1.1
+pytest-asyncio==0.23.6
+pytest-mock==3.14.0

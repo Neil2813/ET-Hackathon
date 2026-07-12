@@ -16,279 +16,31 @@ DB_PATH = Path(os.getenv("LOCAL_DB_PATH") or (Path(__file__).resolve().parents[1
 
 
 def _conn() -> sqlite3.Connection:
-    return sqlite3.connect(DB_PATH)
+    con = sqlite3.connect(DB_PATH)
+    try:
+        con.execute("PRAGMA journal_mode=WAL")
+        con.execute("PRAGMA foreign_keys=ON")
+    except Exception:
+        pass
+    return con
 
 
 def init_local_store() -> None:
-    # Initialize SQLAlchemy ORM tables
+    """Initialize SQLite database using Alembic migrations."""
     try:
-        from db.orm_models import init_orm_db
-        init_orm_db()
+        from alembic.config import Config
+        from alembic import command
+
+        backend_dir = Path(__file__).resolve().parent.parent
+        alembic_ini_path = backend_dir / "alembic.ini"
+
+        logger.info("Applying database migrations programmatically via Alembic...")
+        alembic_cfg = Config(str(alembic_ini_path))
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Alembic database migrations successfully applied.")
     except Exception as exc:
-        logger.warning("Failed to initialize SQLAlchemy ORM tables: %s", exc)
+        logger.exception("Failed to initialize database via Alembic migrations: %s", exc)
 
-    with _conn() as con:
-        con.execute("PRAGMA journal_mode=WAL")
-        con.execute("PRAGMA foreign_keys=ON")
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                user_id TEXT PRIMARY KEY,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                company_name TEXT,
-                full_name TEXT DEFAULT '',
-                created_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS contexts (
-                user_id TEXT PRIMARY KEY,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS workflow_events (
-                workflow_id TEXT PRIMARY KEY,
-                stage TEXT NOT NULL,
-                confidence REAL NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS rfq_events (
-                rfq_id TEXT PRIMARY KEY,
-                user_id TEXT,
-                workflow_id TEXT,
-                recipient TEXT NOT NULL,
-                subject TEXT NOT NULL,
-                body TEXT NOT NULL,
-                status TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            )
-            """
-        )
-        # Backwards-compatible migration (older DBs won't have workflow_id)
-        try:
-            con.execute("ALTER TABLE rfq_events ADD COLUMN workflow_id TEXT")
-        except Exception:
-            pass
-
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS rfq_messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                rfq_id TEXT NOT NULL,
-                direction TEXT NOT NULL, -- "outbound" | "inbound" | "note"
-                sender TEXT,
-                body TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS signals (
-                signal_id TEXT PRIMARY KEY,
-                payload_json TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            )
-            """
-        )
-        try:
-            con.execute("ALTER TABLE signals ADD COLUMN payload_hash TEXT")
-        except Exception:
-            pass
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS signals_archive (
-                signal_id TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                archived_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS audit_log (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                action TEXT NOT NULL,
-                payload TEXT,
-                created_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS workflow_reports (
-                workflow_id TEXT PRIMARY KEY,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS workflow_checkpoints (
-                workflow_id TEXT PRIMARY KEY,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS workflow_outcomes (
-                workflow_id TEXT PRIMARY KEY,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS cache_entries (
-                cache_key TEXT PRIMARY KEY,
-                payload_json TEXT NOT NULL,
-                expires_at TEXT,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS reasoning_steps (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                workflow_id TEXT NOT NULL,
-                agent TEXT NOT NULL,
-                stage TEXT NOT NULL,
-                detail TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'success',
-                output_json TEXT,
-                timestamp TEXT NOT NULL,
-                timestamp_ms INTEGER NOT NULL
-            )
-            """
-        )
-        con.execute("CREATE INDEX IF NOT EXISTS idx_reasoning_workflow ON reasoning_steps(workflow_id, timestamp_ms)")
-
-        # ── Incidents (v4 autonomous pipeline) ──
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS incidents (
-                id TEXT PRIMARY KEY,
-                tenant_id TEXT NOT NULL DEFAULT 'default',
-                payload_json TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'DETECTED',
-                severity TEXT NOT NULL DEFAULT 'LOW',
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        try:
-            con.execute("ALTER TABLE incidents ADD COLUMN tenant_id TEXT NOT NULL DEFAULT 'default'")
-        except Exception:
-            pass
-        con.execute("CREATE INDEX IF NOT EXISTS idx_incidents_status ON incidents(status)")
-        con.execute("CREATE INDEX IF NOT EXISTS idx_incidents_severity ON incidents(severity)")
-        con.execute("CREATE INDEX IF NOT EXISTS idx_incidents_tenant ON incidents(tenant_id)")
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS master_data_changes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL,
-                change_type TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute("CREATE INDEX IF NOT EXISTS idx_master_data_user ON master_data_changes(user_id, created_at)")
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS orchestration_runs (
-                run_id TEXT PRIMARY KEY,
-                orchestration_path TEXT NOT NULL,
-                entity_id TEXT NOT NULL,
-                tenant_id TEXT NOT NULL DEFAULT 'default',
-                status TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        con.execute("CREATE INDEX IF NOT EXISTS idx_orch_runs_tenant ON orchestration_runs(tenant_id, updated_at)")
-
-        # ── V4 Graph Normalization (Fix for Giant JSON Blobs) ──
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS graph_nodes (
-                tenant_id TEXT NOT NULL,
-                node_id TEXT NOT NULL,
-                node_type TEXT NOT NULL,
-                name TEXT NOT NULL,
-                lat REAL,
-                lng REAL,
-                country TEXT,
-                duns_number TEXT,
-                tier INTEGER,
-                contract_value_usd REAL,
-                daily_throughput_usd REAL,
-                safety_stock_days INTEGER,
-                criticality TEXT,
-                single_source BOOLEAN,
-                api_gravity REAL,
-                sulfur_pct REAL,
-                viscosity_cst REAL,
-                crude_grade TEXT,
-                distillation_profile_json TEXT,
-                inventory_days REAL,
-                privacy_band TEXT,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (tenant_id, node_id)
-            )
-            """
-        )
-        try:
-            con.execute("ALTER TABLE graph_nodes ADD COLUMN duns_number TEXT")
-        except Exception:
-            pass
-        for ddl in [
-            "ALTER TABLE graph_nodes ADD COLUMN api_gravity REAL",
-            "ALTER TABLE graph_nodes ADD COLUMN sulfur_pct REAL",
-            "ALTER TABLE graph_nodes ADD COLUMN viscosity_cst REAL",
-            "ALTER TABLE graph_nodes ADD COLUMN crude_grade TEXT",
-            "ALTER TABLE graph_nodes ADD COLUMN distillation_profile_json TEXT",
-            "ALTER TABLE graph_nodes ADD COLUMN inventory_days REAL",
-            "ALTER TABLE graph_nodes ADD COLUMN privacy_band TEXT",
-        ]:
-            try:
-                con.execute(ddl)
-            except Exception:
-                pass
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS graph_edges (
-                tenant_id TEXT NOT NULL,
-                from_id TEXT NOT NULL,
-                to_id TEXT NOT NULL,
-                tier_level INTEGER,
-                substitutability REAL,
-                mode TEXT,
-                PRIMARY KEY (tenant_id, from_id, to_id)
-            )
-            """
-        )
 
 
 def upsert_workflow_event(workflow_id: str, stage: str, confidence: float) -> dict:

@@ -37,7 +37,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { api, type EnergyResilienceDashboard } from "@/lib/api";
+import { api, type EnergyResilienceDashboard, type CrudeBlendResponse, type RouteCompareResponse, type RefineryBlendRecipe, type RouteCompareItem } from "@/lib/api";
 import { CO2Badge } from "@/components/ui/CO2Badge";
 import { getAccessToken, getUserId } from "@/lib/api";
 
@@ -335,7 +335,7 @@ function CompatibilityPanel({ data }: { data: EnergyResilienceDashboard }) {
 /* ── Blend LP Optimizer Panel ──────────────────────────────────────────────── */
 function BlendPanel({ data }: { data: EnergyResilienceDashboard }) {
   const blockedGrade = String(data.compatibility.blocked_grade.id || "iranian_light");
-  const [blendData, setBlendData] = useState<any>(null);
+  const [blendData, setBlendData] = useState<CrudeBlendResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -364,7 +364,7 @@ function BlendPanel({ data }: { data: EnergyResilienceDashboard }) {
             <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-violet-500">Linear Programming · scipy HiGHS Solver</p>
             <h2 className="font-headline text-lg font-bold text-slate-900 mt-1">Optimal Crude Blend Recipes</h2>
             <p className="text-xs text-slate-500 mt-1">
-              Blocked: <span className="font-bold text-red-600">{String(data.compatibility.blocked_grade.name)}</span>
+              Blocked: <span className="font-bold text-red-600"> {String(data.compatibility.blocked_grade.name)}</span>
               {" "}— finds minimum-cost multi-crude blend satisfying each refinery's API gravity, sulfur &amp; viscosity spec.
             </p>
           </div>
@@ -377,7 +377,7 @@ function BlendPanel({ data }: { data: EnergyResilienceDashboard }) {
             {loading ? "Solving…" : "Run LP Solver"}
           </button>
         </div>
-        {error && <p className="mt-3 text-xs text-red-600 font-mono">{error}</p>}\
+        {error && <p className="mt-3 text-xs text-red-600 font-mono">{error}</p>}
       </div>
 
       {!blendData && !loading && (
@@ -408,7 +408,7 @@ function BlendPanel({ data }: { data: EnergyResilienceDashboard }) {
 
           {/* Per-refinery blend cards */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            {(blendData.blend_recipes as any[]).map((result: any, idx: number) => (
+            {blendData.blend_recipes.map((result: RefineryBlendRecipe, idx: number) => (
               <div key={idx} className={`border rounded shadow-sm p-5 ${
                 result.status === "optimal"
                   ? "border-emerald-200 bg-white"
@@ -434,7 +434,7 @@ function BlendPanel({ data }: { data: EnergyResilienceDashboard }) {
                   <>
                     {/* Blend bar chart */}
                     <div className="space-y-2 mb-4">
-                      {(result.recipe as any[]).map((item: any, i: number) => (
+                      {result.recipe.map((item: CrudeRecipeItem, i: number) => (
                         <div key={i}>
                           <div className="flex justify-between text-xs mb-1">
                             <span className="font-bold text-slate-800">{String(item.crude?.name)}</span>
@@ -481,8 +481,8 @@ function BlendPanel({ data }: { data: EnergyResilienceDashboard }) {
                         result.meets_spec
                           ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           : "bg-amber-50 text-amber-700 border border-amber-200"
-                      }`}>\
-                        {result.meets_spec ? "✓ All assay constraints satisfied" : "⚠ Blend outside spec — manual review needed"}\
+                      }`}>
+                        {result.meets_spec ? "✓ All assay constraints satisfied" : "⚠ Blend outside spec — manual review needed"}
                       </div>
                     )}
                   </>
@@ -512,7 +512,7 @@ function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
     return Math.max(babScore, hormuzScore);
   }, [data]);
 
-  const [routeData, setRouteData] = useState<any>(null);
+  const [routeData, setRouteData] = useState<RouteCompareResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -620,7 +620,7 @@ function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
                 <span className="ml-auto text-[10px] font-mono font-bold text-slate-400">War risk: {pct(routeData.war_risk_suez)}</span>
               </div>
               <div className="space-y-3">
-                {(routeData.suez_routes as any[]).map((r: any, i: number) => (
+                {routeData.suez_routes.map((r: RouteCompareItem, i: number) => (
                   <div key={i} className="bg-slate-50 border border-slate-200 rounded p-3">
                     <p className="text-xs font-bold text-slate-800 mb-2">{String(r.tanker_class)}</p>
                     <div className="grid grid-cols-3 gap-2 text-xs">
@@ -654,7 +654,7 @@ function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
                 <span className="ml-auto text-[10px] font-mono font-bold text-slate-400">War risk: {pct(routeData.war_risk_cape)}</span>
               </div>
               <div className="space-y-3">
-                {(routeData.cape_routes as any[]).map((r: any, i: number) => (
+                {routeData.cape_routes.map((r: RouteCompareItem, i: number) => (
                   <div key={i} className="bg-slate-50 border border-slate-200 rounded p-3">
                     <p className="text-xs font-bold text-slate-800 mb-2">{String(r.tanker_class)}</p>
                     <div className="grid grid-cols-3 gap-2 text-xs">

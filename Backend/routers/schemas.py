@@ -244,3 +244,91 @@ class FeedbackRequest(BaseModel):
     verdict: Literal["TRUE_POSITIVE", "FALSE_POSITIVE", "FALSE_NEGATIVE", "UNCERTAIN"]
     notes: str = ""
     affected_stage: str = ""
+
+
+# ── Energy Resilience API Response Hardened Types ───────────────────────────
+
+class AISForecastResponse(BaseModel):
+    model: str
+    lead_time_hours: int
+    high_risk_corridors: list[str]
+    vessels: list[dict[str, Any]]
+    live_sources: dict[str, Any]
+    generated_at: str
+
+
+class GeopoliticalRAGResponse(BaseModel):
+    vector_store: str
+    documents: list[dict[str, Any]]
+    risk_by_corridor: dict[str, dict[str, Any]]
+    india_vulnerability: dict[str, Any]
+    live_sources: dict[str, Any]
+    generated_at: str
+
+
+class CrudeMatchResponse(BaseModel):
+    blocked_grade: dict[str, Any]
+    matches: list[dict[str, Any]]
+    generated_at: str
+
+
+class ExchangeLedgerResponse(BaseModel):
+    tenant_id: str
+    participants: list[dict[str, Any]]
+    recommendation: dict[str, Any]
+    generated_at: str
+
+
+class EnergyResilienceSPRResponse(BaseModel):
+    inputs: dict[str, Any]
+    initial_inventory_mmbbl: float
+    exhaustion_day: int | None = None
+    peak_unmet_demand_mbd: float
+    average_stress_index: float
+    schedule: list[dict[str, Any]]
+    policy_summary: str
+    agent: str
+    state_space: list[str]
+    action_space: list[str]
+    recommended_action: dict[str, Any]
+    market_inputs: dict[str, Any]
+
+
+class EnergyResilienceDashboardResponse(BaseModel):
+    tenant_id: str
+    generated_at: str
+    national_resilience_score: float
+    status: str
+    ais: AISForecastResponse
+    spr: EnergyResilienceSPRResponse
+    compatibility: CrudeMatchResponse
+    rag: GeopoliticalRAGResponse
+    exchange_ledger: ExchangeLedgerResponse
+    esg: dict[str, Any]
+
+
+class CrudeBlendRecipeResponse(BaseModel):
+    blocked_grade: dict[str, Any]
+    refineries_analysed: int
+    feasible_count: int
+    infeasible_count: int
+    blend_recipes: list[dict[str, Any]]
+    generated_at: str
+
+
+class RouteComparisonResponse(BaseModel):
+    suez_routes: list[dict[str, Any]]
+    cape_routes: list[dict[str, Any]]
+    corridor_risk_score: float
+    war_risk_suez: float
+    war_risk_cape: float
+    cost_delta_usd: float
+    time_delta_days: float
+    risk_reduction: float
+    breakeven_risk: float
+    recommendation: str
+    recommendation_text: str
+    origin_label: str
+    destination_label: str
+    generated_at: str
+

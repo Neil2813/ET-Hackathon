@@ -92,6 +92,57 @@ def refresh_worldmonitor(self) -> dict[str, Any]:
             _release_task_lock(client, "refresh_worldmonitor", token)
 
 
+@celery_app.task(bind=True, name="scheduler.tasks.worldmonitor_cron_task")
+def worldmonitor_cron_task(self) -> dict[str, Any]:
+    """
+    Periodic Celery Beat task that replaces worldmonitor_cron_loop.
+    Checks which fetchers are due according to the interval schedule,
+    runs them synchronously in the worker context, and updates timestamps in cache.
+    """
+    logger.info("Executing Celery Beat task: worldmonitor_cron_task")
+    client, token = _acquire_task_lock("worldmonitor_cron_task")
+    if client is not None and token is None:
+        logger.info("Skipping worldmonitor_cron_task: another worker is already running it")
+        return {"status": "skipped", "message": "worldmonitor_cron_task already in progress"}
+    try:
+        from services.local_store import cache_get_entry, cache_set_entry
+        from services.worldmonitor_fetcher import FETCH_SCHEDULE
+        import time
+
+        last_runs = cache_get_entry("worldmonitor:fetcher_last_runs") or {}
+        now_ts = time.time()
+        run_fetchers = []
+
+        for fn, interval_minutes, desc in FETCH_SCHEDULE:
+            fn_key = fn.__name__
+            last_run = float(last_runs.get(fn_key, 0.0))
+            if now_ts - last_run >= interval_minutes * 60:
+                last_runs[fn_key] = now_ts
+                try:
+                    logger.info("Celery Beat: Running %s (%s)", fn_key, desc)
+                    _run_async(fn())
+                    run_fetchers.append(fn_key)
+                except Exception as e:
+                    logger.error("Fetcher %s failed: %s", fn_key, e)
+
+        cache_set_entry("worldmonitor:fetcher_last_runs", last_runs, ttl_seconds=0)
+
+        if run_fetchers:
+            try:
+                from services.event_bus import broadcast_all
+                _run_async(broadcast_all("worldmonitor_updated_batch", {"fetchers": run_fetchers}))
+            except Exception as e:
+                logger.error("failed to broadcast updates: %s", e)
+
+        return {"status": "ok", "run_fetchers": run_fetchers}
+    except Exception as exc:
+        logger.exception("worldmonitor_cron_task execution failed")
+        return {"status": "error", "error": str(exc)}
+    finally:
+        if client is not None and token:
+            _release_task_lock(client, "worldmonitor_cron_task", token)
+
+
 @celery_app.task(bind=True, max_retries=1, name="scheduler.tasks.train_xgboost")
 def train_xgboost(self) -> dict[str, Any]:
     """Train the XGBoost model in a worker process."""

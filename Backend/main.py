@@ -116,19 +116,11 @@ async def _start_worldmonitor_cron():
     import threading
     threading.Thread(target=_bootstrap_ml_models, daemon=True).start()
 
-    if os.getenv("ENABLE_IN_PROCESS_SCHEDULERS", "true").strip().lower() in {"1", "true", "yes"}:
+    if os.getenv("ENABLE_IN_PROCESS_SCHEDULERS", "false").strip().lower() in {"1", "true", "yes"}:
         try:
             start_signal_scheduler()
         except Exception as exc:
             logger.exception("signal scheduler startup failed: %s", exc)
-        global _worldmonitor_task
-        _worldmonitor_task = asyncio.create_task(worldmonitor_cron_loop())
-        def _log_task_result(task: asyncio.Task) -> None:
-            try:
-                _ = task.result()
-            except Exception as task_exc:
-                logger.exception("worldmonitor_cron_loop crashed: %s", task_exc)
-        _worldmonitor_task.add_done_callback(_log_task_result)
 
 
 # Mount the modular routers

@@ -20,7 +20,6 @@ celery_app.conf.update(
     broker_connection_retry_on_startup=True,
     task_track_started=True,
     result_expires=86400,
-    # Celery Beat config for distributed autonomous execution
     beat_schedule={
         "poll-signals-every-20-minutes": {
             "task": "scheduler.tasks.poll_signals",
@@ -29,6 +28,10 @@ celery_app.conf.update(
         "refresh-worldmonitor-every-15-minutes": {
             "task": "scheduler.tasks.refresh_worldmonitor",
             "schedule": float(os.getenv("WORLDMONITOR_REFRESH_INTERVAL_SECONDS", "900")),
+        },
+        "worldmonitor-cron-every-minute": {
+            "task": "scheduler.tasks.worldmonitor_cron_task",
+            "schedule": 60.0,
         },
     }
 )

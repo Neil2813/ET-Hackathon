@@ -492,6 +492,64 @@ export interface EnergyResilienceDashboard {
   };
 }
 
+export interface CrudeRecipeItem {
+  crude: Record<string, any>;
+  fraction: number;
+  fraction_pct: number;
+  daily_mbd: number;
+}
+
+export interface RefineryBlendRecipe {
+  status: string;
+  meets_spec?: boolean;
+  solver?: string;
+  message?: string;
+  recipe?: CrudeRecipeItem[];
+  blend_properties?: { api_gravity: number; sulfur_pct: number; viscosity_cst: number };
+  refinery: Record<string, any>;
+  blocked_grade: Record<string, any>;
+}
+
+export interface CrudeBlendResponse {
+  blocked_grade: Record<string, any>;
+  refineries_analysed: number;
+  feasible_count: number;
+  infeasible_count: number;
+  blend_recipes: RefineryBlendRecipe[];
+  generated_at: string;
+}
+
+export interface RouteCompareItem {
+  mode: string;
+  distance_km: number;
+  transit_days: number;
+  cost_usd: number;
+  co2_tons: number;
+  risk_score: number;
+  tanker_class: string;
+  war_risk_premium: number;
+  route_label: string;
+  extra_days_vs_suez?: number;
+}
+
+export interface RouteCompareResponse {
+  suez_routes: RouteCompareItem[];
+  cape_routes: RouteCompareItem[];
+  corridor_risk_score: number;
+  war_risk_suez: number;
+  war_risk_cape: number;
+  cost_delta_usd: number;
+  time_delta_days: number;
+  risk_reduction: number;
+  breakeven_risk: number;
+  recommendation: "suez" | "cape" | "cape_strongly_recommended";
+  recommendation_text: string;
+  origin_label: string;
+  destination_label: string;
+  generated_at: string;
+}
+
+
 export interface EnergySPRRequest extends SPRRequest {
   brent_trend_pct?: number;
   shipping_queue_days?: number;
