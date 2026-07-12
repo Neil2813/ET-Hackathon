@@ -246,7 +246,18 @@ async def api_signals_lead_time_metrics(
         our_time = parse_event_dt(our_time_raw) if our_time_raw else now
 
         # Source event time (when the event actually happened / was reported)
-        source_time = extract_event_timestamp(sig)
+        source_time = None
+        for key in ("timestamp", "time", "event_time", "event_date", "fromdate", "startdate"):
+            parsed = parse_event_dt(sig.get(key))
+            if parsed:
+                source_time = parsed
+                break
+
+        if not source_time:
+            # Check if GDACS title contains a date
+            title = str(sig.get("title") or sig.get("event_title") or sig.get("htmldescription") or "")
+            from services.event_freshness import _parse_gdacs_title_date
+            source_time = _parse_gdacs_title_date(title)
 
         if source_time is None:
             signals_without_source_ts += 1

@@ -37,7 +37,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { api, type EnergyResilienceDashboard, type CrudeBlendResponse, type RouteCompareResponse, type RefineryBlendRecipe, type RouteCompareItem } from "@/lib/api";
+import { api, type EnergyResilienceDashboard, type CrudeBlendResponse, type RouteCompareResponse, type RefineryBlendRecipe, type RouteCompareItem, type CrudeRecipeItem } from "@/lib/api";
 import { CO2Badge } from "@/components/ui/CO2Badge";
 import { getAccessToken, getUserId } from "@/lib/api";
 
@@ -692,12 +692,93 @@ function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
   );
 }
 
-function RagPanel({ data }: { data: EnergyResilienceDashboard }) {
+function RagPanel({ data, leadTimeData }: { data: EnergyResilienceDashboard; leadTimeData?: any }) {
   const corridors = Object.entries(data.rag.risk_by_corridor).map(([name, values]) => ({ name, ...values })) as any[];
   const wb = (data.rag as any).india_vulnerability as Record<string, any> | undefined;
 
   return (
     <div className="space-y-4">
+      {/* Ingestion Lag & Detection Lead Time Card */}
+      {leadTimeData && leadTimeData.overall && (
+        <div className="border border-slate-200 bg-white rounded shadow-sm p-5 space-y-4">
+          <div>
+            <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">Signal Intelligence Layer</p>
+            <h2 className="font-headline text-lg font-bold text-slate-900 mt-1">Disruption Signal Ingestion Lag & Lead-Time Analysis</h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Real-time audit of how quickly Praecantator ingests and indexes disruption signals after their physical event time.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-slate-50 border border-slate-200 p-4 rounded text-center">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Median Ingestion Lag</p>
+              <p className="text-2xl font-bold text-slate-900 mt-2">
+                {leadTimeData.overall.median_ingestion_lag_hours != null ? `${leadTimeData.overall.median_ingestion_lag_hours} hrs` : "N/A"}
+              </p>
+              <p className="text-[10px] text-slate-500 mt-1">Time from event to DB ingestion</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 p-4 rounded text-center">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Near Real-Time Ratio</p>
+              <p className="text-2xl font-bold text-emerald-600 mt-2">
+                {leadTimeData.overall.near_realtime_pct}%
+              </p>
+              <p className="text-[10px] text-slate-500 mt-1">Ingested within 1 hour</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 p-4 rounded text-center">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Signals Queried</p>
+              <p className="text-2xl font-bold text-slate-900 mt-2">
+                {leadTimeData.data_window?.signals_queried}
+              </p>
+              <p className="text-[10px] text-slate-500 mt-1 font-sans">Total count in analysis window</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 p-4 rounded text-center">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">Timestamp Coverage</p>
+              <p className="text-2xl font-bold text-blue-600 mt-2">
+                {leadTimeData.data_window?.coverage_pct}%
+              </p>
+              <p className="text-[10px] text-slate-500 mt-1 font-sans">Signals with source event time</p>
+            </div>
+          </div>
+
+          <div className="border border-slate-100 rounded overflow-hidden">
+            <table className="w-full text-left border-collapse text-xs font-sans">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 font-mono font-bold uppercase tracking-wider text-[10px] text-slate-400">
+                  <th className="p-3">Signal Source</th>
+                  <th className="p-3 text-right">Signals Indexed</th>
+                  <th className="p-3 text-right font-bold text-slate-800">Median Lag (Hrs)</th>
+                  <th className="p-3 text-right">Mean Lag (Hrs)</th>
+                  <th className="p-3 text-right">Near Real-Time %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {leadTimeData.by_source?.map((s: any, idx: number) => (
+                  <tr key={idx} className="hover:bg-slate-50/50">
+                    <td className="p-3 font-bold text-slate-900 font-mono uppercase">{s.source}</td>
+                    <td className="p-3 text-right">{s.signal_count}</td>
+                    <td className="p-3 text-right font-bold text-slate-800">{s.median_lag_hours}h</td>
+                    <td className="p-3 text-right">{s.mean_lag_hours}h</td>
+                    <td className="p-3 text-right">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                        s.near_realtime_pct >= 75 ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
+                        s.near_realtime_pct >= 40 ? "bg-amber-50 text-amber-700 border border-amber-100" :
+                        "bg-slate-50 text-slate-600 border border-slate-200"
+                      }`}>
+                        {s.near_realtime_pct}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[10px] text-slate-400 italic">
+            Note: All ingestion lag statistics are generated dynamically from stored signal metadata
+            and verified using the event_freshness.py engine.
+          </p>
+        </div>
+      )}
+
       {/* India Vulnerability Card — World Bank PPP vs Nominal */}
       {wb && (
         <div className="border border-blue-200 bg-blue-50 rounded shadow-sm p-5">
@@ -940,6 +1021,7 @@ function EsgPanel({ data }: { data: any }) {
           ))}
         </div>
       </div>
+    </div>
   );
 }
 
@@ -1225,9 +1307,17 @@ const EnergyResilience = () => {
     queryFn: api.energyResilience.dashboard,
     staleTime: 5 * 60 * 1000,
   });
+  const { data: leadTimeData } = useQuery({
+    queryKey: ["signals", "lead-time-metrics"],
+    queryFn: () => api.signals.leadTimeMetrics(200),
+    staleTime: 5 * 60 * 1000,
+  });
   const refresh = useMutation({
     mutationFn: api.energyResilience.dashboard,
-    onSuccess: (next) => queryClient.setQueryData(["energy-resilience", "dashboard"], next),
+    onSuccess: (next) => {
+      queryClient.setQueryData(["energy-resilience", "dashboard"], next);
+      void queryClient.invalidateQueries({ queryKey: ["signals", "lead-time-metrics"] });
+    },
   });
 
   const activeContent = useMemo(() => {
@@ -1238,10 +1328,10 @@ const EnergyResilience = () => {
     if (module === "compatibility") return <CompatibilityPanel data={data} />;
     if (module === "blend") return <BlendPanel data={data} />;
     if (module === "routes") return <RouteComparePanel data={data} />;
-    if (module === "rag") return <RagPanel data={data} />;
+    if (module === "rag") return <RagPanel data={data} leadTimeData={leadTimeData} />;
     if (module === "esg") return <EsgPanel data={data} />;
     return <LedgerPanel data={data} />;
-  }, [data, module]);
+  }, [data, module, leadTimeData]);
 
   if (isLoading) {
     return (
@@ -1283,10 +1373,11 @@ const EnergyResilience = () => {
             Refresh Model
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mt-5">
           <MetricTile label="Resilience Score" value={pct(data.national_resilience_score)} icon={BarChart3} tone={data.status === "critical" ? "text-red-600" : "text-amber-600"} />
           <MetricTile label="Status" value={data.status.toUpperCase()} icon={AlertTriangle} tone={data.status === "critical" ? "text-red-600" : "text-emerald-600"} />
-          <MetricTile label="High-Risk Corridors" value={String(data.ais.high_risk_corridors.length)} icon={Anchor} tone="text-blue-600" />
+          <MetricTile label="Median Ingest Lag" value={leadTimeData?.overall?.median_ingestion_lag_hours != null ? `${leadTimeData.overall.median_ingestion_lag_hours}h` : "Loading..."} icon={Activity} tone="text-blue-600" />
+          <MetricTile label="High-Risk Corridors" value={String(data.ais.high_risk_corridors.length)} icon={Anchor} tone="text-amber-600" />
           <MetricTile label="Viable Crudes" value={String(data.compatibility.matches.reduce((sum, row) => sum + (((row.alternatives as unknown[]) || []).length), 0))} icon={Boxes} tone="text-emerald-600" />
         </div>
       </div>

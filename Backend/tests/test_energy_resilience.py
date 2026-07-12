@@ -86,3 +86,30 @@ class TestEnergyResilienceServices(unittest.TestCase):
         self.assertIn("Red Sea threat is CRITICAL", res["recommendation_text"])
         self.assertLessEqual(res["breakeven_risk"], 1.0)
         self.assertGreaterEqual(res["breakeven_risk"], 0.0)
+
+    def test_build_spr_policy_inputs(self):
+        from services.energy_resilience import build_spr_policy
+
+        # Case 1: Custom Brent trend overrides live/default trend and triggers supply gap scaling
+        res = build_spr_policy({
+            "brent_trend_pct": 12.0,
+            "shipping_queue_days": 0.0,
+            "spr_cover_days": 10.0,
+            "replenishment_eta_days": 20,
+        })
+        self.assertEqual(res["market_context"]["brent_trend_pct_used"], 12.0)
+        self.assertEqual(res["market_context"]["brent_trend_source"], "caller_supplied")
+        # Since gap wasn't provided and trend > 5%, gap is inferred: min(2.4, 1.4 + 12/20) = 2.0
+        self.assertAlmostEqual(res["market_context"]["effective_replenishment_eta_days"], 20)
+
+        # Case 2: Shipping queue delays replenishment ETA
+        res_queue = build_spr_policy({
+            "brent_trend_pct": 0.0,
+            "shipping_queue_days": 5.0,
+            "spr_cover_days": 10.0,
+            "replenishment_eta_days": 20,
+        })
+        # effective replenishment eta should be 20 + 5 = 25 days
+        self.assertEqual(res_queue["market_context"]["effective_replenishment_eta_days"], 25)
+        self.assertIn("+5 days", res_queue["market_context"]["replenishment_eta_adjustment"])
+

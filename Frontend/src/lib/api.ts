@@ -1014,6 +1014,8 @@ export const api = {
     categorized: () => request<CategorizedSignals>("/signals/categorized"),
     sentiment: () => request<SentimentSignal[]>("/signals/sentiment"),
     refresh: () => request<{ status: string; message: string }>("/signals/refresh", { method: "POST" }),
+    leadTimeMetrics: (window_signals?: number) =>
+      request<any>(`/signals/lead-time-metrics${window_signals ? `?window_signals=${window_signals}` : ""}`),
   },
   audit: {
     list: () => request<AuditEntry[]>("/audit"),
