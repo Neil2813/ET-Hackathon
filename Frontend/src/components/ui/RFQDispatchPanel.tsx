@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Mail, ShieldAlert, Check, Loader2, FileCode } from "lucide-react";
 import { Button } from "./button";
+import { getAccessToken } from "@/lib/api";
 
 interface RFQDispatchPanelProps {
   incidentId: string;
@@ -23,7 +24,7 @@ export function RFQDispatchPanel({ incidentId, incidentTitle, onClose }: RFQDisp
         // We will call the dispatch-rfq endpoint or compile a draft
         // For preview, let's call the dispatch endpoint directly or mock draft.
         // Actually, we can fetch from backend. Let's make an inline fetch call to simulate.
-        const token = localStorage.getItem("firebase_token") || "local-dev-token";
+        const token = getAccessToken();
         const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
         const res = await fetch(`${apiBase}/incidents/${incidentId}/dispatch-rfq`, {
           method: "POST",
