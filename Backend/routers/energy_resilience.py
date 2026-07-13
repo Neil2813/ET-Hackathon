@@ -104,6 +104,8 @@ async def api_blend_optimizer(
 @router.get("/api/energy-resilience/route-comparison", response_model=RouteComparisonResponse)
 async def api_route_comparison(
     corridor_risk: float = Query(default=0.65, ge=0.0, le=1.0, description="Bab el-Mandeb risk score 0–1"),
+    origin: str | None = Query(default=None, description="Origin coordinates as lat,lng"),
+    destination: str | None = Query(default=None, description="Destination coordinates as lat,lng"),
     user=Depends(verify_firebase_or_local_token),
 ) -> RouteComparisonResponse:
     """
@@ -112,7 +114,28 @@ async def api_route_comparison(
     ('suez' | 'cape' | 'cape_strongly_recommended') driven by the live corridor risk score.
     """
     add_audit("energy_resilience_route_comparison", user.get("sub", "local"))
-    return build_route_comparison(corridor_risk_score=corridor_risk)
+    
+    orig_coords = None
+    if origin:
+        try:
+            parts = origin.split(",")
+            orig_coords = (float(parts[0]), float(parts[1]))
+        except Exception:
+            pass
+
+    dest_coords = None
+    if destination:
+        try:
+            parts = destination.split(",")
+            dest_coords = (float(parts[0]), float(parts[1]))
+        except Exception:
+            pass
+
+    return build_route_comparison(
+        corridor_risk_score=corridor_risk,
+        origin=orig_coords,
+        destination=dest_coords
+    )
 
 
 @router.post("/api/energy-resilience/simulate-scenario", response_model=ScenarioSimulationResponse)

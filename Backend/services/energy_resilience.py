@@ -1232,7 +1232,7 @@ def build_route_comparison(
         "breakeven_risk": breakeven_risk,
         "recommendation": recommendation,
         "recommendation_text": recommendation_text,
-        "origin_label": "Strait of Hormuz / Fujairah",
-        "destination_label": "Mumbai / BPCL",
+        "origin_label": f"Custom Load Port ({orig_lat:.2f}, {orig_lng:.2f})" if origin else "Strait of Hormuz / Fujairah",
+        "destination_label": f"Custom Discharge Port ({dest_lat:.2f}, {dest_lng:.2f})" if destination else "Mumbai / BPCL",
         "generated_at": _now(),
     }

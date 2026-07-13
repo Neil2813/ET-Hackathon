@@ -345,7 +345,7 @@ function BlendPanel({ data }: { data: EnergyResilienceDashboard }) {
     setLoading(true); setError(null);
     try {
       const res = await fetch(
-        `${BASE}/api/energy-resilience/blend-optimizer?blocked_grade=${encodeURIComponent(blockedGrade)}`,
+        `${BASE}/energy-resilience/blend-optimizer?blocked_grade=${encodeURIComponent(blockedGrade)}`,
         { headers: authHeaders() }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -522,7 +522,7 @@ function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
     setLoading(true); setError(null);
     try {
       const res = await fetch(
-        `${BASE}/api/energy-resilience/route-comparison?corridor_risk=${corridorRisk.toFixed(3)}`,
+        `${BASE}/energy-resilience/route-comparison?corridor_risk=${corridorRisk.toFixed(3)}`,
         { headers: authHeaders() }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
