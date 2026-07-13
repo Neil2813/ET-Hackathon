@@ -47,7 +47,7 @@ try:
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
-    from torch_geometric.nn import SAGEConv, GATConv
+    from torch_geometric.nn import SAGEConv, GATConv, GCNConv
     from torch_geometric.data import Data
     _torch_available = True
 except ImportError:
@@ -179,37 +179,74 @@ def _build_pyg_data(
 # ── Model definition ─────────────────────────────────────────────────────────
 
 if _torch_available:
+    class GCN(nn.Module):
+        def __init__(self, in_dim, hidden=32, out=1, dropout=0.2):
+            super().__init__()
+            self.gc1 = GCNConv(in_dim, hidden)
+            self.gc2 = GCNConv(hidden, hidden)
+            self.gc3 = nn.Linear(hidden, out)
+            self.dropout = dropout
+
+        def forward(self, x, edge_idx):
+            x = self.gc1(x, edge_idx)
+            x = F.elu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = self.gc2(x, edge_idx)
+            x = F.elu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            return self.gc3(x)
+
+    class GAT(nn.Module):
+        def __init__(self, in_dim, hidden=32, out=1, heads=2, dropout=0.2):
+            super().__init__()
+            self.gat1 = GATConv(in_dim, hidden, heads=heads, dropout=dropout)
+            self.gat2 = GATConv(hidden * heads, hidden, heads=1, dropout=dropout)
+            self.gat3 = nn.Linear(hidden, out)
+            self.dropout = dropout
+
+        def forward(self, x, edge_idx):
+            x = self.gat1(x, edge_idx)
+            x = F.elu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = self.gat2(x, edge_idx)
+            x = F.elu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            return self.gat3(x)
+
+    class TemporalGNN(nn.Module):
+        def __init__(self, input_dim, hidden_dim=32, out=1):
+            super().__init__()
+            self.gnn = GCNConv(input_dim, hidden_dim)
+            self.lstm = nn.LSTM(hidden_dim, hidden_dim)
+            self.fc = nn.Linear(hidden_dim, out)
+
+        def forward(self, x, edge_index):
+            if x.ndim == 2:
+                x = x.unsqueeze(0)
+            gnn_out = []
+            for t in range(x.shape[0]):
+                h = self.gnn(x[t], edge_index)
+                gnn_out.append(h)
+            gnn_out = torch.stack(gnn_out)
+            lstm_out, _ = self.lstm(gnn_out)
+            out = self.fc(lstm_out[-1])
+            return out
+
     class SupplyChainGNN(nn.Module):
-        """
-        Two-layer GNN: GraphSAGE aggregation → GAT attention → risk score.
-        
-        GraphSAGE captures structural neighborhood patterns.
-        GAT attention learns which neighbors matter most.
-        Final linear layer outputs per-node risk probability.
-        """
         def __init__(self, in_channels: int = FEATURE_DIM, hidden: int = 32, heads: int = 2):
             super().__init__()
-            self.sage = SAGEConv(in_channels, hidden)
-            self.gat = GATConv(hidden, hidden // heads, heads=heads, concat=True)
-            self.lin = nn.Linear(hidden, 1)
-            self.dropout = nn.Dropout(0.2)
+            self.gcn = GCN(in_channels, hidden, out=1, dropout=0.2)
+            self.gat = GAT(in_channels, hidden, out=1, heads=heads, dropout=0.2)
+            self.temporal = TemporalGNN(in_channels, hidden, out=1)
+            self.fuse = nn.Linear(3, 1)
 
         def forward(self, data: Data) -> torch.Tensor:
             x, edge_index = data.x, data.edge_index
-
-            # Layer 1: GraphSAGE
-            x = self.sage(x, edge_index)
-            x = F.elu(x)
-            x = self.dropout(x)
-
-            # Layer 2: GAT
-            x = self.gat(x, edge_index)
-            x = F.elu(x)
-            x = self.dropout(x)
-
-            # Output: risk score per node
-            x = self.lin(x)
-            return torch.sigmoid(x).squeeze(-1)
+            g = self.gcn(x, edge_index)
+            a = self.gat(x, edge_index)
+            t = self.temporal(x, edge_index)
+            fused = self.fuse(torch.cat([g, a, t], dim=1))
+            return torch.sigmoid(fused).squeeze(-1)
 
 
 # ── Training ─────────────────────────────────────────────────────────────────
@@ -531,3 +568,145 @@ def propagate_risk_learned(
         min_stockout_days=min_stockout if min_stockout < 999 else 0,
         confidence=round(confidence, 3),
     )
+
+
+def train_gnn_from_csv(csv_path: str = None, epochs: int = 20, lr: float = 0.01) -> dict[str, Any]:
+    if not _torch_available:
+        return {"status": "skipped", "reason": "PyTorch Geometric not installed"}
+    import pandas as pd
+    import random
+    if csv_path is None:
+        p1 = _ML_DIR.parent / "Dataset" / "CoSupplyChainData.csv"
+        if p1.exists():
+            csv_path = str(p1)
+        else:
+            csv_path = r"d:\ET Gen AI\Supply-Chain-Risk-Assessment-using-Graph-Neural-Algorithm-main\CoSupplyChainData.csv"
+    path = Path(csv_path)
+    if not path.exists():
+        return {"status": "skipped", "reason": "CSV file not found"}
+    try:
+        df = pd.read_csv(str(path))
+        numeric_cols = df.select_dtypes(include=["number"]).columns
+        df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+        text_cols = df.select_dtypes(include=["object"]).columns
+        df[text_cols] = df[text_cols].fillna("Unknown")
+        df = df.sample(n=min(1000, len(df)), random_state=42).reset_index(drop=True)
+    except Exception as exc:
+        return {"status": "error", "reason": str(exc)}
+    graph = SupplyChainGraph()
+    for i, row in df.iterrows():
+        node = SupplierNode(
+            id=str(i),
+            name=str(row.get("Product Name", f"Supplier_{i}")),
+            tier=(i % 3) + 1,
+            lat=float(row.get("Latitude", 0.0)),
+            lng=float(row.get("Longitude", 0.0)),
+            country=str(row.get("Customer Country", "")),
+            contract_value_usd=float(row.get("Sales", 100000.0)),
+            safety_stock_days=max(3, 14 - int(float(row.get("Late_delivery_risk", 0.0)) * 5)),
+            single_source=bool(float(row.get("Order Item Discount Rate", 0.0)) > 0.2),
+            criticality="critical" if float(row.get("Sales", 0.0)) > 500 else "high" if float(row.get("Sales", 0.0)) > 200 else "medium",
+            location_precision="exact",
+            product_category=str(row.get("Category Name", "general"))
+        )
+        graph.add_node(node)
+    for i in range(len(df)):
+        region = df.loc[i, "Order Region"]
+        cat = df.loc[i, "Category Name"]
+        matches = df[(df["Order Region"] == region) & (df["Category Name"] == cat)].index.tolist()
+        for idx in matches:
+            if idx != i:
+                graph.add_edge(SupplyEdge(
+                    from_id=str(i),
+                    to_id=str(idx),
+                    tier_level=1,
+                    substitutability=0.5
+                ))
+    samples = []
+    for _ in range(20):
+        c_idx = random.randint(0, len(df) - 1)
+        ref_node = graph.nodes[str(c_idx)]
+        event_data = {
+            "id": f"csv_event_{len(samples)}",
+            "title": "Historical Disruption",
+            "event_type": "Maritime Chokepoint",
+            "severity": float(random.randint(4, 9)),
+            "lat": ref_node.lat,
+            "lng": ref_node.lng,
+            "radius_km": float(random.randint(300, 700)),
+            "duration_days": float(random.randint(5, 12))
+        }
+        affected_nodes = []
+        for nid, node in graph.nodes.items():
+            dist = _haversine_km(event_data["lat"], event_data["lng"], node.lat, node.lng)
+            if dist <= event_data["radius_km"]:
+                affected_nodes.append(nid)
+        if affected_nodes:
+            samples.append({
+                "event": event_data,
+                "affected_nodes": affected_nodes
+            })
+    if not samples:
+        return {"status": "skipped", "reason": "No samples generated"}
+    model = SupplyChainGNN()
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    loss_fn = nn.BCELoss()
+    model.train()
+    best_loss = float("inf")
+    for epoch in range(epochs):
+        epoch_loss = 0.0
+        batch_count = 0
+        for sample in samples:
+            labels = {}
+            for nid in sample["affected_nodes"]:
+                idx = int(nid)
+                late_risk = float(df.loc[idx, "Late_delivery_risk"])
+                labels[nid] = 1.0 if late_risk > 0 else 0.0
+            if not labels:
+                continue
+            ev = sample["event"]
+            event = DisruptionEvent(
+                id=ev["id"],
+                title=ev["title"],
+                event_type=ev["event_type"],
+                severity=ev["severity"],
+                lat=ev["lat"],
+                lng=ev["lng"],
+                radius_km=ev["radius_km"],
+                duration_days=ev["duration_days"]
+            )
+            try:
+                data, node_ids = _build_pyg_data(graph, event, labels)
+            except Exception:
+                continue
+            id_to_idx = {nid: j for j, nid in enumerate(node_ids)}
+            mask_indices = [id_to_idx[nid] for nid in labels if nid in id_to_idx]
+            if not mask_indices:
+                continue
+            mask = torch.zeros(len(node_ids), dtype=torch.bool)
+            mask[mask_indices] = True
+            optimizer.zero_grad()
+            pred = model(data)
+            loss = loss_fn(pred[mask], data.y[mask])
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.item()
+            batch_count += 1
+        if batch_count > 0:
+            avg_loss = epoch_loss / batch_count
+            if avg_loss < best_loss:
+                best_loss = avg_loss
+                torch.save(model.state_dict(), MODEL_WEIGHTS_PATH)
+    report = {
+        "status": "trained",
+        "epochs": epochs,
+        "samples_used": len(samples),
+        "best_loss": round(best_loss, 6),
+        "model_path": str(MODEL_WEIGHTS_PATH),
+        "trained_at": datetime.now(timezone.utc).isoformat()
+    }
+    try:
+        TRAINING_LOG_PATH.write_text(json.dumps(report, indent=2))
+    except Exception:
+        pass
+    return report

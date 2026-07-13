@@ -90,13 +90,13 @@ def _bootstrap_ml_models():
     # ── Check GNN weights ────────────────────────────────────────────────────
     gnn_weights = backend_dir / "ml" / "gnn_weights.pt"
     if not gnn_weights.exists():
-        logger.warning(
-            "GNN weights not found at %s. "
-            "Graph risk propagation will use the heuristic message-passing fallback "
-            "(ml/gnn_stub.py). This is intentional and auditable. "
-            "To activate the learned GNN layer, train offline and commit the weights.",
-            gnn_weights,
-        )
+        try:
+            from ml.gnn_model import train_gnn_from_csv
+            logger.info("Triggering GNN training from CSV at startup...")
+            report = train_gnn_from_csv()
+            logger.info("GNN training complete: %s", report)
+        except Exception as exc:
+            logger.error("Failed to train GNN at startup: %s", exc)
     else:
         try:
             import torch
