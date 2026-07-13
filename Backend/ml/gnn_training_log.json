@@ -1,8 +1,8 @@
 {
   "status": "trained",
-  "epochs": 5,
+  "epochs": 100,
   "samples_used": 20,
-  "best_loss": 0.672965,
+  "best_loss": 0.461245,
   "model_path": "D:\\ET Gen AI\\Solution-Challenge-2026-main\\Backend\\ml\\gnn_weights.pt",
-  "trained_at": "2026-07-13T06:51:20.423015+00:00"
+  "trained_at": "2026-07-13T07:19:59.356651+00:00"
 }

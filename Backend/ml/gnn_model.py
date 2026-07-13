@@ -570,7 +570,7 @@ def propagate_risk_learned(
     )
 
 
-def train_gnn_from_csv(csv_path: str = None, epochs: int = 20, lr: float = 0.01) -> dict[str, Any]:
+def train_gnn_from_csv(csv_path: str = None, epochs: int = 100, lr: float = 0.01) -> dict[str, Any]:
     if not _torch_available:
         return {"status": "skipped", "reason": "PyTorch Geometric not installed"}
     import pandas as pd
@@ -590,7 +590,7 @@ def train_gnn_from_csv(csv_path: str = None, epochs: int = 20, lr: float = 0.01)
         df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
         text_cols = df.select_dtypes(include=["object"]).columns
         df[text_cols] = df[text_cols].fillna("Unknown")
-        df = df.sample(n=min(1000, len(df)), random_state=42).reset_index(drop=True)
+        df = df.sample(n=min(2000, len(df)), random_state=42).reset_index(drop=True)
     except Exception as exc:
         return {"status": "error", "reason": str(exc)}
     graph = SupplyChainGraph()
@@ -623,7 +623,7 @@ def train_gnn_from_csv(csv_path: str = None, epochs: int = 20, lr: float = 0.01)
                     substitutability=0.5
                 ))
     samples = []
-    for _ in range(20):
+    for _ in range(200):
         c_idx = random.randint(0, len(df) - 1)
         ref_node = graph.nodes[str(c_idx)]
         event_data = {
@@ -653,15 +653,18 @@ def train_gnn_from_csv(csv_path: str = None, epochs: int = 20, lr: float = 0.01)
     loss_fn = nn.BCELoss()
     model.train()
     best_loss = float("inf")
+    training_log = []
     for epoch in range(epochs):
         epoch_loss = 0.0
         batch_count = 0
         for sample in samples:
             labels = {}
+            for nid in graph.nodes:
+                labels[nid] = 0.0
             for nid in sample["affected_nodes"]:
-                idx = int(nid)
-                late_risk = float(df.loc[idx, "Late_delivery_risk"])
-                labels[nid] = 1.0 if late_risk > 0 else 0.0
+                labels[nid] = 1.0
+                for neighbor_id, _ in graph._adj.get(nid, []):
+                    labels[neighbor_id] = 1.0
             if not labels:
                 continue
             ev = sample["event"]
@@ -697,13 +700,21 @@ def train_gnn_from_csv(csv_path: str = None, epochs: int = 20, lr: float = 0.01)
             if avg_loss < best_loss:
                 best_loss = avg_loss
                 torch.save(model.state_dict(), MODEL_WEIGHTS_PATH)
+            
+            if epoch % 10 == 0 or epoch == epochs - 1:
+                training_log.append({
+                    "epoch": epoch,
+                    "avg_loss": round(avg_loss, 6),
+                    "best_loss": round(best_loss, 6),
+                })
     report = {
         "status": "trained",
         "epochs": epochs,
         "samples_used": len(samples),
         "best_loss": round(best_loss, 6),
         "model_path": str(MODEL_WEIGHTS_PATH),
-        "trained_at": datetime.now(timezone.utc).isoformat()
+        "trained_at": datetime.now(timezone.utc).isoformat(),
+        "training_log": training_log,
     }
     try:
         TRAINING_LOG_PATH.write_text(json.dumps(report, indent=2))
