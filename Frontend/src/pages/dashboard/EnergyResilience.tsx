@@ -514,6 +514,29 @@ function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
     return Math.max(babScore, hormuzScore);
   }, [data]);
 
+  const ORIGIN_OPTIONS = [
+    { name: "Strait of Hormuz / Fujairah (UAE)", value: "26.58,56.25" },
+    { name: "Ras Tanura (Saudi Arabia)", value: "26.64,50.17" },
+    { name: "Basra Oil Terminal (Iraq)", value: "29.78,48.81" },
+    { name: "Bonny Island (Nigeria)", value: "4.43,7.17" },
+    { name: "Houston Ship Channel (USA)", value: "29.74,-95.08" },
+    { name: "Custom Coordinate", value: "custom" },
+  ];
+
+  const DESTINATION_OPTIONS = [
+    { name: "Mumbai / BPCL (India West)", value: "18.96,72.82" },
+    { name: "Jamnagar / Reliance (India West)", value: "22.47,70.06" },
+    { name: "Paradip / IOCL (India East)", value: "20.26,86.73" },
+    { name: "Visakhapatnam / HPCL (India East)", value: "17.69,83.29" },
+    { name: "Custom Coordinate", value: "custom" },
+  ];
+
+  const [originType, setOriginType] = useState("26.58,56.25");
+  const [customOrigin, setCustomOrigin] = useState("26.58,56.25");
+
+  const [destType, setDestType] = useState("18.96,72.82");
+  const [customDest, setCustomDest] = useState("18.96,72.82");
+
   const [routeData, setRouteData] = useState<RouteCompareResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -521,8 +544,11 @@ function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
   const fetchRoutes = async () => {
     setLoading(true); setError(null);
     try {
+      const originParam = originType === "custom" ? customOrigin : originType;
+      const destParam = destType === "custom" ? customDest : destType;
+      
       const res = await fetch(
-        `${BASE}/energy-resilience/route-comparison?corridor_risk=${corridorRisk.toFixed(3)}`,
+        `${BASE}/energy-resilience/route-comparison?corridor_risk=${corridorRisk.toFixed(3)}&origin=${encodeURIComponent(originParam)}&destination=${encodeURIComponent(destParam)}`,
         { headers: authHeaders() }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -545,11 +571,70 @@ function RouteComparePanel({ data }: { data: EnergyResilienceDashboard }) {
 
   return (
     <div className="space-y-4">
+      {/* Route Selector Controls */}
+      <div className="border border-slate-200 bg-white rounded shadow-sm p-5">
+        <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 mb-3">Route Parameters</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[11px] font-mono font-bold text-slate-500 uppercase block mb-1">Origin (Load Port)</label>
+            <select
+              value={originType}
+              onChange={(e) => {
+                setOriginType(e.target.value);
+                if (e.target.value !== "custom") {
+                  setCustomOrigin(e.target.value);
+                }
+              }}
+              className="w-full text-xs border border-slate-200 rounded px-2.5 py-2 bg-white text-slate-800 font-sans focus:outline-none focus:border-blue-500"
+            >
+              {ORIGIN_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.name}</option>
+              ))}
+            </select>
+            {originType === "custom" && (
+              <input
+                type="text"
+                value={customOrigin}
+                onChange={(e) => setCustomOrigin(e.target.value)}
+                placeholder="lat,lng (e.g. 26.58,56.25)"
+                className="w-full mt-2 text-xs border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 font-mono text-slate-800 bg-white"
+              />
+            )}
+          </div>
+          <div>
+            <label className="text-[11px] font-mono font-bold text-slate-500 uppercase block mb-1">Destination (Discharge Port)</label>
+            <select
+              value={destType}
+              onChange={(e) => {
+                setDestType(e.target.value);
+                if (e.target.value !== "custom") {
+                  setCustomDest(e.target.value);
+                }
+              }}
+              className="w-full text-xs border border-slate-200 rounded px-2.5 py-2 bg-white text-slate-800 font-sans focus:outline-none focus:border-blue-500"
+            >
+              {DESTINATION_OPTIONS.map((d) => (
+                <option key={d.value} value={d.value}>{d.name}</option>
+              ))}
+            </select>
+            {destType === "custom" && (
+              <input
+                type="text"
+                value={customDest}
+                onChange={(e) => setCustomDest(e.target.value)}
+                placeholder="lat,lng (e.g. 18.96,72.82)"
+                className="w-full mt-2 text-xs border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 font-mono text-slate-800 bg-white"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="border border-blue-200 bg-blue-50 rounded shadow-sm p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-blue-500">Geospatial Routing Engine · Gulf → India</p>
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-blue-500">Geospatial Routing Engine</p>
             <h2 className="font-headline text-lg font-bold text-slate-900 mt-1">Suez Canal vs Cape of Good Hope</h2>
             <p className="text-xs text-slate-600 mt-1">
               Live corridor risk: <span className={`font-bold ${
