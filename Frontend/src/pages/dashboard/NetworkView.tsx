@@ -1239,7 +1239,8 @@ const NETWORK_VIEW_CACHE_PREFIX = "network-view-cache:v1";
 function readSessionCache<T>(cacheKey: string): T | undefined {
   if (typeof window === "undefined") return undefined;
   try {
-    const raw = window.sessionStorage.getItem(`${NETWORK_VIEW_CACHE_PREFIX}:${cacheKey}`);
+    const userId = getUserId() || "guest";
+    const raw = window.sessionStorage.getItem(`${NETWORK_VIEW_CACHE_PREFIX}:${userId}:${cacheKey}`);
     return raw ? JSON.parse(raw) as T : undefined;
   } catch {
     return undefined;
@@ -1249,7 +1250,8 @@ function readSessionCache<T>(cacheKey: string): T | undefined {
 function writeSessionCache<T>(cacheKey: string, value: T): void {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(`${NETWORK_VIEW_CACHE_PREFIX}:${cacheKey}`, JSON.stringify(value));
+    const userId = getUserId() || "guest";
+    window.sessionStorage.setItem(`${NETWORK_VIEW_CACHE_PREFIX}:${userId}:${cacheKey}`, JSON.stringify(value));
   } catch {
     // Ignore cache write failures such as quota errors.
   }

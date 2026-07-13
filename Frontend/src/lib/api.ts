@@ -152,6 +152,15 @@ export function clearAuthSession(): void {
     storage.removeItem(PERSISTENCE_KEY);
     storage.removeItem(AUTH_KIND_KEY);
   }
+  
+  if (typeof window !== "undefined") {
+    try {
+      window.sessionStorage.clear();
+    } catch (e) {
+      console.warn("Failed to clear sessionStorage on logout", e);
+    }
+  }
+
   void import("firebase/auth").then(({ signOut, getAuth }) => {
     void import("@/lib/firebase").then(({ getFirebaseApp }) => {
       const fa = getFirebaseApp();
