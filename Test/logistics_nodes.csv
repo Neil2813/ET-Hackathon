@@ -1,6 +1,6 @@
-node_name,address,node_type
-Factory A,Chennai India,factory
-Warehouse 1,Mumbai India,warehouse
-Port Hub,Nhava Sheva Port,port
-Factory B,Bangalore India,factory
-Distribution Center,Delhi India,warehouse
+node_name,address,node_type,latitude,longitude,tier
+Factory A,Chennai India,factory,13.11,80.3,Tier 1
+Warehouse 1,Mumbai India,warehouse,18.98,72.92,Tier 2
+Port Hub,Nhava Sheva Port,port,18.95,72.94,Tier 1
+Factory B,Bangalore India,factory,12.95,77.6682,Tier 2
+Distribution Center,Delhi India,warehouse,32.4107,-91.4987,Tier 1
