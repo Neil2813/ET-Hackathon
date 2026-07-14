@@ -29,8 +29,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
-  LabelList,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -104,29 +102,8 @@ function MetricTile({
   );
 }
 
-const AisTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="bg-white/95 backdrop-blur-sm border border-slate-100 rounded-xl p-3.5 shadow-xl transition-all duration-200">
-        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">{data.corridor || "Spatial Forecast"}</p>
-        <p className="text-sm font-bold text-slate-900 mt-1">{data.name}</p>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-xs font-semibold text-slate-700">
-            Anomaly Score: <span className="font-bold text-slate-900">{pct(data.anomaly_score)}</span>
-          </span>
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
-
 function AisPanel({ data }: { data: EnergyResilienceDashboard }) {
   const vessels = data.ais.vessels;
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-4">
       <div className="border border-slate-200 bg-white rounded shadow-sm p-5 min-h-[320px]">
@@ -141,56 +118,12 @@ function AisPanel({ data }: { data: EnergyResilienceDashboard }) {
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={vessels} barCategoryGap={0} margin={{ top: 40, right: 10, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="0" stroke="#f1f5f9" vertical={true} horizontal={false} />
+            <BarChart data={vessels}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} height={54} />
-              <YAxis domain={[0, 1.2]} tick={{ fontSize: 11 }} />
-              <Tooltip cursor={{ fill: 'rgba(241, 245, 249, 0.45)' }} content={<AisTooltip />} />
-              <Bar
-                dataKey="anomaly_score"
-                radius={0}
-                onMouseEnter={(_, index) => setActiveIndex(index)}
-                onMouseLeave={() => setActiveIndex(null)}
-              >
-                {vessels.map((entry, index) => {
-                  const isHovered = activeIndex === index;
-                  const hasActive = activeIndex !== null;
-                  return (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill="#dc2626"
-                      opacity={hasActive ? (isHovered ? 1.0 : 0.4) : 1.0}
-                      style={{
-                        transition: "all 200ms ease",
-                        cursor: "pointer",
-                      }}
-                    />
-                  );
-                })}
-                <LabelList
-                  dataKey="name"
-                  position="top"
-                  offset={18}
-                  style={{
-                    fontSize: 9,
-                    fill: '#64748b',
-                    fontWeight: 500,
-                    transition: "all 200ms ease",
-                  }}
-                />
-                <LabelList
-                  dataKey="anomaly_score"
-                  position="top"
-                  offset={4}
-                  formatter={(val: any) => pct(val)}
-                  style={{
-                    fontSize: 11,
-                    fill: '#0f172a',
-                    fontWeight: 'bold',
-                    transition: "all 200ms ease",
-                  }}
-                />
-              </Bar>
+              <YAxis domain={[0, 1]} tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(value) => pct(value)} />
+              <Bar dataKey="anomaly_score" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={52} />
             </BarChart>
           </ResponsiveContainer>
         </div>
