@@ -14,7 +14,6 @@ import {
   TrendingUp, AlertTriangle, Eye, ChevronDown, ChevronUp, Link as LinkIcon, Cpu, GitMerge, Mail
 } from "lucide-react";
 import { fmtINR } from "@/lib/currency";
-import ROIWidget from "@/components/ui/ROIWidget";
 import { RFQDispatchPanel } from "@/components/ui/RFQDispatchPanel";
 
 
@@ -458,15 +457,6 @@ const CommandCenter = () => {
         </div>
       </div>
 
-      {/* ═══ ROI / BUSINESS IMPACT WIDGET ═══ */}
-      <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-        <ROIWidget
-          resolvedIncidents={resolvedIncidentsRaw as Record<string, unknown>[]}
-          activeIncidents={incidents as Record<string, unknown>[]}
-          auditRows={[]}
-          isLoading={isLoading}
-        />
-      </div>
 
       {/* ═══ MAP + DECISION PANEL ═══ */}
       <div className="flex gap-4 h-[420px]">
