@@ -1,4 +1,4 @@
-date,product_id,sales_units,holiday_season,promotion_applied,competitor_price_index,economic_index,weather_impact,price,discount_percentage,sales_revenue,region_Europe,region_North America,store_type_Retail,store_type_Wholesale,category_Cabinets,category_Chairs,category_Sofas,category_Tables,future_demand
+date,product_id,sales_units,holiday_season,promotion_applied,competitor_price_index,economic_index,weather_impact,price,discount_percentage,sales_revenue,region_Europe,region_North America,store_type_Retail,store_type_Wholesale,category_Crude_Oil,category_LNG,category_Refined_Products,category_Petrochemicals,future_demand
 2023-01-01,151,99,0,0,0.9838925858521185,1.3143333872069696,0,126.93292248921064,0.0,12566.359326431853,False,False,True,False,False,True,False,False,95.0
 2023-01-02,192,95,1,0,0.9776154652161498,1.439582471569124,0,151.35540538584283,0.0,14378.763511655068,False,True,False,False,True,False,False,False,101.0
 2023-01-03,114,101,0,0,0.9839129767369997,1.094794571385757,0,191.70169259666412,0.0,19361.870952263074,False,False,False,True,True,False,False,False,33.0

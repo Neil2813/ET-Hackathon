@@ -1,251 +1,253 @@
 supplier_name,country,email,products_categories,category,tier,origin_nodes,sla_days,incoterm,backup_supplier
-Supplier_1_UAE,UAE,supplier1@example.com,Chemicals_Products,Chemicals,Tier 1,Node_165,15,FOB,TRUE
-Supplier_2_Canada,Canada,supplier2@example.com,Automotive_Products,Automotive,Tier 1,Node_98,12,CIF,TRUE
-Supplier_3_Canada,Canada,supplier3@example.com,Pharma_Products,Pharma,Tier 2,Node_72,26,DDP,FALSE
-Supplier_4_Brazil,Brazil,supplier4@example.com,Electronics_Products,Electronics,Tier 2,Node_192,19,FOB,TRUE
-Supplier_5_UK,UK,supplier5@example.com,Automotive_Products,Automotive,Tier 3,Node_200,22,FOB,TRUE
-Supplier_6_India,India,supplier6@example.com,Automotive_Products,Automotive,Tier 1,Node_160,6,FOB,TRUE
-Supplier_7_Germany,Germany,supplier7@example.com,Textiles_Products,Textiles,Tier 3,Node_145,8,FOB,FALSE
-Supplier_8_Brazil,Brazil,supplier8@example.com,Pharma_Products,Pharma,Tier 1,Node_200,28,FOB,TRUE
-Supplier_9_Brazil,Brazil,supplier9@example.com,Electronics_Products,Electronics,Tier 3,Node_238,11,FOB,FALSE
-Supplier_10_France,France,supplier10@example.com,Chemicals_Products,Chemicals,Tier 1,Node_152,24,FOB,TRUE
-Supplier_11_USA,USA,supplier11@example.com,Chemicals_Products,Chemicals,Tier 2,Node_204,20,FOB,TRUE
-Supplier_12_UK,UK,supplier12@example.com,Machinery_Products,Machinery,Tier 2,Node_18,18,CIF,FALSE
-Supplier_13_India,India,supplier13@example.com,Textiles_Products,Textiles,Tier 2,Node_111,13,FOB,FALSE
-Supplier_14_Germany,Germany,supplier14@example.com,Textiles_Products,Textiles,Tier 1,Node_158,27,CIF,FALSE
-Supplier_15_Canada,Canada,supplier15@example.com,Textiles_Products,Textiles,Tier 3,Node_83,29,CIF,TRUE
-Supplier_16_USA,USA,supplier16@example.com,Pharma_Products,Pharma,Tier 2,Node_193,16,EXW,FALSE
-Supplier_17_UK,UK,supplier17@example.com,Electronics_Products,Electronics,Tier 2,Node_47,17,CIF,TRUE
-Supplier_18_UK,UK,supplier18@example.com,Pharma_Products,Pharma,Tier 2,Node_226,21,CIF,FALSE
-Supplier_19_Australia,Australia,supplier19@example.com,Electronics_Products,Electronics,Tier 3,Node_22,9,EXW,FALSE
-Supplier_20_Canada,Canada,supplier20@example.com,Machinery_Products,Machinery,Tier 1,Node_166,24,DDP,FALSE
-Supplier_21_Canada,Canada,supplier21@example.com,Electronics_Products,Electronics,Tier 1,Node_57,14,CIF,TRUE
-Supplier_22_Brazil,Brazil,supplier22@example.com,Chemicals_Products,Chemicals,Tier 3,Node_122,19,CIF,FALSE
-Supplier_23_France,France,supplier23@example.com,Chemicals_Products,Chemicals,Tier 3,Node_91,24,CIF,FALSE
-Supplier_24_Brazil,Brazil,supplier24@example.com,Pharma_Products,Pharma,Tier 2,Node_31,25,EXW,TRUE
-Supplier_25_UK,UK,supplier25@example.com,Electronics_Products,Electronics,Tier 3,Node_50,8,EXW,FALSE
-Supplier_26_Brazil,Brazil,supplier26@example.com,Chemicals_Products,Chemicals,Tier 3,Node_26,28,CIF,TRUE
-Supplier_27_Brazil,Brazil,supplier27@example.com,Automotive_Products,Automotive,Tier 2,Node_78,2,EXW,TRUE
-Supplier_28_Brazil,Brazil,supplier28@example.com,Electronics_Products,Electronics,Tier 1,Node_179,6,CIF,FALSE
-Supplier_29_USA,USA,supplier29@example.com,Electronics_Products,Electronics,Tier 3,Node_121,17,CIF,FALSE
-Supplier_30_UK,UK,supplier30@example.com,Automotive_Products,Automotive,Tier 1,Node_241,29,CIF,FALSE
-Supplier_31_USA,USA,supplier31@example.com,Electronics_Products,Electronics,Tier 2,Node_19,20,DDP,TRUE
-Supplier_32_Germany,Germany,supplier32@example.com,Automotive_Products,Automotive,Tier 3,Node_22,9,CIF,TRUE
-Supplier_33_Australia,Australia,supplier33@example.com,Textiles_Products,Textiles,Tier 3,Node_199,18,EXW,FALSE
-Supplier_34_Canada,Canada,supplier34@example.com,Textiles_Products,Textiles,Tier 2,Node_79,20,DDP,TRUE
-Supplier_35_UAE,UAE,supplier35@example.com,Chemicals_Products,Chemicals,Tier 1,Node_161,8,EXW,FALSE
-Supplier_36_USA,USA,supplier36@example.com,Automotive_Products,Automotive,Tier 1,Node_142,4,EXW,TRUE
-Supplier_37_India,India,supplier37@example.com,Textiles_Products,Textiles,Tier 2,Node_75,3,DDP,TRUE
-Supplier_38_Brazil,Brazil,supplier38@example.com,Chemicals_Products,Chemicals,Tier 2,Node_19,23,DDP,TRUE
-Supplier_39_Brazil,Brazil,supplier39@example.com,Chemicals_Products,Chemicals,Tier 3,Node_109,5,EXW,TRUE
-Supplier_40_Germany,Germany,supplier40@example.com,Pharma_Products,Pharma,Tier 1,Node_16,7,FOB,FALSE
-Supplier_41_UAE,UAE,supplier41@example.com,Chemicals_Products,Chemicals,Tier 3,Node_113,5,CIF,FALSE
-Supplier_42_Brazil,Brazil,supplier42@example.com,Chemicals_Products,Chemicals,Tier 2,Node_129,19,CIF,FALSE
-Supplier_43_Canada,Canada,supplier43@example.com,Electronics_Products,Electronics,Tier 3,Node_228,15,FOB,FALSE
-Supplier_44_UAE,UAE,supplier44@example.com,Pharma_Products,Pharma,Tier 1,Node_59,23,FOB,TRUE
-Supplier_45_Brazil,Brazil,supplier45@example.com,Machinery_Products,Machinery,Tier 1,Node_121,18,EXW,FALSE
-Supplier_46_Brazil,Brazil,supplier46@example.com,Automotive_Products,Automotive,Tier 3,Node_163,28,DDP,FALSE
-Supplier_47_USA,USA,supplier47@example.com,Textiles_Products,Textiles,Tier 2,Node_86,12,DDP,TRUE
-Supplier_48_Germany,Germany,supplier48@example.com,Pharma_Products,Pharma,Tier 2,Node_74,23,DDP,FALSE
-Supplier_49_Australia,Australia,supplier49@example.com,Electronics_Products,Electronics,Tier 2,Node_81,10,FOB,FALSE
-Supplier_50_USA,USA,supplier50@example.com,Textiles_Products,Textiles,Tier 3,Node_169,29,FOB,FALSE
-Supplier_51_France,France,supplier51@example.com,Electronics_Products,Electronics,Tier 1,Node_160,26,CIF,FALSE
-Supplier_52_Canada,Canada,supplier52@example.com,Electronics_Products,Electronics,Tier 1,Node_141,6,CIF,FALSE
-Supplier_53_Canada,Canada,supplier53@example.com,Chemicals_Products,Chemicals,Tier 2,Node_8,22,FOB,TRUE
-Supplier_54_Germany,Germany,supplier54@example.com,Pharma_Products,Pharma,Tier 3,Node_142,15,FOB,TRUE
-Supplier_55_Japan,Japan,supplier55@example.com,Electronics_Products,Electronics,Tier 2,Node_166,28,FOB,TRUE
-Supplier_56_Canada,Canada,supplier56@example.com,Chemicals_Products,Chemicals,Tier 2,Node_107,28,CIF,FALSE
-Supplier_57_Canada,Canada,supplier57@example.com,Automotive_Products,Automotive,Tier 2,Node_99,8,EXW,TRUE
-Supplier_58_USA,USA,supplier58@example.com,Pharma_Products,Pharma,Tier 2,Node_240,27,CIF,FALSE
-Supplier_59_India,India,supplier59@example.com,Pharma_Products,Pharma,Tier 3,Node_215,20,CIF,FALSE
-Supplier_60_Germany,Germany,supplier60@example.com,Textiles_Products,Textiles,Tier 3,Node_89,12,DDP,FALSE
-Supplier_61_Canada,Canada,supplier61@example.com,Pharma_Products,Pharma,Tier 1,Node_147,14,EXW,TRUE
-Supplier_62_France,France,supplier62@example.com,Electronics_Products,Electronics,Tier 2,Node_181,27,DDP,FALSE
-Supplier_63_France,France,supplier63@example.com,Chemicals_Products,Chemicals,Tier 3,Node_127,3,EXW,TRUE
-Supplier_64_Australia,Australia,supplier64@example.com,Machinery_Products,Machinery,Tier 2,Node_224,29,FOB,FALSE
-Supplier_65_USA,USA,supplier65@example.com,Machinery_Products,Machinery,Tier 2,Node_185,6,FOB,FALSE
-Supplier_66_Germany,Germany,supplier66@example.com,Electronics_Products,Electronics,Tier 2,Node_87,21,CIF,FALSE
-Supplier_67_USA,USA,supplier67@example.com,Pharma_Products,Pharma,Tier 3,Node_245,12,DDP,FALSE
-Supplier_68_Australia,Australia,supplier68@example.com,Electronics_Products,Electronics,Tier 3,Node_61,22,FOB,FALSE
-Supplier_69_Japan,Japan,supplier69@example.com,Chemicals_Products,Chemicals,Tier 1,Node_26,26,DDP,TRUE
-Supplier_70_Canada,Canada,supplier70@example.com,Automotive_Products,Automotive,Tier 3,Node_232,2,CIF,TRUE
-Supplier_71_UK,UK,supplier71@example.com,Electronics_Products,Electronics,Tier 2,Node_96,15,CIF,TRUE
-Supplier_72_Japan,Japan,supplier72@example.com,Machinery_Products,Machinery,Tier 2,Node_44,7,EXW,TRUE
-Supplier_73_UAE,UAE,supplier73@example.com,Textiles_Products,Textiles,Tier 3,Node_128,20,EXW,TRUE
-Supplier_74_Japan,Japan,supplier74@example.com,Textiles_Products,Textiles,Tier 3,Node_118,10,CIF,TRUE
-Supplier_75_Canada,Canada,supplier75@example.com,Pharma_Products,Pharma,Tier 3,Node_19,16,EXW,FALSE
-Supplier_76_UAE,UAE,supplier76@example.com,Pharma_Products,Pharma,Tier 3,Node_177,10,DDP,FALSE
-Supplier_77_Brazil,Brazil,supplier77@example.com,Automotive_Products,Automotive,Tier 2,Node_28,9,DDP,FALSE
-Supplier_78_UAE,UAE,supplier78@example.com,Pharma_Products,Pharma,Tier 3,Node_180,11,CIF,TRUE
-Supplier_79_France,France,supplier79@example.com,Pharma_Products,Pharma,Tier 1,Node_234,21,FOB,FALSE
-Supplier_80_Brazil,Brazil,supplier80@example.com,Automotive_Products,Automotive,Tier 3,Node_57,22,CIF,TRUE
-Supplier_81_UAE,UAE,supplier81@example.com,Pharma_Products,Pharma,Tier 3,Node_161,5,EXW,TRUE
-Supplier_82_Brazil,Brazil,supplier82@example.com,Textiles_Products,Textiles,Tier 1,Node_188,6,CIF,TRUE
-Supplier_83_Brazil,Brazil,supplier83@example.com,Pharma_Products,Pharma,Tier 3,Node_45,8,DDP,TRUE
-Supplier_84_Australia,Australia,supplier84@example.com,Pharma_Products,Pharma,Tier 3,Node_213,7,CIF,FALSE
-Supplier_85_Canada,Canada,supplier85@example.com,Pharma_Products,Pharma,Tier 3,Node_206,5,CIF,FALSE
-Supplier_86_USA,USA,supplier86@example.com,Automotive_Products,Automotive,Tier 1,Node_248,29,DDP,FALSE
-Supplier_87_USA,USA,supplier87@example.com,Textiles_Products,Textiles,Tier 1,Node_138,5,CIF,FALSE
-Supplier_88_UK,UK,supplier88@example.com,Chemicals_Products,Chemicals,Tier 3,Node_150,14,CIF,FALSE
-Supplier_89_USA,USA,supplier89@example.com,Chemicals_Products,Chemicals,Tier 1,Node_7,21,DDP,FALSE
-Supplier_90_UAE,UAE,supplier90@example.com,Automotive_Products,Automotive,Tier 3,Node_163,28,FOB,FALSE
-Supplier_91_Brazil,Brazil,supplier91@example.com,Chemicals_Products,Chemicals,Tier 2,Node_36,3,FOB,TRUE
-Supplier_92_Brazil,Brazil,supplier92@example.com,Textiles_Products,Textiles,Tier 1,Node_61,30,FOB,TRUE
-Supplier_93_France,France,supplier93@example.com,Textiles_Products,Textiles,Tier 2,Node_151,25,DDP,TRUE
-Supplier_94_France,France,supplier94@example.com,Chemicals_Products,Chemicals,Tier 1,Node_158,15,DDP,FALSE
-Supplier_95_India,India,supplier95@example.com,Chemicals_Products,Chemicals,Tier 2,Node_114,16,EXW,TRUE
-Supplier_96_UK,UK,supplier96@example.com,Electronics_Products,Electronics,Tier 3,Node_140,30,CIF,FALSE
-Supplier_97_India,India,supplier97@example.com,Textiles_Products,Textiles,Tier 2,Node_248,5,EXW,FALSE
-Supplier_98_USA,USA,supplier98@example.com,Chemicals_Products,Chemicals,Tier 1,Node_13,27,FOB,FALSE
-Supplier_99_Japan,Japan,supplier99@example.com,Automotive_Products,Automotive,Tier 3,Node_18,28,EXW,TRUE
-Supplier_100_UAE,UAE,supplier100@example.com,Automotive_Products,Automotive,Tier 1,Node_199,6,CIF,TRUE
-Supplier_101_Brazil,Brazil,supplier101@example.com,Automotive_Products,Automotive,Tier 1,Node_205,7,CIF,TRUE
-Supplier_102_India,India,supplier102@example.com,Automotive_Products,Automotive,Tier 1,Node_203,27,CIF,TRUE
-Supplier_103_UAE,UAE,supplier103@example.com,Pharma_Products,Pharma,Tier 1,Node_68,3,EXW,TRUE
-Supplier_104_France,France,supplier104@example.com,Machinery_Products,Machinery,Tier 1,Node_122,16,FOB,FALSE
-Supplier_105_Australia,Australia,supplier105@example.com,Machinery_Products,Machinery,Tier 1,Node_129,9,DDP,TRUE
-Supplier_106_Australia,Australia,supplier106@example.com,Pharma_Products,Pharma,Tier 2,Node_16,17,FOB,FALSE
-Supplier_107_France,France,supplier107@example.com,Chemicals_Products,Chemicals,Tier 1,Node_183,16,DDP,TRUE
-Supplier_108_USA,USA,supplier108@example.com,Pharma_Products,Pharma,Tier 3,Node_17,6,EXW,FALSE
-Supplier_109_UAE,UAE,supplier109@example.com,Chemicals_Products,Chemicals,Tier 3,Node_98,21,CIF,FALSE
-Supplier_110_Canada,Canada,supplier110@example.com,Machinery_Products,Machinery,Tier 3,Node_26,27,DDP,TRUE
-Supplier_111_Australia,Australia,supplier111@example.com,Chemicals_Products,Chemicals,Tier 1,Node_116,30,DDP,TRUE
-Supplier_112_France,France,supplier112@example.com,Pharma_Products,Pharma,Tier 2,Node_107,25,DDP,TRUE
-Supplier_113_UK,UK,supplier113@example.com,Textiles_Products,Textiles,Tier 2,Node_96,6,CIF,FALSE
-Supplier_114_USA,USA,supplier114@example.com,Electronics_Products,Electronics,Tier 1,Node_111,5,FOB,FALSE
-Supplier_115_Germany,Germany,supplier115@example.com,Machinery_Products,Machinery,Tier 1,Node_172,5,CIF,FALSE
-Supplier_116_UK,UK,supplier116@example.com,Chemicals_Products,Chemicals,Tier 2,Node_248,11,FOB,FALSE
-Supplier_117_UK,UK,supplier117@example.com,Electronics_Products,Electronics,Tier 3,Node_40,23,EXW,FALSE
-Supplier_118_Japan,Japan,supplier118@example.com,Electronics_Products,Electronics,Tier 2,Node_30,26,CIF,FALSE
-Supplier_119_UAE,UAE,supplier119@example.com,Automotive_Products,Automotive,Tier 2,Node_156,23,FOB,FALSE
-Supplier_120_India,India,supplier120@example.com,Automotive_Products,Automotive,Tier 2,Node_236,12,CIF,FALSE
-Supplier_121_India,India,supplier121@example.com,Automotive_Products,Automotive,Tier 1,Node_18,6,DDP,TRUE
-Supplier_122_USA,USA,supplier122@example.com,Chemicals_Products,Chemicals,Tier 3,Node_97,15,EXW,FALSE
-Supplier_123_UK,UK,supplier123@example.com,Automotive_Products,Automotive,Tier 2,Node_185,12,CIF,TRUE
-Supplier_124_India,India,supplier124@example.com,Automotive_Products,Automotive,Tier 1,Node_173,4,FOB,FALSE
-Supplier_125_Canada,Canada,supplier125@example.com,Chemicals_Products,Chemicals,Tier 2,Node_156,16,DDP,FALSE
-Supplier_126_Brazil,Brazil,supplier126@example.com,Automotive_Products,Automotive,Tier 3,Node_89,15,FOB,TRUE
-Supplier_127_Brazil,Brazil,supplier127@example.com,Chemicals_Products,Chemicals,Tier 3,Node_135,23,DDP,FALSE
-Supplier_128_India,India,supplier128@example.com,Automotive_Products,Automotive,Tier 2,Node_2,8,FOB,FALSE
-Supplier_129_Japan,Japan,supplier129@example.com,Automotive_Products,Automotive,Tier 2,Node_84,5,CIF,TRUE
-Supplier_130_Canada,Canada,supplier130@example.com,Chemicals_Products,Chemicals,Tier 2,Node_34,14,EXW,TRUE
-Supplier_131_Australia,Australia,supplier131@example.com,Machinery_Products,Machinery,Tier 3,Node_19,14,CIF,TRUE
-Supplier_132_France,France,supplier132@example.com,Electronics_Products,Electronics,Tier 2,Node_221,12,FOB,FALSE
-Supplier_133_UAE,UAE,supplier133@example.com,Textiles_Products,Textiles,Tier 3,Node_75,5,DDP,FALSE
-Supplier_134_India,India,supplier134@example.com,Pharma_Products,Pharma,Tier 1,Node_213,24,DDP,FALSE
-Supplier_135_USA,USA,supplier135@example.com,Textiles_Products,Textiles,Tier 1,Node_112,20,EXW,FALSE
-Supplier_136_Australia,Australia,supplier136@example.com,Electronics_Products,Electronics,Tier 2,Node_191,12,CIF,TRUE
-Supplier_137_UK,UK,supplier137@example.com,Automotive_Products,Automotive,Tier 1,Node_136,18,FOB,TRUE
-Supplier_138_UK,UK,supplier138@example.com,Pharma_Products,Pharma,Tier 3,Node_61,5,EXW,TRUE
-Supplier_139_Brazil,Brazil,supplier139@example.com,Automotive_Products,Automotive,Tier 1,Node_195,26,EXW,TRUE
-Supplier_140_Germany,Germany,supplier140@example.com,Chemicals_Products,Chemicals,Tier 2,Node_194,20,DDP,FALSE
-Supplier_141_UAE,UAE,supplier141@example.com,Chemicals_Products,Chemicals,Tier 3,Node_222,22,CIF,FALSE
-Supplier_142_Germany,Germany,supplier142@example.com,Textiles_Products,Textiles,Tier 1,Node_114,22,DDP,FALSE
-Supplier_143_Brazil,Brazil,supplier143@example.com,Machinery_Products,Machinery,Tier 1,Node_130,4,CIF,FALSE
-Supplier_144_Canada,Canada,supplier144@example.com,Textiles_Products,Textiles,Tier 1,Node_95,28,FOB,FALSE
-Supplier_145_USA,USA,supplier145@example.com,Chemicals_Products,Chemicals,Tier 1,Node_119,20,DDP,TRUE
-Supplier_146_Canada,Canada,supplier146@example.com,Machinery_Products,Machinery,Tier 3,Node_83,21,EXW,FALSE
-Supplier_147_Australia,Australia,supplier147@example.com,Automotive_Products,Automotive,Tier 1,Node_27,27,DDP,FALSE
-Supplier_148_USA,USA,supplier148@example.com,Machinery_Products,Machinery,Tier 3,Node_11,9,EXW,FALSE
-Supplier_149_Canada,Canada,supplier149@example.com,Machinery_Products,Machinery,Tier 3,Node_94,13,EXW,FALSE
-Supplier_150_France,France,supplier150@example.com,Textiles_Products,Textiles,Tier 2,Node_203,22,FOB,FALSE
-Supplier_151_USA,USA,supplier151@example.com,Pharma_Products,Pharma,Tier 1,Node_73,10,DDP,TRUE
-Supplier_152_UK,UK,supplier152@example.com,Electronics_Products,Electronics,Tier 3,Node_235,13,EXW,FALSE
-Supplier_153_France,France,supplier153@example.com,Automotive_Products,Automotive,Tier 3,Node_80,19,FOB,FALSE
-Supplier_154_UK,UK,supplier154@example.com,Automotive_Products,Automotive,Tier 3,Node_166,23,FOB,FALSE
-Supplier_155_Australia,Australia,supplier155@example.com,Pharma_Products,Pharma,Tier 1,Node_80,7,CIF,TRUE
-Supplier_156_UK,UK,supplier156@example.com,Textiles_Products,Textiles,Tier 1,Node_36,6,EXW,TRUE
-Supplier_157_Brazil,Brazil,supplier157@example.com,Electronics_Products,Electronics,Tier 3,Node_170,12,FOB,TRUE
-Supplier_158_UAE,UAE,supplier158@example.com,Textiles_Products,Textiles,Tier 1,Node_47,28,EXW,TRUE
-Supplier_159_Canada,Canada,supplier159@example.com,Electronics_Products,Electronics,Tier 2,Node_174,25,CIF,TRUE
-Supplier_160_Canada,Canada,supplier160@example.com,Machinery_Products,Machinery,Tier 2,Node_60,19,DDP,TRUE
-Supplier_161_Brazil,Brazil,supplier161@example.com,Textiles_Products,Textiles,Tier 1,Node_174,20,CIF,FALSE
-Supplier_162_Canada,Canada,supplier162@example.com,Pharma_Products,Pharma,Tier 2,Node_248,7,DDP,TRUE
-Supplier_163_UAE,UAE,supplier163@example.com,Automotive_Products,Automotive,Tier 2,Node_165,17,FOB,FALSE
-Supplier_164_Australia,Australia,supplier164@example.com,Electronics_Products,Electronics,Tier 3,Node_73,4,FOB,TRUE
-Supplier_165_Brazil,Brazil,supplier165@example.com,Textiles_Products,Textiles,Tier 3,Node_213,15,EXW,TRUE
-Supplier_166_Japan,Japan,supplier166@example.com,Textiles_Products,Textiles,Tier 2,Node_107,3,FOB,FALSE
-Supplier_167_Australia,Australia,supplier167@example.com,Pharma_Products,Pharma,Tier 1,Node_21,13,DDP,TRUE
-Supplier_168_India,India,supplier168@example.com,Pharma_Products,Pharma,Tier 1,Node_203,6,CIF,TRUE
-Supplier_169_India,India,supplier169@example.com,Pharma_Products,Pharma,Tier 2,Node_195,24,EXW,FALSE
-Supplier_170_Canada,Canada,supplier170@example.com,Machinery_Products,Machinery,Tier 1,Node_5,10,FOB,TRUE
-Supplier_171_Germany,Germany,supplier171@example.com,Machinery_Products,Machinery,Tier 3,Node_29,26,DDP,FALSE
-Supplier_172_Japan,Japan,supplier172@example.com,Pharma_Products,Pharma,Tier 1,Node_62,15,FOB,FALSE
-Supplier_173_USA,USA,supplier173@example.com,Electronics_Products,Electronics,Tier 2,Node_162,18,FOB,TRUE
-Supplier_174_Germany,Germany,supplier174@example.com,Pharma_Products,Pharma,Tier 2,Node_158,13,FOB,TRUE
-Supplier_175_UAE,UAE,supplier175@example.com,Textiles_Products,Textiles,Tier 1,Node_135,13,FOB,TRUE
-Supplier_176_Australia,Australia,supplier176@example.com,Machinery_Products,Machinery,Tier 3,Node_100,29,FOB,FALSE
-Supplier_177_India,India,supplier177@example.com,Chemicals_Products,Chemicals,Tier 2,Node_65,25,CIF,TRUE
-Supplier_178_UK,UK,supplier178@example.com,Electronics_Products,Electronics,Tier 2,Node_188,23,EXW,TRUE
-Supplier_179_UAE,UAE,supplier179@example.com,Chemicals_Products,Chemicals,Tier 2,Node_12,13,EXW,FALSE
-Supplier_180_Germany,Germany,supplier180@example.com,Chemicals_Products,Chemicals,Tier 2,Node_162,7,DDP,TRUE
-Supplier_181_USA,USA,supplier181@example.com,Chemicals_Products,Chemicals,Tier 2,Node_76,8,FOB,TRUE
-Supplier_182_Japan,Japan,supplier182@example.com,Electronics_Products,Electronics,Tier 2,Node_132,14,CIF,FALSE
-Supplier_183_Brazil,Brazil,supplier183@example.com,Electronics_Products,Electronics,Tier 3,Node_74,13,EXW,TRUE
-Supplier_184_UK,UK,supplier184@example.com,Pharma_Products,Pharma,Tier 1,Node_112,30,CIF,FALSE
-Supplier_185_Canada,Canada,supplier185@example.com,Textiles_Products,Textiles,Tier 2,Node_128,24,EXW,FALSE
-Supplier_186_UK,UK,supplier186@example.com,Machinery_Products,Machinery,Tier 2,Node_187,15,FOB,TRUE
-Supplier_187_France,France,supplier187@example.com,Machinery_Products,Machinery,Tier 1,Node_83,5,CIF,TRUE
-Supplier_188_UK,UK,supplier188@example.com,Chemicals_Products,Chemicals,Tier 2,Node_115,21,CIF,FALSE
-Supplier_189_Germany,Germany,supplier189@example.com,Chemicals_Products,Chemicals,Tier 2,Node_115,3,CIF,FALSE
-Supplier_190_UAE,UAE,supplier190@example.com,Textiles_Products,Textiles,Tier 2,Node_20,23,FOB,FALSE
-Supplier_191_UK,UK,supplier191@example.com,Machinery_Products,Machinery,Tier 3,Node_244,2,EXW,TRUE
-Supplier_192_UAE,UAE,supplier192@example.com,Chemicals_Products,Chemicals,Tier 2,Node_33,4,FOB,TRUE
-Supplier_193_UK,UK,supplier193@example.com,Pharma_Products,Pharma,Tier 2,Node_155,6,FOB,FALSE
-Supplier_194_UK,UK,supplier194@example.com,Pharma_Products,Pharma,Tier 2,Node_147,6,FOB,FALSE
-Supplier_195_France,France,supplier195@example.com,Pharma_Products,Pharma,Tier 3,Node_64,5,CIF,TRUE
-Supplier_196_Germany,Germany,supplier196@example.com,Textiles_Products,Textiles,Tier 3,Node_234,19,DDP,TRUE
-Supplier_197_Brazil,Brazil,supplier197@example.com,Pharma_Products,Pharma,Tier 3,Node_55,21,DDP,FALSE
-Supplier_198_Canada,Canada,supplier198@example.com,Automotive_Products,Automotive,Tier 1,Node_219,4,EXW,FALSE
-Supplier_199_Germany,Germany,supplier199@example.com,Chemicals_Products,Chemicals,Tier 2,Node_208,23,FOB,FALSE
-Supplier_200_UK,UK,supplier200@example.com,Chemicals_Products,Chemicals,Tier 1,Node_229,11,CIF,TRUE
-Supplier_201_Germany,Germany,supplier201@example.com,Pharma_Products,Pharma,Tier 3,Node_32,8,EXW,TRUE
-Supplier_202_Japan,Japan,supplier202@example.com,Textiles_Products,Textiles,Tier 1,Node_142,20,CIF,FALSE
-Supplier_203_Canada,Canada,supplier203@example.com,Machinery_Products,Machinery,Tier 1,Node_17,11,FOB,FALSE
-Supplier_204_Canada,Canada,supplier204@example.com,Machinery_Products,Machinery,Tier 2,Node_211,20,DDP,TRUE
-Supplier_205_Germany,Germany,supplier205@example.com,Pharma_Products,Pharma,Tier 3,Node_116,16,FOB,FALSE
-Supplier_206_Germany,Germany,supplier206@example.com,Machinery_Products,Machinery,Tier 3,Node_197,6,EXW,FALSE
-Supplier_207_Australia,Australia,supplier207@example.com,Electronics_Products,Electronics,Tier 1,Node_78,7,EXW,TRUE
-Supplier_208_UK,UK,supplier208@example.com,Chemicals_Products,Chemicals,Tier 1,Node_243,18,CIF,FALSE
-Supplier_209_USA,USA,supplier209@example.com,Pharma_Products,Pharma,Tier 1,Node_33,22,CIF,FALSE
-Supplier_210_UAE,UAE,supplier210@example.com,Machinery_Products,Machinery,Tier 1,Node_152,20,EXW,TRUE
-Supplier_211_Germany,Germany,supplier211@example.com,Chemicals_Products,Chemicals,Tier 3,Node_216,20,CIF,TRUE
-Supplier_212_India,India,supplier212@example.com,Electronics_Products,Electronics,Tier 1,Node_167,8,CIF,FALSE
-Supplier_213_UAE,UAE,supplier213@example.com,Chemicals_Products,Chemicals,Tier 1,Node_228,22,DDP,FALSE
-Supplier_214_Brazil,Brazil,supplier214@example.com,Textiles_Products,Textiles,Tier 1,Node_77,16,DDP,TRUE
-Supplier_215_India,India,supplier215@example.com,Automotive_Products,Automotive,Tier 2,Node_124,16,DDP,TRUE
-Supplier_216_UK,UK,supplier216@example.com,Machinery_Products,Machinery,Tier 1,Node_221,24,CIF,FALSE
-Supplier_217_UK,UK,supplier217@example.com,Textiles_Products,Textiles,Tier 1,Node_132,19,CIF,TRUE
-Supplier_218_UK,UK,supplier218@example.com,Automotive_Products,Automotive,Tier 2,Node_69,16,FOB,TRUE
-Supplier_219_Germany,Germany,supplier219@example.com,Electronics_Products,Electronics,Tier 1,Node_243,14,CIF,FALSE
-Supplier_220_Japan,Japan,supplier220@example.com,Automotive_Products,Automotive,Tier 2,Node_49,26,CIF,TRUE
-Supplier_221_Canada,Canada,supplier221@example.com,Machinery_Products,Machinery,Tier 2,Node_226,11,DDP,FALSE
-Supplier_222_India,India,supplier222@example.com,Electronics_Products,Electronics,Tier 2,Node_248,9,DDP,TRUE
-Supplier_223_UAE,UAE,supplier223@example.com,Pharma_Products,Pharma,Tier 1,Node_73,17,FOB,FALSE
-Supplier_224_Brazil,Brazil,supplier224@example.com,Machinery_Products,Machinery,Tier 1,Node_111,6,FOB,FALSE
-Supplier_225_UK,UK,supplier225@example.com,Textiles_Products,Textiles,Tier 2,Node_103,3,FOB,TRUE
-Supplier_226_UK,UK,supplier226@example.com,Machinery_Products,Machinery,Tier 2,Node_99,18,FOB,FALSE
-Supplier_227_Australia,Australia,supplier227@example.com,Pharma_Products,Pharma,Tier 3,Node_33,5,FOB,FALSE
-Supplier_228_UK,UK,supplier228@example.com,Pharma_Products,Pharma,Tier 3,Node_194,6,CIF,TRUE
-Supplier_229_UAE,UAE,supplier229@example.com,Machinery_Products,Machinery,Tier 2,Node_12,3,FOB,TRUE
-Supplier_230_UK,UK,supplier230@example.com,Textiles_Products,Textiles,Tier 3,Node_39,21,DDP,TRUE
-Supplier_231_UK,UK,supplier231@example.com,Machinery_Products,Machinery,Tier 2,Node_101,21,EXW,FALSE
-Supplier_232_UAE,UAE,supplier232@example.com,Pharma_Products,Pharma,Tier 3,Node_182,20,DDP,FALSE
-Supplier_233_Canada,Canada,supplier233@example.com,Electronics_Products,Electronics,Tier 2,Node_173,5,CIF,FALSE
-Supplier_234_UAE,UAE,supplier234@example.com,Pharma_Products,Pharma,Tier 3,Node_153,17,FOB,FALSE
-Supplier_235_UAE,UAE,supplier235@example.com,Machinery_Products,Machinery,Tier 1,Node_150,17,FOB,TRUE
-Supplier_236_Australia,Australia,supplier236@example.com,Chemicals_Products,Chemicals,Tier 3,Node_38,28,DDP,TRUE
-Supplier_237_India,India,supplier237@example.com,Machinery_Products,Machinery,Tier 3,Node_49,2,FOB,FALSE
-Supplier_238_UK,UK,supplier238@example.com,Textiles_Products,Textiles,Tier 1,Node_177,8,DDP,FALSE
-Supplier_239_Australia,Australia,supplier239@example.com,Machinery_Products,Machinery,Tier 2,Node_181,6,FOB,TRUE
-Supplier_240_Australia,Australia,supplier240@example.com,Pharma_Products,Pharma,Tier 3,Node_135,14,DDP,FALSE
-Supplier_241_Germany,Germany,supplier241@example.com,Textiles_Products,Textiles,Tier 3,Node_140,13,CIF,FALSE
-Supplier_242_UAE,UAE,supplier242@example.com,Textiles_Products,Textiles,Tier 1,Node_72,19,EXW,FALSE
-Supplier_243_Japan,Japan,supplier243@example.com,Pharma_Products,Pharma,Tier 2,Node_177,24,EXW,FALSE
-Supplier_244_UK,UK,supplier244@example.com,Textiles_Products,Textiles,Tier 2,Node_74,5,CIF,FALSE
-Supplier_245_France,France,supplier245@example.com,Pharma_Products,Pharma,Tier 1,Node_11,11,CIF,TRUE
-Supplier_246_UK,UK,supplier246@example.com,Textiles_Products,Textiles,Tier 3,Node_192,17,CIF,TRUE
-Supplier_247_Japan,Japan,supplier247@example.com,Machinery_Products,Machinery,Tier 2,Node_36,5,CIF,TRUE
-Supplier_248_Japan,Japan,supplier248@example.com,Electronics_Products,Electronics,Tier 3,Node_164,9,EXW,TRUE
-Supplier_249_USA,USA,supplier249@example.com,Textiles_Products,Textiles,Tier 2,Node_26,23,DDP,TRUE
-Supplier_250_India,India,supplier250@example.com,Machinery_Products,Machinery,Tier 1,Node_168,30,DDP,FALSE
+Supplier_1 Holbrook,US,contact@supplier_1.com,Refined Products,Crude Oil,Tier 2,Holbrook Refinery,5,FOB,TRUE
+Equinor Great Cumbrae,U.K.,contact@equinor.com,Petrochemicals,Petrochemicals,Tier 2,Great Cumbrae Refinery,6,DDP,TRUE
+TotalEnergies York,US,contact@totalenergies.com,WTI Crude,Petrochemicals,Tier 3,York Wellhead,5,FOB,FALSE
+Supplier_4 Fastnet,Ireland,contact@supplier_4.com,Arab Light Crude,Natural Gas,Tier 1,Fastnet Refinery,25,CIF,TRUE
+Supplier_5 Ras Tanura,Saudi Arabia,contact@supplier_5.com,Basra Heavy,Petrochemicals,Tier 1,Ras Tanura Terminal,8,FOB,FALSE
+ONGC Longana,VU,contact@ongc.com,Petrochemicals,Crude Oil,Tier 2,Longana Port,15,EXW,TRUE
+Supplier_7 Henstridge,GB,contact@supplier_7.com,LNG,Crude Oil,Tier 3,Henstridge Port,14,FOB,FALSE
+Supplier_8 Bonny,Nigeria,contact@supplier_8.com,Arab Light Crude,Refinery,Tier 2,Bonny Port,7,FOB,FALSE
+Supplier_9 Empalme,Mexico,contact@supplier_9.com,Basra Heavy,Petrochemicals,Tier 3,Empalme Storage Facility,25,EXW,FALSE
+Equinor Corning,US,contact@equinor.com,Brent Crude,Petrochemicals,Tier 1,Corning Refinery,4,DDP,TRUE
+Aramco Kerteh,Malaysia,contact@aramco.com,LNG,Refinery,Tier 3,Kerteh Storage Facility,19,EXW,FALSE
+Supplier_12 Escravos,Nigeria,contact@supplier_12.com,Arab Light Crude,Natural Gas,Tier 1,Escravos Storage Facility,12,DDP,FALSE
+Supplier_13 Huangdao,China,contact@supplier_13.com,LNG,Refinery,Tier 2,Huangdao Storage Facility,6,DDP,FALSE
+Supplier_14 Wismar,Germany,contact@supplier_14.com,Refined Products,Refinery,Tier 2,Wismar Storage Facility,8,EXW,FALSE
+Supplier_15 Havelock,US,contact@supplier_15.com,Petrochemicals,Refinery,Tier 3,Havelock Refinery,28,FOB,FALSE
+Supplier_16 Mariveles,Philippines,contact@supplier_16.com,Brent Crude,Natural Gas,Tier 3,Mariveles Wellhead,20,DDP,FALSE
+Shell Mariveles,Philippines,contact@shell.com,LNG,Petrochemicals,Tier 3,Mariveles Wellhead,22,EXW,TRUE
+Aramco Edstrandsbassangen,Sweden,contact@aramco.com,WTI Crude,Refinery,Tier 2,Edstrandsbassangen Wellhead,22,EXW,TRUE
+Supplier_19 Bayonne,U.S.A.,contact@supplier_19.com,Arab Light Crude,Crude Oil,Tier 2,Bayonne Storage Facility,24,EXW,FALSE
+Supplier_20 Fredericia,Denmark,contact@supplier_20.com,Basra Heavy,Crude Oil,Tier 3,Fredericia Port,7,FCA,FALSE
+ADNOC Mina Abdulla,Kuwait,contact@adnoc.com,Basra Heavy,Refinery,Tier 1,Mina Abdulla Port,14,EXW,FALSE
+Supplier_22 Kharg Island,Iran,contact@supplier_22.com,WTI Crude,Petrochemicals,Tier 1,Kharg Island,14,DDP,FALSE
+Supplier_23 Banago,Philippines,contact@supplier_23.com,Petrochemicals,Refinery,Tier 3,Banago Port,15,DDP,FALSE
+Supplier_24 Honolulu,U.S.A.,contact@supplier_24.com,Arab Light Crude,Natural Gas,Tier 3,Honolulu Wellhead,18,FCA,FALSE
+Pemex Michilla,CL,contact@pemex.com,LNG,Petrochemicals,Tier 3,Michilla Port,9,FCA,TRUE
+Supplier_26 Newcastle,U.K.,contact@supplier_26.com,Basra Heavy,Crude Oil,Tier 2,Newcastle Wellhead,7,FOB,FALSE
+Supplier_27 Los Cocos,Venezuela,contact@supplier_27.com,Arab Light Crude,Refinery,Tier 3,Los Cocos Port,24,DDP,FALSE
+Supplier_28 Orlando,US,contact@supplier_28.com,LNG,Natural Gas,Tier 2,Orlando Wellhead,25,CIF,FALSE
+Chevron Bertram,US,contact@chevron.com,Brent Crude,Natural Gas,Tier 2,Bertram Port,10,EXW,TRUE
+Supplier_30 Mariel,Cuba,contact@supplier_30.com,Refined Products,Natural Gas,Tier 3,Mariel Wellhead,22,FOB,TRUE
+Supplier_31 Pottsboro,US,contact@supplier_31.com,WTI Crude,Petrochemicals,Tier 3,Pottsboro Refinery,19,EXW,FALSE
+Supplier_32 East Sound,US,contact@supplier_32.com,Basra Heavy,Refinery,Tier 3,East Sound Port,23,FOB,FALSE
+Supplier_33 Kerrville,US,contact@supplier_33.com,Basra Heavy,Natural Gas,Tier 3,Kerrville Wellhead,27,CIF,FALSE
+Supplier_34 Hatsukaichi,Japan,contact@supplier_34.com,Brent Crude,Crude Oil,Tier 3,Hatsukaichi Refinery,19,CIF,FALSE
+Equinor Singapore,Singapore,contact@equinor.com,Basra Heavy,Refinery,Tier 2,Singapore Refinery,19,DDP,FALSE
+ONGC Tangshan,CN,contact@ongc.com,LNG,Natural Gas,Tier 3,Tangshan Port,23,DDP,FALSE
+Supplier_37 Skien,Norway,contact@supplier_37.com,Basra Heavy,Natural Gas,Tier 2,Skien Wellhead,8,FCA,FALSE
+CNPC Flora,US,contact@cnpc.com,Petrochemicals,Crude Oil,Tier 2,Flora Port,29,FOB,TRUE
+Supplier_39 Hartsel,US,contact@supplier_39.com,Petrochemicals,Refinery,Tier 2,Hartsel Wellhead,23,CIF,FALSE
+Supplier_40 Port Aransas,U.S.A.,contact@supplier_40.com,Arab Light Crude,Petrochemicals,Tier 1,Port Aransas Storage Facility,23,FCA,TRUE
+Chevron Weyburn,CA,contact@chevron.com,Brent Crude,Petrochemicals,Tier 2,Weyburn Storage Facility,12,EXW,TRUE
+TotalEnergies Giesen,DE,contact@totalenergies.com,Refined Products,Petrochemicals,Tier 2,Giesen Refinery,9,DDP,FALSE
+Supplier_43 Tumbledown Dick Bay,Netherlands Antilles,contact@supplier_43.com,LNG,Refinery,Tier 3,Tumbledown Dick Bay Port,15,CIF,FALSE
+Supplier_44 Jupiter,US,contact@supplier_44.com,LNG,Natural Gas,Tier 1,Jupiter Refinery,17,FOB,TRUE
+Aramco Honolulu,U.S.A.,contact@aramco.com,LNG,Petrochemicals,Tier 3,Honolulu Wellhead,30,FCA,FALSE
+Supplier_46 Amber,US,contact@supplier_46.com,Basra Heavy,Refinery,Tier 1,Amber Storage Facility,21,DDP,TRUE
+Supplier_47 Corner Brook,Canada,contact@supplier_47.com,Petrochemicals,Petrochemicals,Tier 1,Corner Brook Wellhead,18,DDP,FALSE
+Supplier_48 Skien,Norway,contact@supplier_48.com,Petrochemicals,Petrochemicals,Tier 2,Skien Wellhead,10,CIF,FALSE
+Reliance Huangdao,China,contact@reliance.com,Petrochemicals,Petrochemicals,Tier 2,Huangdao Storage Facility,12,FCA,TRUE
+Supplier_50 Ambato,EC,contact@supplier_50.com,LNG,Refinery,Tier 3,Ambato Storage Facility,27,EXW,FALSE
+ONGC Wismar,Germany,contact@ongc.com,Basra Heavy,Refinery,Tier 2,Wismar Storage Facility,20,DDP,TRUE
+Supplier_52 Rang Dong,Vietnam,contact@supplier_52.com,Petrochemicals,Refinery,Tier 3,Rang Dong Storage Facility,29,FCA,FALSE
+ADNOC Bergama,Turkey,contact@adnoc.com,Refined Products,Refinery,Tier 1,Bergama Refinery,28,DDP,FALSE
+Supplier_54 Harlem,U.S.A.,contact@supplier_54.com,Basra Heavy,Petrochemicals,Tier 3,Harlem Wellhead,19,FOB,TRUE
+Supplier_55 Raos,Spain,contact@supplier_55.com,Brent Crude,Petrochemicals,Tier 2,Raos Refinery,19,EXW,TRUE
+Supplier_56 New London,US,contact@supplier_56.com,LNG,Refinery,Tier 2,New London Refinery,8,EXW,FALSE
+Supplier_57 Cinta,Indonesia,contact@supplier_57.com,Petrochemicals,Refinery,Tier 2,Cinta Refinery,19,FCA,FALSE
+Supplier_58 Salvador,Brazil,contact@supplier_58.com,Refined Products,Crude Oil,Tier 3,Salvador Port,14,DDP,FALSE
+Supplier_59 Bayonne,U.S.A.,contact@supplier_59.com,LNG,Crude Oil,Tier 2,Bayonne Storage Facility,22,EXW,TRUE
+Supplier_60 Thyboron,Denmark,contact@supplier_60.com,Brent Crude,Natural Gas,Tier 3,Thyboron Refinery,26,FOB,FALSE
+Supplier_61 Magellan Straits,Chile,contact@supplier_61.com,WTI Crude,Petrochemicals,Tier 2,Magellan Straits Wellhead,7,CIF,TRUE
+Supplier_62 Hartsel,US,contact@supplier_62.com,Basra Heavy,Crude Oil,Tier 2,Hartsel Wellhead,17,DDP,FALSE
+Supplier_63 Nushki,PK,contact@supplier_63.com,Refined Products,Petrochemicals,Tier 2,Nushki Refinery,30,FOB,FALSE
+BP Liverpool,U.K.,contact@bp.com,WTI Crude,Petrochemicals,Tier 2,Liverpool Storage Facility,19,EXW,FALSE
+Supplier_65 Barcelona,Venezuela,contact@supplier_65.com,Petrochemicals,Refinery,Tier 3,Barcelona Storage Facility,20,DDP,FALSE
+Supplier_66 Botwood,Canada,contact@supplier_66.com,WTI Crude,Refinery,Tier 3,Botwood Port,22,EXW,TRUE
+Shell Honolulu,U.S.A.,contact@shell.com,Basra Heavy,Refinery,Tier 3,Honolulu Wellhead,27,DDP,FALSE
+Supplier_68 Porto Santo Stefano,Italy,contact@supplier_68.com,LNG,Petrochemicals,Tier 2,Porto Santo Stefano Storage Facility,14,FCA,FALSE
+Supplier_69 Cameron,US,contact@supplier_69.com,LNG,Crude Oil,Tier 2,Cameron Storage Facility,21,FCA,FALSE
+BP Bayonne,U.S.A.,contact@bp.com,Brent Crude,Natural Gas,Tier 2,Bayonne Storage Facility,12,FOB,TRUE
+CNPC Yeysk,Russia,contact@cnpc.com,Refined Products,Refinery,Tier 1,Yeysk Storage Facility,26,EXW,TRUE
+Supplier_72 Port Royal,Jamaica,contact@supplier_72.com,Petrochemicals,Refinery,Tier 2,Port Royal Wellhead,7,FOB,FALSE
+Aramco Nederland,U.S.A.,contact@aramco.com,WTI Crude,Natural Gas,Tier 2,Nederland Wellhead,23,CIF,TRUE
+Reliance Nushki,PK,contact@reliance.com,Arab Light Crude,Natural Gas,Tier 2,Nushki Refinery,3,FCA,FALSE
+Supplier_75 Corner Brook,Canada,contact@supplier_75.com,Refined Products,Petrochemicals,Tier 1,Corner Brook Wellhead,23,CIF,FALSE
+Petrobras Bangkok,Thailand,contact@petrobras.com,Arab Light Crude,Crude Oil,Tier 2,Bangkok Storage Facility,23,FCA,TRUE
+Supplier_77 Cinta,Indonesia,contact@supplier_77.com,Arab Light Crude,Natural Gas,Tier 2,Cinta Refinery,16,CIF,FALSE
+Supplier_78 Mangalore,India,contact@supplier_78.com,Refined Products,Petrochemicals,Tier 1,Mangalore Refinery,8,DDP,FALSE
+KPC Fujairah,UAE,contact@kpc.com,Arab Light Crude,Refinery,Tier 1,Fujairah Storage,12,EXW,FALSE
+Supplier_80 Escravos,Nigeria,contact@supplier_80.com,Basra Heavy,Petrochemicals,Tier 1,Escravos Storage Facility,11,CIF,FALSE
+Reliance San Carlos de Bariloche,AR,contact@reliance.com,WTI Crude,Refinery,Tier 3,San Carlos de Bariloche Storage Facility,25,CIF,TRUE
+Supplier_82 Empalme,Mexico,contact@supplier_82.com,Petrochemicals,Natural Gas,Tier 3,Empalme Storage Facility,8,FCA,FALSE
+Supplier_83 Skelleftehamn,Sweden,contact@supplier_83.com,Refined Products,Refinery,Tier 2,Skelleftehamn Refinery,5,EXW,FALSE
+Supplier_84 Tarahan,Indonesia,contact@supplier_84.com,Refined Products,Refinery,Tier 1,Tarahan Port,10,FOB,TRUE
+Supplier_85 Istanbul,Turkey,contact@supplier_85.com,LNG,Refinery,Tier 3,Istanbul Refinery,12,FCA,FALSE
+BP Fujairah,UAE,contact@bp.com,WTI Crude,Natural Gas,Tier 1,Fujairah Storage,4,FOB,FALSE
+Supplier_87 Corner Brook,Canada,contact@supplier_87.com,Petrochemicals,Refinery,Tier 1,Corner Brook Wellhead,25,FOB,FALSE
+KPC Navarre,Spain,contact@kpc.com,Basra Heavy,Natural Gas,Tier 2,Navarre Refinery,7,EXW,TRUE
+Supplier_89 Salt Island,U.K.,contact@supplier_89.com,LNG,Petrochemicals,Tier 2,Salt Island Wellhead,25,FCA,FALSE
+Supplier_90 Parapeti,BO,contact@supplier_90.com,WTI Crude,Natural Gas,Tier 2,Parapeti Storage Facility,27,CIF,FALSE
+Supplier_91 Port Stanvac,Australia,contact@supplier_91.com,Arab Light Crude,Petrochemicals,Tier 2,Port Stanvac Port,19,DDP,TRUE
+Sinopec Benoa,Indonesia,contact@sinopec.com,Petrochemicals,Natural Gas,Tier 3,Benoa Port,21,FCA,TRUE
+Supplier_93 Aabenraa,Denmark,contact@supplier_93.com,Refined Products,Crude Oil,Tier 2,Aabenraa Refinery,24,CIF,FALSE
+ONGC Dothan,US,contact@ongc.com,Refined Products,Crude Oil,Tier 3,Dothan Wellhead,17,CIF,FALSE
+Supplier_95 Larvik,Norway,contact@supplier_95.com,Petrochemicals,Petrochemicals,Tier 2,Larvik Storage Facility,24,DDP,FALSE
+Aramco Pottsboro,US,contact@aramco.com,WTI Crude,Natural Gas,Tier 3,Pottsboro Refinery,21,FOB,TRUE
+Supplier_97 Caripito,Venezuela,contact@supplier_97.com,Petrochemicals,Crude Oil,Tier 2,Caripito Port,5,EXW,TRUE
+ExxonMobil Sepen,Croatia,contact@exxonmobil.com,Brent Crude,Petrochemicals,Tier 3,Sepen Storage Facility,14,EXW,FALSE
+Supplier_99 Newcastle,U.K.,contact@supplier_99.com,Refined Products,Crude Oil,Tier 2,Newcastle Wellhead,24,FCA,TRUE
+ExxonMobil Bojonegara,Indonesia,contact@exxonmobil.com,Petrochemicals,Petrochemicals,Tier 2,Bojonegara Port,19,CIF,FALSE
+Supplier_101 Pioneer Dock,U.S.A.,contact@supplier_101.com,Brent Crude,Crude Oil,Tier 2,Pioneer Dock Storage Facility,12,EXW,FALSE
+Supplier_102 Escravos,Nigeria,contact@supplier_102.com,Refined Products,Natural Gas,Tier 1,Escravos Storage Facility,10,EXW,FALSE
+CNPC Faustina,U.S.A.,contact@cnpc.com,WTI Crude,Crude Oil,Tier 1,Faustina Refinery,4,EXW,FALSE
+Supplier_104 Caldera,Chile,contact@supplier_104.com,Arab Light Crude,Natural Gas,Tier 1,Caldera Port,9,FOB,TRUE
+Supplier_105 Kharg Island,Iran,contact@supplier_105.com,WTI Crude,Crude Oil,Tier 1,Kharg Island,10,FOB,FALSE
+Supplier_106 Halifax,Canada,contact@supplier_106.com,Brent Crude,Crude Oil,Tier 3,Halifax Port,7,FCA,FALSE
+Supplier_107 Halifax,Canada,contact@supplier_107.com,WTI Crude,Refinery,Tier 3,Halifax Port,21,FCA,FALSE
+Shell Hebburn,U.K.,contact@shell.com,Basra Heavy,Natural Gas,Tier 2,Hebburn Port,16,DDP,TRUE
+Supplier_109 Gamba,Gabon,contact@supplier_109.com,WTI Crude,Natural Gas,Tier 3,Gamba Wellhead,23,EXW,FALSE
+Supplier_110 Huangdao,China,contact@supplier_110.com,WTI Crude,Petrochemicals,Tier 2,Huangdao Storage Facility,28,FCA,FALSE
+Supplier_111 Port Aransas,U.S.A.,contact@supplier_111.com,LNG,Petrochemicals,Tier 1,Port Aransas Storage Facility,8,FCA,FALSE
+Sinopec Lemont,U.S.A.,contact@sinopec.com,WTI Crude,Natural Gas,Tier 3,Lemont Refinery,28,EXW,FALSE
+Supplier_113 Michilla,CL,contact@supplier_113.com,Refined Products,Natural Gas,Tier 3,Michilla Port,15,CIF,TRUE
+Supplier_114 San Carlos de Bariloche,AR,contact@supplier_114.com,Refined Products,Refinery,Tier 3,San Carlos de Bariloche Storage Facility,5,FCA,FALSE
+TotalEnergies Bandar Mahshahr,Iran,contact@totalenergies.com,WTI Crude,Crude Oil,Tier 2,Bandar Mahshahr Port,30,FOB,TRUE
+Supplier_116 Holbrook,US,contact@supplier_116.com,WTI Crude,Natural Gas,Tier 2,Holbrook Refinery,18,CIF,FALSE
+CNPC Vinh Thai,Vietnam,contact@cnpc.com,Arab Light Crude,Natural Gas,Tier 3,Vinh Thai Wellhead,9,FOB,FALSE
+Supplier_118 Parapeti,BO,contact@supplier_118.com,Basra Heavy,Natural Gas,Tier 2,Parapeti Storage Facility,15,CIF,FALSE
+Reliance Larne,U.K.,contact@reliance.com,Petrochemicals,Refinery,Tier 2,Larne Wellhead,12,DDP,FALSE
+Supplier_120 Tsamkong,China,contact@supplier_120.com,Arab Light Crude,Petrochemicals,Tier 3,Tsamkong Storage Facility,27,DDP,FALSE
+Aramco Havelock,US,contact@aramco.com,Petrochemicals,Natural Gas,Tier 3,Havelock Refinery,26,CIF,TRUE
+Supplier_122 Mariel,Cuba,contact@supplier_122.com,Petrochemicals,Petrochemicals,Tier 3,Mariel Wellhead,12,CIF,TRUE
+Sinopec Supsa,Georgia,contact@sinopec.com,Basra Heavy,Petrochemicals,Tier 1,Supsa Storage Facility,20,DDP,TRUE
+Supplier_124 East Sound,US,contact@supplier_124.com,WTI Crude,Petrochemicals,Tier 3,East Sound Port,17,CIF,FALSE
+Equinor Fitchburg,US,contact@equinor.com,Petrochemicals,Petrochemicals,Tier 3,Fitchburg Refinery,8,FCA,FALSE
+Aramco Labuhan Bilik-Sumatra Island,ID,contact@aramco.com,Brent Crude,Crude Oil,Tier 2,Labuhan Bilik-Sumatra Island Wellhead,29,FOB,FALSE
+Petrobras Nushki,PK,contact@petrobras.com,Basra Heavy,Crude Oil,Tier 2,Nushki Refinery,25,CIF,TRUE
+Supplier_128 Rang Dong,Vietnam,contact@supplier_128.com,Arab Light Crude,Petrochemicals,Tier 3,Rang Dong Storage Facility,24,EXW,TRUE
+Supplier_129 Brewster,US,contact@supplier_129.com,Arab Light Crude,Crude Oil,Tier 3,Brewster Wellhead,19,DDP,FALSE
+Sinopec Bangkok,Thailand,contact@sinopec.com,WTI Crude,Petrochemicals,Tier 2,Bangkok Storage Facility,28,CIF,TRUE
+Supplier_131 Brooklyn,U.S.A.,contact@supplier_131.com,Basra Heavy,Natural Gas,Tier 2,Brooklyn Refinery,22,FCA,TRUE
+TotalEnergies Fitchburg,US,contact@totalenergies.com,Arab Light Crude,Refinery,Tier 3,Fitchburg Refinery,15,EXW,FALSE
+Petrobras Lac Brochet,CA,contact@petrobras.com,Brent Crude,Crude Oil,Tier 2,Lac Brochet Refinery,23,FOB,TRUE
+Reliance Camillus,US,contact@reliance.com,Arab Light Crude,Crude Oil,Tier 3,Camillus Storage Facility,25,CIF,TRUE
+Supplier_135 Dubrovnik,Croatia,contact@supplier_135.com,Brent Crude,Refinery,Tier 1,Dubrovnik Storage Facility,21,FOB,FALSE
+Chevron Corpus Christi,U.S.A.,contact@chevron.com,Brent Crude,Petrochemicals,Tier 3,Corpus Christi Port,11,FOB,FALSE
+Supplier_137 Kahului,U.S.A.,contact@supplier_137.com,Petrochemicals,Crude Oil,Tier 2,Kahului Refinery,8,DDP,TRUE
+Supplier_138 Hoboken,U.S.A.,contact@supplier_138.com,Brent Crude,Petrochemicals,Tier 3,Hoboken Refinery,5,DDP,TRUE
+Supplier_139 Immingham,U.K.,contact@supplier_139.com,Brent Crude,Petrochemicals,Tier 2,Immingham Port,24,FCA,FALSE
+Supplier_140 Parapeti,BO,contact@supplier_140.com,Brent Crude,Crude Oil,Tier 2,Parapeti Storage Facility,19,DDP,TRUE
+ADNOC Heping District,Taiwan,contact@adnoc.com,LNG,Petrochemicals,Tier 2,Heping District Storage Facility,27,DDP,TRUE
+Supplier_142 Tampico,Mexico,contact@supplier_142.com,Refined Products,Petrochemicals,Tier 3,Tampico Storage Facility,10,DDP,FALSE
+Supplier_143 Derince,Turkey,contact@supplier_143.com,WTI Crude,Petrochemicals,Tier 2,Derince Wellhead,5,FCA,TRUE
+Supplier_144 Honolulu,U.S.A.,contact@supplier_144.com,Arab Light Crude,Refinery,Tier 3,Honolulu Wellhead,7,EXW,FALSE
+TotalEnergies Karratha,Australia,contact@totalenergies.com,LNG,Refinery,Tier 2,Karratha Storage Facility,6,FOB,TRUE
+Supplier_146 Funabashi,Japan,contact@supplier_146.com,Brent Crude,Refinery,Tier 1,Funabashi Storage Facility,6,CIF,TRUE
+Supplier_147 Portland,U.S.A.,contact@supplier_147.com,Petrochemicals,Petrochemicals,Tier 2,Portland Wellhead,6,FOB,TRUE
+KPC Mariel,Cuba,contact@kpc.com,Brent Crude,Refinery,Tier 3,Mariel Wellhead,30,EXW,TRUE
+ADNOC Nushki,PK,contact@adnoc.com,WTI Crude,Natural Gas,Tier 2,Nushki Refinery,21,FCA,TRUE
+Shell Camillus,US,contact@shell.com,LNG,Refinery,Tier 3,Camillus Storage Facility,18,CIF,TRUE
+Shell Heping District,Taiwan,contact@shell.com,Refined Products,Crude Oil,Tier 2,Heping District Storage Facility,14,DDP,FALSE
+Supplier_152 Campo Novo Do Parecis,BR,contact@supplier_152.com,Petrochemicals,Natural Gas,Tier 1,Campo Novo Do Parecis Storage Facility,17,FOB,TRUE
+Supplier_153 Gujarat,India,contact@supplier_153.com,LNG,Petrochemicals,Tier 1,Jamnagar Refinery,28,DDP,FALSE
+Supplier_154 Portland,U.S.A.,contact@supplier_154.com,Brent Crude,Natural Gas,Tier 2,Portland Wellhead,12,DDP,FALSE
+BP Durban,South Africa,contact@bp.com,Basra Heavy,Petrochemicals,Tier 1,Durban Wellhead,13,DDP,FALSE
+Supplier_156 Karratha,Australia,contact@supplier_156.com,Petrochemicals,Natural Gas,Tier 2,Karratha Storage Facility,13,EXW,TRUE
+ADNOC New Albany,US,contact@adnoc.com,Petrochemicals,Natural Gas,Tier 2,New Albany Refinery,21,FCA,TRUE
+Supplier_158 Deming,US,contact@supplier_158.com,WTI Crude,Petrochemicals,Tier 2,Deming Storage Facility,25,CIF,FALSE
+Supplier_159 Port Wentworth,U.S.A.,contact@supplier_159.com,Arab Light Crude,Petrochemicals,Tier 2,Port Wentworth Wellhead,24,EXW,TRUE
+Petrobras La Libertad,Ecuador,contact@petrobras.com,Basra Heavy,Petrochemicals,Tier 2,La Libertad Port,28,EXW,TRUE
+Supplier_161 Culver,US,contact@supplier_161.com,Refined Products,Petrochemicals,Tier 3,Culver Refinery,20,FOB,FALSE
+Supplier_162 Longana,VU,contact@supplier_162.com,Brent Crude,Crude Oil,Tier 2,Longana Port,6,CIF,FALSE
+KPC Fitchburg,US,contact@kpc.com,Arab Light Crude,Petrochemicals,Tier 3,Fitchburg Refinery,27,DDP,FALSE
+ADNOC Portland,U.S.A.,contact@adnoc.com,LNG,Natural Gas,Tier 2,Portland Wellhead,19,FCA,FALSE
+Supplier_165 Porto Santo Stefano,Italy,contact@supplier_165.com,Refined Products,Refinery,Tier 2,Porto Santo Stefano Storage Facility,15,EXW,FALSE
+Supplier_166 Nederland,U.S.A.,contact@supplier_166.com,Basra Heavy,Refinery,Tier 2,Nederland Wellhead,3,EXW,TRUE
+Supplier_167 Port Aransas,U.S.A.,contact@supplier_167.com,Arab Light Crude,Crude Oil,Tier 1,Port Aransas Storage Facility,29,CIF,FALSE
+Supplier_168 Great Barrier Reef,Australia,contact@supplier_168.com,Basra Heavy,Petrochemicals,Tier 2,Great Barrier Reef Storage Facility,14,EXW,TRUE
+Supplier_169 Campo Novo Do Parecis,BR,contact@supplier_169.com,LNG,Crude Oil,Tier 1,Campo Novo Do Parecis Storage Facility,12,FOB,FALSE
+BP Malacca,Malaysia,contact@bp.com,WTI Crude,Crude Oil,Tier 1,Malacca Refinery,24,CIF,FALSE
+ExxonMobil Cinta,Indonesia,contact@exxonmobil.com,Petrochemicals,Natural Gas,Tier 2,Cinta Refinery,13,FCA,FALSE
+TotalEnergies Resunga,NP,contact@totalenergies.com,WTI Crude,Natural Gas,Tier 3,Resunga Storage Facility,8,EXW,FALSE
+Supplier_173 Grandview,US,contact@supplier_173.com,Basra Heavy,Petrochemicals,Tier 2,Grandview Refinery,21,EXW,FALSE
+Shell Unalaska,U.S.A.,contact@shell.com,Brent Crude,Crude Oil,Tier 2,Unalaska Port,21,FOB,FALSE
+BP Porto Empedocle,Italy,contact@bp.com,Basra Heavy,Petrochemicals,Tier 3,Porto Empedocle Refinery,6,DDP,FALSE
+Supplier_176 Dothan,US,contact@supplier_176.com,WTI Crude,Refinery,Tier 3,Dothan Wellhead,22,EXW,FALSE
+BP Nederland,U.S.A.,contact@bp.com,Brent Crude,Petrochemicals,Tier 2,Nederland Wellhead,22,CIF,FALSE
+Supplier_178 Unalaska,U.S.A.,contact@supplier_178.com,Petrochemicals,Crude Oil,Tier 2,Unalaska Port,24,CIF,FALSE
+ExxonMobil Immingham,U.K.,contact@exxonmobil.com,LNG,Natural Gas,Tier 2,Immingham Port,19,EXW,FALSE
+Supplier_180 Raos,Spain,contact@supplier_180.com,Refined Products,Natural Gas,Tier 2,Raos Refinery,18,FCA,FALSE
+Supplier_181 Arlington,US,contact@supplier_181.com,Basra Heavy,Natural Gas,Tier 2,Arlington Port,18,DDP,TRUE
+Supplier_182 Tumbledown Dick Bay,Netherlands Antilles,contact@supplier_182.com,Petrochemicals,Crude Oil,Tier 3,Tumbledown Dick Bay Port,30,DDP,FALSE
+Sinopec English Bay,Ascension,contact@sinopec.com,Refined Products,Petrochemicals,Tier 2,English Bay Refinery,16,EXW,FALSE
+Supplier_184 Mississippi,U.S.A.,contact@supplier_184.com,Basra Heavy,Crude Oil,Tier 3,Mississippi Wellhead,21,FOB,FALSE
+Shell Kralendijk,Netherlands Antilles,contact@shell.com,Basra Heavy,Refinery,Tier 2,Kralendijk Port,8,EXW,FALSE
+Supplier_186 Lapel,US,contact@supplier_186.com,Petrochemicals,Crude Oil,Tier 2,Lapel Port,21,FOB,TRUE
+Supplier_187 Escravos,Nigeria,contact@supplier_187.com,LNG,Crude Oil,Tier 1,Escravos Storage Facility,27,EXW,FALSE
+Sinopec Halfweg,ZA,contact@sinopec.com,WTI Crude,Natural Gas,Tier 2,Halfweg Wellhead,12,FOB,FALSE
+Supplier_189 Kawasaki,Japan,contact@supplier_189.com,Arab Light Crude,Petrochemicals,Tier 2,Kawasaki Storage Facility,30,FOB,FALSE
+Equinor Istanbul,Turkey,contact@equinor.com,Petrochemicals,Refinery,Tier 3,Istanbul Refinery,30,FCA,FALSE
+Supplier_191 Nador,Morocco,contact@supplier_191.com,Brent Crude,Natural Gas,Tier 3,Nador Refinery,29,CIF,FALSE
+Shell Corumba,BR,contact@shell.com,Petrochemicals,Natural Gas,Tier 2,Corumba Port,13,DDP,TRUE
+Supplier_193 Trois-Rivières,Canada,contact@supplier_193.com,Petrochemicals,Crude Oil,Tier 3,Trois-Rivières Refinery,7,EXW,FALSE
+Supplier_194 Faustina,U.S.A.,contact@supplier_194.com,Basra Heavy,Natural Gas,Tier 1,Faustina Refinery,10,CIF,FALSE
+Sinopec Mesaieed,Qatar,contact@sinopec.com,WTI Crude,Petrochemicals,Tier 2,Mesaieed Refinery,18,CIF,FALSE
+Supplier_196 Trois-Rivières,Canada,contact@supplier_196.com,Refined Products,Petrochemicals,Tier 3,Trois-Rivières Refinery,5,FOB,FALSE
+CNPC Salt Island,U.K.,contact@cnpc.com,LNG,Petrochemicals,Tier 2,Salt Island Wellhead,18,DDP,FALSE
+Supplier_198 Botwood,Canada,contact@supplier_198.com,WTI Crude,Crude Oil,Tier 3,Botwood Port,26,EXW,FALSE
+ADNOC Lac Brochet,CA,contact@adnoc.com,Brent Crude,Petrochemicals,Tier 2,Lac Brochet Refinery,9,EXW,FALSE
+Sinopec Patras,Greece,contact@sinopec.com,LNG,Refinery,Tier 2,Patras Refinery,20,FCA,TRUE
+Supplier_201 Moultrie,US,contact@supplier_201.com,LNG,Crude Oil,Tier 1,Moultrie Storage Facility,4,FOB,FALSE
+Supplier_202 Zadar,Croatia,contact@supplier_202.com,Arab Light Crude,Natural Gas,Tier 3,Zadar Port,17,EXW,TRUE
+Supplier_203 Labuhan Bilik-Sumatra Island,ID,contact@supplier_203.com,WTI Crude,Natural Gas,Tier 2,Labuhan Bilik-Sumatra Island Wellhead,23,DDP,TRUE
+Supplier_204 New Orleans,U.S.A.,contact@supplier_204.com,Arab Light Crude,Refinery,Tier 3,New Orleans Port,11,FOB,FALSE
+Supplier_205 Roggen,US,contact@supplier_205.com,Arab Light Crude,Petrochemicals,Tier 1,Roggen Port,23,DDP,FALSE
+Petrobras Parapeti,BO,contact@petrobras.com,Arab Light Crude,Crude Oil,Tier 2,Parapeti Storage Facility,3,CIF,FALSE
+Supplier_207 Hopkinsville,US,contact@supplier_207.com,Petrochemicals,Petrochemicals,Tier 2,Hopkinsville Storage Facility,3,FOB,FALSE
+Sinopec Hebburn,U.K.,contact@sinopec.com,Refined Products,Natural Gas,Tier 2,Hebburn Port,18,FOB,TRUE
+Supplier_209 Comodoro Rivadavia,Argentina,contact@supplier_209.com,Arab Light Crude,Crude Oil,Tier 1,Comodoro Rivadavia Wellhead,13,DDP,FALSE
+Sinopec Raos,Spain,contact@sinopec.com,Brent Crude,Natural Gas,Tier 2,Raos Refinery,23,CIF,TRUE
+Petrobras Benoa,Indonesia,contact@petrobras.com,Basra Heavy,Petrochemicals,Tier 3,Benoa Port,14,CIF,FALSE
+Supplier_212 Bilbao,Spain,contact@supplier_212.com,Petrochemicals,Petrochemicals,Tier 2,Bilbao Wellhead,30,CIF,TRUE
+ADNOC Sequim,US,contact@adnoc.com,Petrochemicals,Petrochemicals,Tier 1,Sequim Storage Facility,14,EXW,FALSE
+Petrobras Raos,Spain,contact@petrobras.com,Arab Light Crude,Natural Gas,Tier 2,Raos Refinery,20,FCA,FALSE
+Equinor Fateh Terminal,U.A.E.,contact@equinor.com,Arab Light Crude,Refinery,Tier 2,Fateh Terminal Storage Facility,9,FCA,FALSE
+Supplier_216 Bandar Mahshahr,Iran,contact@supplier_216.com,LNG,Crude Oil,Tier 2,Bandar Mahshahr Port,28,CIF,FALSE
+Petrobras Satui,Indonesia,contact@petrobras.com,Petrochemicals,Crude Oil,Tier 2,Satui Port,19,FOB,FALSE
+TotalEnergies Caldera,Chile,contact@totalenergies.com,Brent Crude,Petrochemicals,Tier 1,Caldera Port,14,FCA,FALSE
+Supplier_219 Tororo,UG,contact@supplier_219.com,Brent Crude,Crude Oil,Tier 1,Tororo Port,3,FCA,TRUE
+CNPC Snug,Australia,contact@cnpc.com,Arab Light Crude,Petrochemicals,Tier 2,Snug Port,19,DDP,FALSE
+Supplier_221 Kemaman,Malaysia,contact@supplier_221.com,Refined Products,Petrochemicals,Tier 2,Kemaman Wellhead,5,FCA,FALSE
+Shell Port Allen,U.S.A.,contact@shell.com,Arab Light Crude,Natural Gas,Tier 1,Port Allen Refinery,28,CIF,FALSE
+Supplier_223 Itaguaí,Brazil,contact@supplier_223.com,Brent Crude,Crude Oil,Tier 2,Itaguaí Refinery,12,EXW,FALSE
+Chevron Dubrovnik,Croatia,contact@chevron.com,Arab Light Crude,Petrochemicals,Tier 1,Dubrovnik Storage Facility,6,EXW,FALSE
+Equinor Rabaul,Papua New Guinea,contact@equinor.com,WTI Crude,Natural Gas,Tier 1,Rabaul Refinery,6,FOB,FALSE
+Reliance Brake,Germany,contact@reliance.com,LNG,Refinery,Tier 1,Brake Port,8,DDP,TRUE
+Supplier_227 Estancia,Philippines,contact@supplier_227.com,WTI Crude,Crude Oil,Tier 3,Estancia Storage Facility,27,FOB,FALSE
+ADNOC Elizabeth,U.S.A.,contact@adnoc.com,LNG,Crude Oil,Tier 2,Elizabeth Refinery,18,EXW,FALSE
+Supplier_229 Rabaul,Papua New Guinea,contact@supplier_229.com,Petrochemicals,Natural Gas,Tier 1,Rabaul Refinery,14,CIF,TRUE
+Supplier_230 River Plate Lightering Areas,Argentina,contact@supplier_230.com,WTI Crude,Crude Oil,Tier 3,River Plate Lightering Areas Storage Facility,10,FCA,TRUE
+Supplier_231 Angra Dos Reis,BR,contact@supplier_231.com,Basra Heavy,Crude Oil,Tier 3,Angra Dos Reis Wellhead,18,DDP,FALSE
+Sinopec Bilbao,Spain,contact@sinopec.com,Arab Light Crude,Petrochemicals,Tier 2,Bilbao Wellhead,10,DDP,TRUE
+Supplier_233 Newcastle,U.K.,contact@supplier_233.com,LNG,Crude Oil,Tier 2,Newcastle Wellhead,21,DDP,TRUE
+Supplier_234 Reserve,US,contact@supplier_234.com,Basra Heavy,Natural Gas,Tier 3,Reserve Storage Facility,28,FCA,FALSE
+Supplier_235 Weyburn,CA,contact@supplier_235.com,Refined Products,Refinery,Tier 2,Weyburn Storage Facility,27,DDP,FALSE
+Supplier_236 Mariel,Cuba,contact@supplier_236.com,LNG,Natural Gas,Tier 3,Mariel Wellhead,12,FCA,FALSE
+Supplier_237 Cinta,Indonesia,contact@supplier_237.com,Refined Products,Refinery,Tier 2,Cinta Refinery,21,EXW,FALSE
+CNPC Larne,U.K.,contact@cnpc.com,Petrochemicals,Natural Gas,Tier 2,Larne Wellhead,7,FOB,FALSE
+BP Rotterdam,Netherlands,contact@bp.com,WTI Crude,Crude Oil,Tier 1,Rotterdam Oil Terminal,13,FOB,FALSE
+Supplier_240 Derince,Turkey,contact@supplier_240.com,WTI Crude,Refinery,Tier 2,Derince Wellhead,6,CIF,FALSE
+Supplier_241 Istanbul,Turkey,contact@supplier_241.com,Arab Light Crude,Natural Gas,Tier 3,Istanbul Refinery,25,DDP,TRUE
+Sinopec Corpus Christi,U.S.A.,contact@sinopec.com,Petrochemicals,Petrochemicals,Tier 3,Corpus Christi Port,25,DDP,FALSE
+ADNOC Salt Island,U.K.,contact@adnoc.com,Petrochemicals,Natural Gas,Tier 2,Salt Island Wellhead,23,EXW,TRUE
+Petrobras Corumba,BR,contact@petrobras.com,Basra Heavy,Natural Gas,Tier 2,Corumba Port,12,DDP,FALSE
+Supplier_245 Joao Pinheiro,BR,contact@supplier_245.com,WTI Crude,Refinery,Tier 2,Joao Pinheiro Refinery,13,EXW,TRUE
+Supplier_246 Banago,Philippines,contact@supplier_246.com,Basra Heavy,Crude Oil,Tier 3,Banago Port,7,FOB,TRUE
+ADNOC Cockatoo Island,Australia,contact@adnoc.com,Petrochemicals,Refinery,Tier 1,Cockatoo Island Storage Facility,27,CIF,FALSE
+ADNOC Resunga,NP,contact@adnoc.com,Arab Light Crude,Natural Gas,Tier 3,Resunga Storage Facility,28,DDP,FALSE
+Supplier_249 Lac Brochet,CA,contact@supplier_249.com,Basra Heavy,Refinery,Tier 2,Lac Brochet Refinery,7,FOB,FALSE
+ONGC Sao Domingos,BR,contact@ongc.com,Arab Light Crude,Refinery,Tier 2,Sao Domingos Refinery,11,CIF,TRUE
+Supplier_251 Erickson,CA,contact@supplier_251.com,Petrochemicals,Natural Gas,Tier 2,Erickson Refinery,6,EXW,TRUE
+Aramco Cameron,US,contact@aramco.com,Arab Light Crude,Natural Gas,Tier 2,Cameron Storage Facility,7,CIF,FALSE
