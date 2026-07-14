@@ -34,7 +34,10 @@ export function LogisticsNetwork({ nodes = [], riskOverlay }: Props) {
         {geoNodes.map((n) => (
           <MapMarker key={n.id} longitude={Number(n.lng)} latitude={Number(n.lat)}>
             <MarkerContent>
-              <div className="size-3 rounded-full border border-white bg-blue-500 shadow-md" />
+              <div 
+                className="size-3 border border-white bg-blue-500 shadow-md" 
+                style={{ borderRadius: "50%" }}
+              />
             </MarkerContent>
             <MarkerTooltip className="text-xs">
               {(n.label ?? n.id) + (typeof n.exposure === "number" ? ` | Exposure ${n.exposure.toFixed(1)}` : "")}

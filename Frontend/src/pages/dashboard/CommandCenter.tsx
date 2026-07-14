@@ -509,19 +509,25 @@ const CommandCenter = () => {
                         className="relative cursor-pointer group"
                       >
                         {isCritical && (
-                          <div className={`absolute inset-0 -m-2 rounded-full ${colors.ping} animate-ping`} />
+                          <div 
+                            className={`absolute inset-0 -m-2 ${colors.ping} animate-ping`}
+                            style={{ borderRadius: "50%" }}
+                          />
                         )}
-                        <div className={`
-                          size-3 rounded-full border-2 border-white shadow-lg transition-all
-                          ${colors.dot}
-                          ${isSelected ? "ring-2 ring-blue-500 ring-offset-1 scale-125" : "group-hover:scale-110"}
-                        `} />
+                        <div 
+                          className={`
+                            size-3 border-2 border-white shadow-lg transition-all
+                            ${colors.dot}
+                            ${isSelected ? "ring-2 ring-blue-500 ring-offset-1 scale-125" : "group-hover:scale-110"}
+                          `}
+                          style={{ borderRadius: "50%" }}
+                        />
 
                         {isSelected && (
                           <>
-                            <div className="absolute -inset-12 rounded-full border border-red-500/30 bg-red-500/5 animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
-                            <div className="absolute -inset-8 rounded-full border border-red-400/40 bg-red-400/10 animate-pulse pointer-events-none" style={{ animationDuration: '2s' }} />
-                            <div className="absolute -inset-4 rounded-full border border-red-300/50 bg-red-300/20 animate-pulse pointer-events-none" style={{ animationDuration: '1.5s' }} />
+                            <div className="absolute -inset-12 border border-red-500/30 bg-red-500/5 animate-ping pointer-events-none" style={{ borderRadius: "50%", animationDuration: '3s' }} />
+                            <div className="absolute -inset-8 border border-red-400/40 bg-red-400/10 animate-pulse pointer-events-none" style={{ borderRadius: "50%", animationDuration: '2s' }} />
+                            <div className="absolute -inset-4 border border-red-300/50 bg-red-300/20 animate-pulse pointer-events-none" style={{ borderRadius: "50%", animationDuration: '1.5s' }} />
                           </>
                         )}
                       </div>
@@ -574,15 +580,21 @@ const CommandCenter = () => {
                           className="relative cursor-pointer group"
                         >
                           {hasCritical && (
-                            <div className="absolute inset-0 -m-3 rounded-full bg-red-500/20 animate-ping" />
+                            <div 
+                              className="absolute inset-0 -m-3 bg-red-500/20 animate-ping"
+                              style={{ borderRadius: "50%" }}
+                            />
                           )}
-                          <div className={`
-                            flex items-center justify-center
-                            min-w-[22px] h-[22px] px-1.5 rounded-full border-2 border-white shadow-lg
-                            text-[9px] font-bold text-white
-                            ${hasCritical ? "bg-red-500" : "bg-amber-400"}
-                            group-hover:scale-110 transition-transform
-                          `}>
+                          <div 
+                            className={`
+                              flex items-center justify-center
+                              min-w-[22px] h-[22px] px-1.5 border-2 border-white shadow-lg
+                              text-[9px] font-bold text-white
+                              ${hasCritical ? "bg-red-500" : "bg-amber-400"}
+                              group-hover:scale-110 transition-transform
+                            `}
+                            style={{ borderRadius: "50%" }}
+                          >
                             {group.length}
                           </div>
                         </div>
@@ -596,7 +608,10 @@ const CommandCenter = () => {
                             const colors = markerColor(String(inc.severity || ""));
                             return (
                               <div key={j} className="flex items-center gap-2 cursor-pointer hover:bg-muted/40 rounded px-1 py-0.5" onClick={() => setSelectedId(String(inc.id))}>
-                                <div className={`w-2 h-2 rounded-full shrink-0 ${colors.dot}`} />
+                                <div 
+                                  className={`w-2 h-2 shrink-0 ${colors.dot}`}
+                                  style={{ borderRadius: "50%" }}
+                                />
                                 <p className="text-xs font-medium truncate">{incidentDisplayTitle(inc as Record<string, unknown>)}</p>
                               </div>
                             );
@@ -616,9 +631,15 @@ const CommandCenter = () => {
           </Map>
 
           <div className="absolute bottom-3 left-3 z-10 bg-card/90 backdrop-blur-sm border border-border rounded-md px-3 py-2 space-y-1.5">
-            <div className="flex items-center gap-2 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-red-500" /> Critical</div>
-            <div className="flex items-center gap-2 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Warning</div>
-            <div className="flex items-center gap-2 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Low Risk</div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-2.5 h-2.5 bg-red-500" style={{ borderRadius: "50%" }} /> Critical
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-2.5 h-2.5 bg-amber-400" style={{ borderRadius: "50%" }} /> Warning
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-2.5 h-2.5 bg-emerald-500" style={{ borderRadius: "50%" }} /> Low Risk
+            </div>
           </div>
 
           <button
