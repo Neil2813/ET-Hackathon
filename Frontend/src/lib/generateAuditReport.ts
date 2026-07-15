@@ -24,6 +24,9 @@ const WHITE  = "FFFFFF";
 const GREEN  = "16A34A"; // Green 600
 const AMBER  = "D97706"; // Amber 600
 
+const FONT_BODY = "Inter";
+const FONT_TITLE = "Special Gothic Expanded One";
+
 function h1(text: string): Paragraph {
   return new Paragraph({
     heading: HeadingLevel.HEADING_1,
@@ -34,7 +37,7 @@ function h1(text: string): Paragraph {
         bold: true,
         size: 36,
         color: RED,
-        font: "Inter",
+        font: FONT_TITLE,
       }),
     ],
   });
@@ -51,7 +54,7 @@ function h2(text: string): Paragraph {
         bold: true,
         size: 26,
         color: DARK,
-        font: "Inter",
+        font: FONT_TITLE,
       }),
     ],
   });
@@ -62,7 +65,7 @@ function h3(text: string): Paragraph {
     heading: HeadingLevel.HEADING_3,
     spacing: { before: 200, after: 80 },
     children: [
-      new TextRun({ text, bold: true, size: 22, color: GREY, font: "Inter" }),
+      new TextRun({ text, bold: true, size: 22, color: GREY, font: FONT_TITLE }),
     ],
   });
 }
@@ -74,7 +77,7 @@ function body(text: string, options?: { bold?: boolean; italic?: boolean; color?
       new TextRun({
         text,
         size: 20,
-        font: "Inter",
+        font: FONT_BODY,
         bold: options?.bold,
         italics: options?.italic,
         color: options?.color ?? DARK,
@@ -87,8 +90,8 @@ function kv(label: string, value: string): Paragraph {
   return new Paragraph({
     spacing: { before: 60, after: 60 },
     children: [
-      new TextRun({ text: `${label}: `, bold: true, size: 20, font: "Inter", color: GREY }),
-      new TextRun({ text: value || "—", size: 20, font: "Inter", color: DARK }),
+      new TextRun({ text: `${label}: `, bold: true, size: 20, font: FONT_BODY, color: GREY }),
+      new TextRun({ text: value || "—", size: 20, font: FONT_BODY, color: DARK }),
     ],
   });
 }
@@ -109,7 +112,7 @@ function bullet(text: string): Paragraph {
   return new Paragraph({
     bullet: { level: 0 },
     spacing: { before: 60, after: 60 },
-    children: [new TextRun({ text, size: 20, font: "Inter", color: DARK })],
+    children: [new TextRun({ text, size: 20, font: FONT_BODY, color: DARK })],
   });
 }
 
@@ -122,7 +125,7 @@ function dataTable(headers: string[], rows: string[][]): Table {
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: h, bold: true, color: WHITE, size: 24, font: "Inter" })],
+            children: [new TextRun({ text: h, bold: true, color: WHITE, size: 24, font: FONT_TITLE })],
           }),
         ],
       })
@@ -139,7 +142,7 @@ function dataTable(headers: string[], rows: string[][]): Table {
             margins: { top: 120, bottom: 120, left: 150, right: 150 },
             children: [
               new Paragraph({
-                children: [new TextRun({ text: cell || "—", size: 22, font: "Inter", color: DARK })],
+                children: [new TextRun({ text: cell || "—", size: 22, font: FONT_BODY, color: DARK })],
               }),
             ],
           })
@@ -233,7 +236,7 @@ export async function generateAuditReport(
     new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [
-        new TextRun({ text: "PRAECANTATOR", bold: true, size: 72, color: RED, font: "Inter", allCaps: true }),
+        new TextRun({ text: "PRAECANTATOR", bold: true, size: 72, color: RED, font: FONT_TITLE, allCaps: true }),
       ],
     }),
     new Paragraph({
@@ -363,8 +366,8 @@ export async function generateAuditReport(
           ["Detection",           inc.created_at  ? new Date(inc.created_at).toLocaleString()  : "—"],
           ["Analysis",            inc.analyzed_at ? new Date(inc.analyzed_at).toLocaleString() : "—"],
           ["Decision / Approval", inc.approved_at ? new Date(inc.approved_at).toLocaleString() : "Not Yet Approved"],
-          ["Execution",           inc.resolved_at ? new Date(inc.resolved_at).toLocaleString() : "Not Yet Approved"],
-          ["Audit Closure",       inc.updated_at  ? new Date(inc.updated_at).toLocaleString()  : "—"],
+          ["Execution",           inc.resolved_at ? new Date(inc.resolved_at).toLocaleString() : "Not Yet Executed"],
+          ["Audit Closure",       inc.updated_at  ? new Date(inc.updated_at).toLocaleString()  : "Not Yet Closed"],
         ]
       ),
       new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
