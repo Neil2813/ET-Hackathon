@@ -13,6 +13,7 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 import { fmtINR } from "@/lib/currency";
+import { api } from "@/lib/api";
 
 // ─── Palette helpers ──────────────────────────────────────────────────────────
 const RED    = "DC2626"; // Sentinel red
@@ -166,6 +167,16 @@ export async function generateAuditReport(
   govMetrics: any,
   postRecords: any[]
 ): Promise<void> {
+  let groqSummary = "This report provides a comprehensive audit of the supply chain risk landscape as monitored by the Praecantator autonomous intelligence platform. It is intended for executive review and operational decision-making.";
+  try {
+    const res = await api.incidents.execSummary({ incidents });
+    if (res && res.summary) {
+      groqSummary = res.summary;
+    }
+  } catch (err) {
+    console.error("Failed to generate Groq summary:", err);
+  }
+
   const now     = new Date();
   const dateStr = now.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
   const total   = incidents.length;
@@ -244,7 +255,7 @@ export async function generateAuditReport(
   // ── Section 1: Executive Summary ───────────────────────────────────────────
   const sec1: any[] = [
     h1("1. Executive Summary"),
-    body("This report provides a comprehensive audit of the supply chain risk landscape as monitored by the Praecantator autonomous intelligence platform. It is intended for executive review and operational decision-making."),
+    body(groqSummary),
     new Paragraph({ spacing: { before: 200 }, children: [new TextRun({ text: "" })] }),
     h3("Top 3 Priority Risks Requiring Immediate Action"),
     ...top3.map((inc, i) =>
