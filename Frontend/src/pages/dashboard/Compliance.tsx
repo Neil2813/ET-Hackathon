@@ -10,7 +10,6 @@
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { generateAuditReport } from "@/lib/generateAuditReport";
 import {
   Shield, Download, FileText, Clock,
   ChevronDown, ChevronUp, Check, X, AlertTriangle,
@@ -209,34 +208,6 @@ const Compliance = () => {
               <Download size={12} /> CSV
             </button>
           )}
-          <button
-            onClick={() => window.open(`${BASE}/audit/export`, "_blank")}
-            className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-3 py-1.5 bg-white text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 transition-all rounded shadow-sm"
-          >
-            <FileText size={12} /> PDF
-          </button>
-          {/* ── Full DOCX Audit Report ── */}
-          <button
-            disabled={reportLoading}
-            onClick={async () => {
-              setReportLoading(true);
-              try {
-                await generateAuditReport(
-                  incidents as any[],
-                  auditLog as any[],
-                  govMetrics,
-                  postRecords,
-                );
-              } finally {
-                setReportLoading(false);
-              }
-            }}
-            className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-3 py-1.5 bg-red-600 text-white hover:bg-red-700 border border-red-600 transition-all rounded shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {reportLoading
-              ? <><Loader2 size={12} className="animate-spin" /> Generating...</>
-              : <><FileDown size={12} /> Download Report</>}
-          </button>
         </div>
       </div>
 

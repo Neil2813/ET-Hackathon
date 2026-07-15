@@ -6,8 +6,9 @@ import {
   Plane, Ship, Truck, Check, X, Edit, Send, Info,
   Shield, Zap, ExternalLink, CheckCircle, Loader2, FileText,
   Navigation, Search, Filter, ArrowRight, Leaf, DollarSign,
-  Activity, BarChart2, MessageSquare, GitBranch, Radio, Circle,
+  Activity, BarChart2, MessageSquare, GitBranch, Radio, Circle, FileDown,
 } from "lucide-react";
+import { generateAuditReport } from "@/lib/generateAuditReport";
 import { ReasoningPanel } from "@/components/workflow/ReasoningPanel";
 import { CheckpointBanner } from "@/components/workflow/CheckpointBanner";
 import { GovernanceFeedbackWidget } from "@/components/workflow/GovernanceFeedbackWidget";
@@ -218,6 +219,7 @@ const Incidents = () => {
   const [executionResult, setExecutionResult] = useState<Record<string, unknown> | null>(null);
   const [dismissReason, setDismissReason] = useState("");
   const [showDismissDialog, setShowDismissDialog] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const detailPanelRef = useRef<HTMLDivElement>(null);
@@ -496,6 +498,21 @@ const Incidents = () => {
                       Pipeline {Number(detail.pipeline_ms).toFixed(0)}ms
                     </span>
                   )}
+                  <button
+                    disabled={reportLoading}
+                    onClick={async () => {
+                      setReportLoading(true);
+                      try {
+                        await generateAuditReport([detail], [], {}, []);
+                      } finally {
+                        setReportLoading(false);
+                      }
+                    }}
+                    className={`ml-${detail.pipeline_ms && Number(detail.pipeline_ms) > 0 ? "2" : "auto"} flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-2.5 py-1.5 bg-white text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 transition-all rounded shadow-sm disabled:opacity-60`}
+                  >
+                    {reportLoading ? <Loader2 size={12} className="animate-spin" /> : <FileDown size={12} />}
+                    Report
+                  </button>
                 </div>
                 <h2 className="font-headline text-xl font-bold text-slate-900 leading-tight mb-1">
                   {incidentDisplayTitle(detail as unknown as Record<string, unknown>)}
