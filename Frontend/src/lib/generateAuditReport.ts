@@ -362,8 +362,8 @@ export async function generateAuditReport(
         [
           ["Detection",           inc.created_at  ? new Date(inc.created_at).toLocaleString()  : "—"],
           ["Analysis",            inc.analyzed_at ? new Date(inc.analyzed_at).toLocaleString() : "—"],
-          ["Decision / Approval", inc.approved_at ? new Date(inc.approved_at).toLocaleString() : "Not "],
-          ["Execution",           inc.resolved_at ? new Date(inc.resolved_at).toLocaleString() : "—"],
+          ["Decision / Approval", inc.approved_at ? new Date(inc.approved_at).toLocaleString() : "Not Yet Approved"],
+          ["Execution",           inc.resolved_at ? new Date(inc.resolved_at).toLocaleString() : "Not Yet Approved"],
           ["Audit Closure",       inc.updated_at  ? new Date(inc.updated_at).toLocaleString()  : "—"],
         ]
       ),
