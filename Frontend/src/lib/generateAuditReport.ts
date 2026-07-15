@@ -287,6 +287,17 @@ export async function generateAuditReport(
     const status = String(inc.status || "ACTIVE");
     const title  = String(inc.event_title || "Unnamed Incident");
 
+    const getRadius = (incObj: any) => {
+      if (incObj.radius_km) return `${incObj.radius_km} km radius`;
+      if (incObj.impact_radius_km) return `${incObj.impact_radius_km} km radius`;
+      if (incObj.network_match?.impact_radius_km) return `${incObj.network_match.impact_radius_km} km radius`;
+      
+      if (sev === "CRITICAL") return "100 km radius (Est.)";
+      if (sev === "HIGH") return "50 km radius (Est.)";
+      if (sev === "MEDIUM") return "25 km radius (Est.)";
+      return "10 km radius (Est.)";
+    };
+
     incidentSections.push(
       h1(`2. Incident ${idx + 1} — ${title}`),
       separator(),
@@ -299,7 +310,7 @@ export async function generateAuditReport(
           ["Title",               title],
           ["Detected At",         inc.created_at ? new Date(inc.created_at).toLocaleString() : "—"],
           ["Last Updated",        inc.updated_at  ? new Date(inc.updated_at).toLocaleString()  : "—"],
-          ["Geographic Range",    inc.radius_km ? `${inc.radius_km} km radius` : (inc.impact_radius_km ? `${inc.impact_radius_km} km radius` : "—")],
+          ["Geographic Range",    getRadius(inc)],
           ["Coordinates",         (inc.event_lat && inc.event_lng) ? `${inc.event_lat}, ${inc.event_lng}` : "—"],
           ["Risk Category",       String(inc.event_type || inc.category || "—")],
           ["Severity Level",      sev],
@@ -351,7 +362,7 @@ export async function generateAuditReport(
         [
           ["Detection",           inc.created_at  ? new Date(inc.created_at).toLocaleString()  : "—"],
           ["Analysis",            inc.analyzed_at ? new Date(inc.analyzed_at).toLocaleString() : "—"],
-          ["Decision / Approval", inc.approved_at ? new Date(inc.approved_at).toLocaleString() : "—"],
+          ["Decision / Approval", inc.approved_at ? new Date(inc.approved_at).toLocaleString() : "Not "],
           ["Execution",           inc.resolved_at ? new Date(inc.resolved_at).toLocaleString() : "—"],
           ["Audit Closure",       inc.updated_at  ? new Date(inc.updated_at).toLocaleString()  : "—"],
         ]
