@@ -1106,7 +1106,7 @@ export const api = {
     summary: () => request<{ critical_count: number; watch_count: number; resolved_count: number; nominal_nodes: number; total_nodes: number }>("/incidents/summary"),
     briefing: () => request<CommandBriefing>("/command/briefing"),
     generate: () => request<Record<string, unknown>>("/incidents/generate", { method: "POST" }),
-    execSummary: (payload: { incidents: any[] }) => request<{ summary: string }>("/reports/executive-summary", { method: "POST", body: JSON.stringify(payload) }),
+    execSummary: (payload: { incidents: any[] }) => request<{ summary: string }>("/reports/executive-summary", { method: "POST", body: JSON.stringify(payload), timeoutMs: LONG_REQUEST_TIMEOUT_MS }),
   },
   intelligence: {
     gaps: () => request<IntelligenceGapResponse>("/intelligence/gaps"),
