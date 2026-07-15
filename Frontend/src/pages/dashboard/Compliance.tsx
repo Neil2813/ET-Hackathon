@@ -10,6 +10,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { generateAuditReport } from "@/lib/generateAuditReport";
 import {
   Shield, Download, FileText, Clock,
   ChevronDown, ChevronUp, Check, X, AlertTriangle,
@@ -84,6 +85,7 @@ function MetricBar({ label, value, color }: { label: string; value: number; colo
 const Compliance = () => {
   const [tab, setTab] = useState<Tab>("incidents");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const qc = useQueryClient();
 
@@ -280,7 +282,24 @@ const Compliance = () => {
                       </div>
                       {/* OODA pipeline timeline */}
                       <div className="border border-slate-200 p-5 bg-white rounded-lg shadow-sm border-l-4 border-l-red-500">
-                        <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest mb-4">Autonomous Execution Timeline</p>
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Autonomous Execution Timeline</p>
+                          <button
+                            disabled={downloadingId === String(inc.id)}
+                            onClick={async () => {
+                              setDownloadingId(String(inc.id));
+                              try {
+                                await generateAuditReport([inc as any], auditLog as any[], govMetrics, postRecords);
+                              } finally {
+                                setDownloadingId(null);
+                              }
+                            }}
+                            className="flex items-center gap-1.5 text-[9px] font-mono uppercase font-bold tracking-widest px-2 py-1 bg-white text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 transition-all rounded shadow-sm disabled:opacity-60"
+                          >
+                            {downloadingId === String(inc.id) ? <Loader2 size={10} className="animate-spin" /> : <FileDown size={10} />}
+                            Download Report
+                          </button>
+                        </div>
                         <div className="flex items-center justify-between mx-4">
                           {[
                             { stage: "DETECT", time: inc.created_at, done: true },

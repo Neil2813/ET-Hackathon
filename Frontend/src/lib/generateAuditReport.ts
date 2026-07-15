@@ -9,19 +9,19 @@ import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
   Table, TableRow, TableCell, WidthType, AlignmentType,
   BorderStyle, ShadingType, PageBreak, Header, Footer,
-  PageNumber, NumberFormat, UnderlineType,
+  PageNumber, NumberFormat, UnderlineType, ImageRun,
 } from "docx";
 import { saveAs } from "file-saver";
 import { fmtINR } from "@/lib/currency";
 
 // ─── Palette helpers ──────────────────────────────────────────────────────────
-const RED    = "C0392B";
-const DARK   = "1A1A2E";
-const GREY   = "64748B";
-const LGREY  = "F1F5F9";
+const RED    = "DC2626"; // Sentinel red
+const DARK   = "0F172A"; // Slate 900
+const GREY   = "475569"; // Slate 600
+const LGREY  = "F8FAFC"; // Slate 50
 const WHITE  = "FFFFFF";
-const GREEN  = "10B981";
-const AMBER  = "D97706";
+const GREEN  = "16A34A"; // Green 600
+const AMBER  = "D97706"; // Amber 600
 
 function h1(text: string): Paragraph {
   return new Paragraph({
@@ -33,7 +33,7 @@ function h1(text: string): Paragraph {
         bold: true,
         size: 36,
         color: RED,
-        font: "Calibri",
+        font: "Inter",
       }),
     ],
   });
@@ -50,7 +50,7 @@ function h2(text: string): Paragraph {
         bold: true,
         size: 26,
         color: DARK,
-        font: "Calibri",
+        font: "Inter",
       }),
     ],
   });
@@ -61,7 +61,7 @@ function h3(text: string): Paragraph {
     heading: HeadingLevel.HEADING_3,
     spacing: { before: 200, after: 80 },
     children: [
-      new TextRun({ text, bold: true, size: 22, color: GREY, font: "Calibri" }),
+      new TextRun({ text, bold: true, size: 22, color: GREY, font: "Inter" }),
     ],
   });
 }
@@ -73,7 +73,7 @@ function body(text: string, options?: { bold?: boolean; italic?: boolean; color?
       new TextRun({
         text,
         size: 20,
-        font: "Calibri",
+        font: "Inter",
         bold: options?.bold,
         italics: options?.italic,
         color: options?.color ?? DARK,
@@ -86,8 +86,8 @@ function kv(label: string, value: string): Paragraph {
   return new Paragraph({
     spacing: { before: 60, after: 60 },
     children: [
-      new TextRun({ text: `${label}: `, bold: true, size: 20, font: "Calibri", color: GREY }),
-      new TextRun({ text: value || "—", size: 20, font: "Calibri", color: DARK }),
+      new TextRun({ text: `${label}: `, bold: true, size: 20, font: "Inter", color: GREY }),
+      new TextRun({ text: value || "—", size: 20, font: "Inter", color: DARK }),
     ],
   });
 }
@@ -108,7 +108,7 @@ function bullet(text: string): Paragraph {
   return new Paragraph({
     bullet: { level: 0 },
     spacing: { before: 60, after: 60 },
-    children: [new TextRun({ text, size: 20, font: "Calibri", color: DARK })],
+    children: [new TextRun({ text, size: 20, font: "Inter", color: DARK })],
   });
 }
 
@@ -120,7 +120,7 @@ function dataTable(headers: string[], rows: string[][]): Table {
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: h, bold: true, color: WHITE, size: 18, font: "Calibri" })],
+            children: [new TextRun({ text: h, bold: true, color: WHITE, size: 18, font: "Inter" })],
           }),
         ],
       })
@@ -136,7 +136,7 @@ function dataTable(headers: string[], rows: string[][]): Table {
               : { type: ShadingType.SOLID, color: WHITE, fill: WHITE },
             children: [
               new Paragraph({
-                children: [new TextRun({ text: cell || "—", size: 18, font: "Calibri", color: DARK })],
+                children: [new TextRun({ text: cell || "—", size: 18, font: "Inter", color: DARK })],
               }),
             ],
           })
@@ -181,33 +181,59 @@ export async function generateAuditReport(
 
   const gm = govMetrics ?? {};
 
+  let logoBuffer: ArrayBuffer | undefined;
+  try {
+    const res = await fetch("/Praecantator.png");
+    if (res.ok) {
+      logoBuffer = await res.arrayBuffer();
+    }
+  } catch (e) {
+    console.error("Failed to fetch logo for report", e);
+  }
+
   // ── Cover page ─────────────────────────────────────────────────────────────
   const cover: any[] = [
-    new Paragraph({ spacing: { before: 1200 }, children: [new TextRun({ text: "" })] }),
+    new Paragraph({ spacing: { before: 800 }, children: [new TextRun({ text: "" })] }),
+    ...(logoBuffer ? [
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200, after: 200 },
+        children: [
+          new ImageRun({
+            data: logoBuffer,
+            transformation: {
+              width: 150,
+              height: 150,
+            },
+            type: "png",
+          }),
+        ],
+      })
+    ] : []),
     new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [
-        new TextRun({ text: "PRAECANTATOR", bold: true, size: 72, color: RED, font: "Calibri", allCaps: true }),
+        new TextRun({ text: "PRAECANTATOR", bold: true, size: 72, color: RED, font: "Inter", allCaps: true }),
       ],
     }),
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { before: 100, after: 100 },
       children: [
-        new TextRun({ text: "SUPPLY CHAIN RISK AUDIT REPORT", bold: true, size: 40, color: DARK, font: "Calibri" }),
+        new TextRun({ text: "SUPPLY CHAIN RISK AUDIT REPORT", bold: true, size: 40, color: DARK, font: "Inter" }),
       ],
     }),
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { before: 80, after: 600 },
       children: [
-        new TextRun({ text: `Generated: ${dateStr} IST`, size: 22, color: GREY, font: "Calibri", italics: true }),
+        new TextRun({ text: `Generated: ${dateStr} IST`, size: 22, color: GREY, font: "Inter", italics: true }),
       ],
     }),
     new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [
-        new TextRun({ text: "CONFIDENTIAL — RESTRICTED DISTRIBUTION", bold: true, size: 20, color: RED, font: "Calibri" }),
+        new TextRun({ text: "CONFIDENTIAL — RESTRICTED DISTRIBUTION", bold: true, size: 20, color: RED, font: "Inter" }),
       ],
     }),
     pageBreak(),
@@ -485,7 +511,7 @@ export async function generateAuditReport(
     styles: {
       default: {
         document: {
-          run: { font: "Calibri", size: 20, color: DARK },
+          run: { font: "Inter", size: 20, color: DARK },
         },
       },
     },
@@ -498,8 +524,8 @@ export async function generateAuditReport(
                 alignment: AlignmentType.RIGHT,
                 border: { bottom: { style: BorderStyle.SINGLE, size: 2, color: "E2E8F0" } },
                 children: [
-                  new TextRun({ text: "PRAECANTATOR — SUPPLY CHAIN RISK AUDIT REPORT  ", bold: true, size: 16, color: GREY, font: "Calibri" }),
-                  new TextRun({ text: "CONFIDENTIAL", bold: true, size: 16, color: RED, font: "Calibri" }),
+                  new TextRun({ text: "PRAECANTATOR — SUPPLY CHAIN RISK AUDIT REPORT  ", bold: true, size: 16, color: GREY, font: "Inter" }),
+                  new TextRun({ text: "CONFIDENTIAL", bold: true, size: 16, color: RED, font: "Inter" }),
                 ],
               }),
             ],
@@ -512,8 +538,8 @@ export async function generateAuditReport(
                 alignment: AlignmentType.CENTER,
                 border: { top: { style: BorderStyle.SINGLE, size: 2, color: "E2E8F0" } },
                 children: [
-                  new TextRun({ text: `Generated ${dateStr} | Page `, size: 16, color: GREY, font: "Calibri" }),
-                  new TextRun({ children: [PageNumber.CURRENT], size: 16, color: GREY, font: "Calibri" }),
+                  new TextRun({ text: `Generated ${dateStr} | Page `, size: 16, color: GREY, font: "Inter" }),
+                  new TextRun({ children: [PageNumber.CURRENT], size: 16, color: GREY, font: "Inter" }),
                 ],
               }),
             ],
