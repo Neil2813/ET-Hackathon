@@ -296,11 +296,10 @@ export async function generateAuditReport(
       dataTable(
         ["Field", "Value"],
         [
-          ["Incident ID",         String(inc.id || "—")],
           ["Title",               title],
           ["Detected At",         inc.created_at ? new Date(inc.created_at).toLocaleString() : "—"],
           ["Last Updated",        inc.updated_at  ? new Date(inc.updated_at).toLocaleString()  : "—"],
-          ["Geographic Region",   String(inc.region || inc.event_country || "—")],
+          ["Geographic Range",    inc.radius_km ? `${inc.radius_km} km radius` : (inc.impact_radius_km ? `${inc.impact_radius_km} km radius` : "—")],
           ["Coordinates",         (inc.event_lat && inc.event_lng) ? `${inc.event_lat}, ${inc.event_lng}` : "—"],
           ["Risk Category",       String(inc.event_type || inc.category || "—")],
           ["Severity Level",      sev],

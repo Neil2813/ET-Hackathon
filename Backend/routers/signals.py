@@ -320,16 +320,19 @@ async def api_signals_lead_time_metrics(
     }
 
 
- f r o m   p y d a n t i c   i m p o r t   B a s e M o d e l 
- c l a s s   E x e c S u m m a r y R e q u e s t ( B a s e M o d e l ) : 
-         i n c i d e n t s :   l i s t [ d i c t ] 
- 
- @ r o u t e r . p o s t ( " / a p i / r e p o r t s / e x e c u t i v e - s u m m a r y " ) 
- a s y n c   d e f   a p i _ r e p o r t s _ e x e c _ s u m m a r y ( p a y l o a d :   E x e c S u m m a r y R e q u e s t )   - >   d i c t : 
-         f r o m   s e r v i c e s . l l m _ p r o v i d e r   i m p o r t   c h a t _ c o m p l e t e 
-         p r o m p t   =   f " W r i t e   a   d e t a i l e d   e x e c u t i v e   s u m m a r y   n a r r a t i v e   o f   t h e   f o l l o w i n g   s u p p l y   c h a i n   r i s k   i n c i d e n t s   a n d   h o w   t h e y   a f f e c t   t h e   o p e r a t o r .   D e s c r i b e   t h e   a c t u a l   e v e n t s   a n d   t h e i r   i m p l i c a t i o n s .   I n c i d e n t s :   { p a y l o a d . i n c i d e n t s } " 
-         s y s t e m   =   " Y o u   a r e   a   s u p p l y   c h a i n   r i s k   i n t e l l i g e n c e   A I .   W r i t e   a   p r o f e s s i o n a l ,   d e t a i l e d   e x e c u t i v e   s u m m a r y   w i t h o u t   a n y   m a r k d o w n   f o r m a t t i n g .   D o   n o t   i n c l u d e   i n t r o d u c t o r y   o r   c o n c l u d i n g   c o n v e r s a t i o n a l   t e x t . " 
-         r e s ,   _   =   a w a i t   c h a t _ c o m p l e t e ( p r o m p t ,   s y s t e m = s y s t e m ,   m a x _ t o k e n s = 1 0 2 4 ,   p r e f e r r e d _ p r o v i d e r = " g r o q " ) 
-         r e t u r n   { " s u m m a r y " :   r e s } 
-  
- 
+from pydantic import BaseModel
+class ExecSummaryRequest(BaseModel):
+    incidents: list[dict]
+
+@router.post("/api/reports/executive-summary")
+async def api_reports_exec_summary(payload: ExecSummaryRequest) -> dict:
+    try:
+        from services.llm_provider import chat_complete
+        prompt = f"Write a detailed executive summary narrative of the following supply chain risk incidents and how they affect the operator. Describe the actual events and their implications. Incidents: {payload.incidents}"
+        system = "You are a supply chain risk intelligence AI. Write a professional, detailed executive summary without any markdown formatting. Do not include introductory or concluding conversational text."
+        res, _ = await chat_complete(prompt, system=system, max_tokens=1024, preferred_provider="groq")
+        return {"summary": res}
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
