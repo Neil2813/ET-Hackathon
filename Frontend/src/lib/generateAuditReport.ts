@@ -245,21 +245,6 @@ export async function generateAuditReport(
   const sec1: any[] = [
     h1("1. Executive Summary"),
     body("This report provides a comprehensive audit of the supply chain risk landscape as monitored by the Praecantator autonomous intelligence platform. It is intended for executive review and operational decision-making."),
-    separator(),
-    h3("Network Health Overview"),
-    dataTable(
-      ["Metric", "Value"],
-      [
-        ["Total Risks Identified",      String(total)],
-        ["Critical Risks",              String(critical)],
-        ["Warning Risks",               String(warning)],
-        ["Safe / Monitored",            String(safe)],
-        ["Network Health",              `${healthPct}%`],
-        ["Total Financial Exposure",    fmtINR(totalExposure)],
-        ["Average Confidence Score",    `${avgConf}%`],
-        ["Report Timestamp",            dateStr],
-      ]
-    ),
     new Paragraph({ spacing: { before: 200 }, children: [new TextRun({ text: "" })] }),
     h3("Top 3 Priority Risks Requiring Immediate Action"),
     ...top3.map((inc, i) =>
@@ -289,122 +274,16 @@ export async function generateAuditReport(
       separator(),
 
       // 2: Incident Overview
-      h2("Incident Overview"),
-      dataTable(
-        ["Field", "Value"],
-        [
-          ["Incident ID",         String(inc.id || "—")],
-          ["Title",               title],
-          ["Detected At",         inc.created_at ? new Date(inc.created_at).toLocaleString() : "—"],
-          ["Last Updated",        inc.updated_at  ? new Date(inc.updated_at).toLocaleString()  : "—"],
-          ["Geographic Region",   String(inc.region || inc.event_country || "—")],
-          ["Coordinates",         (inc.event_lat && inc.event_lng) ? `${inc.event_lat}, ${inc.event_lng}` : "—"],
-          ["Risk Category",       String(inc.event_type || inc.category || "—")],
-          ["Severity Level",      sev],
-          ["Source of Detection", String(inc.source || "Autonomous Signal Ingestion")],
-          ["Current Status",      status],
-        ]
-      ),
+      h2("Detailed Incident Report"),
+      body(`On ${inc.created_at ? new Date(inc.created_at).toLocaleDateString() : "a recent date"}, a significant supply chain disruption titled "${title}" was detected in ${String(inc.region || inc.event_country || "an affected region")}. The event is classified as a ${sev} severity ${String(inc.event_type || inc.category || "operational")} risk. Intelligence assessments indicate a ${conf}% confidence score, corroborating signals from global event feeds, geospatial satellite data, and financial APIs.`),
+      
+      body(`The primary cause of this incident is identified as a ${String(inc.event_type || "unclassified")} event, severely impacting ${nodes} nodes and ${String(inc.supplier_count || nodes || "multiple")} suppliers within the network. Production continuity and downstream dependencies are currently at risk, with the disruption expected to last for an estimated ${String(inc.duration_estimate || "7-30 days")}.`),
+      
+      body(`Financial impact analysis reveals a direct financial exposure of ${fmtINR(Number(inc.total_exposure_usd || 0))}, alongside estimated indirect losses reaching ${fmtINR(Number(inc.total_exposure_usd || 0) * 0.25)}. Immediate strategic containment and mitigation efforts are necessary, as the cost of inaction could escalate to ${fmtINR(Number(inc.total_exposure_usd || 0) * 1.3)}.`),
+      
+      body(`Autonomous execution systems and risk response teams recommend the following: ${String(inc.recommendation || "System recommendation pending operator review.")} Current risk status is tracked as ${status}. Operations teams are actively monitoring the situation for further escalation.`),
+      
       new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 3: Affected Entities
-      h2("3. Affected Entities"),
-      kv("Affected Nodes",    String(nodes)),
-      kv("Supplier Count",    String(inc.supplier_count || nodes || "—")),
-      kv("Tier Level",        String(inc.tier || "Tier 1")),
-      kv("Affected Facilities", String(inc.facilities || "—")),
-      kv("Linked Products / SKUs", String(inc.skus || "—")),
-      kv("Downstream Dependencies", String(inc.downstream_impact || "Pending assessment")),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 4: Risk Characterization
-      h2("4. Risk Characterization"),
-      kv("Detailed Description",    String(inc.description || inc.recommendation || "See decision log below.")),
-      kv("Trigger Event",           String(inc.event_type || "—")),
-      kv("Risk Type",               String(inc.risk_type || "Operational")),
-      kv("Duration Estimate",       String(inc.duration_estimate || "Medium-term (7–30 days)")),
-      kv("Probability Score",       `${conf}%`),
-      kv("Impact Severity Score",   sev === "CRITICAL" ? "9–10 / 10" : sev === "WARNING" ? "5–7 / 10" : "1–4 / 10"),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 5: Financial Impact
-      h2("5. Financial Impact Analysis"),
-      dataTable(
-        ["Financial Metric", "Value (INR)"],
-        [
-          ["Direct Financial Exposure",   fmtINR(Number(inc.total_exposure_usd || 0))],
-          ["Indirect Loss Estimate",       `${fmtINR(Number(inc.total_exposure_usd || 0) * 0.25)} (est.)`],
-          ["Revenue at Risk",              `${fmtINR(Number(inc.total_exposure_usd || 0) * 0.6)} (est.)`],
-          ["Cost of Inaction",             `${fmtINR(Number(inc.total_exposure_usd || 0) * 1.3)} (est.)`],
-          ["Estimated Mitigation Cost",    `${fmtINR(Number(inc.total_exposure_usd || 0) * 0.15)} (est.)`],
-          ["Stockout Horizon",             inc.min_stockout_days ? `${inc.min_stockout_days} days` : "—"],
-        ]
-      ),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 6: Timeline Analysis
-      h2("6. Timeline Analysis"),
-      dataTable(
-        ["Stage", "Timestamp"],
-        [
-          ["Detection",           inc.created_at  ? new Date(inc.created_at).toLocaleString()  : "—"],
-          ["Analysis",            inc.analyzed_at ? new Date(inc.analyzed_at).toLocaleString() : "—"],
-          ["Decision / Approval", inc.approved_at ? new Date(inc.approved_at).toLocaleString() : "—"],
-          ["Execution",           inc.resolved_at ? new Date(inc.resolved_at).toLocaleString() : "—"],
-          ["Audit Closure",       inc.updated_at  ? new Date(inc.updated_at).toLocaleString()  : "—"],
-        ]
-      ),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 7: AI Assessment
-      h2("7. Intelligence Assessment & Confidence"),
-      kv("Confidence Score",           `${conf}%`),
-      kv("Data Sources",               "Global event feeds, geospatial satellite data, financial APIs, news intelligence"),
-      kv("Assessment Summary",         String(inc.recommendation || "System recommendation pending operator review.")),
-      kv("Known Uncertainties",        "Late-arriving data from regional sources may affect initial scoring. Confidence improves as corroborating signals accumulate."),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 8: Root Cause Analysis
-      h2("8. Root Cause Analysis"),
-      kv("Primary Cause",     String(inc.event_type || "Unclassified event trigger")),
-      kv("Secondary Causes",  "Dependency concentration, insufficient buffer inventory, single-source supplier relationship"),
-      kv("Historical Pattern","Cross-referenced against incident archive. Pattern similarity assessed automatically."),
-      kv("Failure Mode",      sev === "CRITICAL" ? "High-frequency, high-impact — systemic exposure" : "Isolated — manageable with standard protocols"),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 9: Risk Propagation
-      h2("9. Risk Propagation Analysis"),
-      kv("Affected Nodes",        String(nodes)),
-      kv("Upstream Impact",       "Suppliers feeding into affected node are under active monitoring."),
-      kv("Downstream Impact",     String(inc.downstream_impact || "Production continuity at risk for linked manufacturing nodes.")),
-      kv("Cascade Risk Score",    sev === "CRITICAL" ? "HIGH — immediate containment required" : "MODERATE — monitor for 48 hours"),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 10: Mitigation & Response
-      h2("10. Mitigation & Response Actions"),
-      kv("Decision Log",          String(inc.recommendation || "—")),
-      kv("Immediate Actions",     status === "RESOLVED" || status === "APPROVED" ? "Executed — see Decision Log." : "Pending operator approval."),
-      kv("Alternative Suppliers", String(inc.backup_supplier || "Cross-reference supplier intelligence for Tier-1 alternatives.")),
-      kv("Route Re-planning",     String(inc.alternate_route || "Route optimization queued if logistics-related.")),
-      kv("Inventory Buffer",      "Recommend 14-day buffer for affected SKUs."),
-      kv("Escalation Level",      sev === "CRITICAL" ? "STRATEGIC — C-suite notification required" : "OPERATIONAL — procurement team"),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 11: Compliance
-      h2("11. Compliance & Regulatory Check"),
-      kv("Standards Affected",         "ISO 31000, ISO 28000, Internal SCRM Policy v3.2"),
-      kv("Violations Detected",        status === "DISMISSED" ? "None — incident dismissed post-review." : "Under review — pending full audit closure."),
-      kv("Reporting Obligations",      sev === "CRITICAL" ? "Executive board notification triggered." : "Standard incident logging sufficient."),
-      kv("Audit Trail",                "Immutably recorded in system audit log."),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
-      // 12: Status Tracking
-      h2("12. Risk Status Tracking"),
-      kv("Current Status",       status),
-      kv("Assigned Owner",       String(inc.assigned_to || "Procurement Operations")),
-      kv("SLA Breach Indicator", status === "AWAITING_APPROVAL" ? "⚠ BREACH RISK — approval outstanding" : "Within SLA"),
-      new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: "" })] }),
-
       pageBreak(),
     );
   });
