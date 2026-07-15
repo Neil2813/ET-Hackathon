@@ -117,10 +117,11 @@ function dataTable(headers: string[], rows: string[][]): Table {
     (h) =>
       new TableCell({
         shading: { type: ShadingType.SOLID, color: RED, fill: RED },
+        margins: { top: 120, bottom: 120, left: 150, right: 150 },
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: h, bold: true, color: WHITE, size: 18, font: "Inter" })],
+            children: [new TextRun({ text: h, bold: true, color: WHITE, size: 24, font: "Inter" })],
           }),
         ],
       })
@@ -134,9 +135,10 @@ function dataTable(headers: string[], rows: string[][]): Table {
             shading: ri % 2 === 0
               ? { type: ShadingType.SOLID, color: LGREY, fill: LGREY }
               : { type: ShadingType.SOLID, color: WHITE, fill: WHITE },
+            margins: { top: 120, bottom: 120, left: 150, right: 150 },
             children: [
               new Paragraph({
-                children: [new TextRun({ text: cell || "—", size: 18, font: "Inter", color: DARK })],
+                children: [new TextRun({ text: cell || "—", size: 22, font: "Inter", color: DARK })],
               }),
             ],
           })
@@ -418,36 +420,7 @@ export async function generateAuditReport(
     pageBreak(),
   ];
 
-  // ── Section 14: Metrics & Governance ───────────────────────────────────────
-  const sec14: any[] = [
-    h1("14. Governance Metrics & Quality Index"),
-    dataTable(
-      ["Metric", "Value"],
-      [
-        ["Total Feedback Loops",      String(gm.total_feedback ?? "—")],
-        ["Detection Precision",        `${((gm.precision ?? 0) * 100).toFixed(1)}%`],
-        ["Risk Recall Rate",           `${((gm.recall ?? 0) * 100).toFixed(1)}%`],
-        ["Composite Stability Score",  `${((gm.f1_score ?? 0) * 100).toFixed(1)}%`],
-        ["Pending Checkpoints",        String(gm.pending_checkpoints ?? 0)],
-        ["True Positives",             String((gm.verdicts ?? {}).TRUE_POSITIVE ?? "—")],
-        ["False Positives",            String((gm.verdicts ?? {}).FALSE_POSITIVE ?? "—")],
-        ["False Negatives",            String((gm.verdicts ?? {}).FALSE_NEGATIVE ?? "—")],
-      ]
-    ),
-    new Paragraph({ spacing: { before: 200 }, children: [new TextRun({ text: "" })] }),
-    h3("Post-Action Verification Summary"),
-    dataTable(
-      ["Incident", "Actions Total", "Delivered", "Failed", "Verdict"],
-      postRecords.map((r) => [
-        String(r.event_title || r.incident_id || "—"),
-        String(r.actions_total ?? "—"),
-        String(r.actions_delivered ?? "—"),
-        String(r.actions_failed ?? "0"),
-        String(r.feedback_verdict || "Pending"),
-      ])
-    ),
-    pageBreak(),
-  ];
+  // ── Section 14: Metrics & Governance (REMOVED) ──────────────────────────────
 
   // ── Section 15: Conclusion ──────────────────────────────────────────────────
   const sec15: any[] = [
@@ -473,16 +446,6 @@ export async function generateAuditReport(
   // ── Section 16: Appendix ───────────────────────────────────────────────────
   const sec16: any[] = [
     h1("16. Appendix"),
-    h3("System Audit Log (Last 20 Entries)"),
-    dataTable(
-      ["Timestamp", "Action", "Payload"],
-      (auditLog as any[]).slice(0, 20).map((e) => [
-        e.timestamp ? new Date(String(e.timestamp)).toLocaleString() : "—",
-        String(e.action || "—").slice(0, 40),
-        String(e.payload || "—").replace(/[{}"]/g, "").slice(0, 80),
-      ])
-    ),
-    new Paragraph({ spacing: { before: 200 }, children: [new TextRun({ text: "" })] }),
     h3("Glossary"),
     kv("CRITICAL",              "Immediate action required. Exposure threshold exceeded."),
     kv("WARNING",               "Elevated risk. Monitoring escalated. Action within 24h."),
@@ -550,7 +513,6 @@ export async function generateAuditReport(
           ...sec1,
           ...incidentSections,
           ...sec13,
-          ...sec14,
           ...sec15,
           ...sec16,
         ],
