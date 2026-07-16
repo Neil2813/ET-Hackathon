@@ -2,6 +2,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 @config "../tailwind.config.ts";
@@ -133,7 +134,7 @@
     --yellow: #d97706;
 
     --font-headline: "Special Gothic Expanded One", "Inter", sans-serif;
-    --font-body: "Inter", system-ui, sans-serif;
+    --font-body: "Montserrat", system-ui, sans-serif;
     --font-mono: "JetBrains Mono", "Roboto Mono", monospace;
   }
 
@@ -198,6 +199,10 @@
 
   body {
     @apply bg-background text-foreground font-body antialiased;
+  }
+
+  b, strong, .font-bold, .font-semibold, .font-medium {
+    font-family: "Inter", sans-serif;
   }
 
   ::view-transition-group(*),

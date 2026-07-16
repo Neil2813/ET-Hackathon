@@ -16,8 +16,9 @@ export default {
     extend: {
       fontFamily: {
         headline: ['"Special Gothic Expanded One"', "sans-serif"],
-        body: ["Inter", "sans-serif"],
-        label: ["Inter", "sans-serif"],
+        body: ["Montserrat", "sans-serif"],
+        label: ["Montserrat", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
       },
       colors: {
         "brand-red": "#db1d49",
