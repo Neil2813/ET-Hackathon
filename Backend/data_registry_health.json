@@ -2,11 +2,13 @@
   "ports_loaded": 3898,
   "airports_loaded": 29305,
   "lane_keys": [
-    "Atlantic",
-    "Commodity",
-    "Intra-Asia",
-    "Pacific",
-    "Suez"
+    "Cape of Good Hope",
+    "Malacca Strait",
+    "Panama Canal",
+    "Red Sea / Suez Canal",
+    "Strait of Hormuz",
+    "Trans-Atlantic",
+    "Trans-Pacific"
   ],
   "event_types": [
     "Geopolitical Conflict (Route Diversion)",
