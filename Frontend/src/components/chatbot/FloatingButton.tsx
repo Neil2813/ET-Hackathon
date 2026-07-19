@@ -20,7 +20,7 @@ export const FloatingButton: React.FC<FloatingButtonProps> = ({ onClick, isOpen 
       whileTap={{ scale: 0.95 }}
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{ opacity: 1, scale: 1 }}
-      title="Praecantator AI Operations Copilot"
+      title="Praecantator AI"
     >
       <div className="relative">
         <Sparkles size={22} className={isOpen ? "" : "animate-pulse"} />

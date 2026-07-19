@@ -8,9 +8,9 @@ import {
 } from "lucide-react";
 import { BrandLoader } from "@/components/ui/BrandLoader";
 import { api, getAccessToken, getUserId, getDisplayName, clearAuthSession } from "@/lib/api";
-import { FloatingButton } from "@/components/copilot/FloatingButton";
+import { FloatingButton } from "@/components/chatbot/FloatingButton";
 import { lazy, Suspense } from "react";
-const CopilotDrawer = lazy(() => import("@/components/copilot/CopilotDrawer"));
+const ChatbotDrawer = lazy(() => import("@/components/chatbot/ChatbotDrawer"));
 import { useWSQueryInvalidation, useWebSocket } from "@/hooks/use-websocket";
 import { toast } from "@/components/ui/sonner";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -745,17 +745,19 @@ const DashboardLayout = () => {
           </span>
         </footer>
 
-        <FloatingButton
-          onClick={() => {
-            setHasOpenedCopilot(true);
-            setIsCopilotOpen((prev) => !prev);
-          }}
-          isOpen={isCopilotOpen}
-        />
+        {!isCopilotOpen && (
+          <FloatingButton
+            onClick={() => {
+              setHasOpenedCopilot(true);
+              setIsCopilotOpen(true);
+            }}
+            isOpen={isCopilotOpen}
+          />
+        )}
 
         {hasOpenedCopilot && (
           <Suspense fallback={null}>
-            <CopilotDrawer
+            <ChatbotDrawer
               isOpen={isCopilotOpen}
               onClose={() => setIsCopilotOpen(false)}
               page={copilotPage}

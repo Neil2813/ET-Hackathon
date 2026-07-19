@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { copilotApi, CopilotMessage } from "../services/copilotApi";
+import { copilotApi as chatbotApi, CopilotMessage } from "../services/chatbotApi";
 
 export interface ActiveContext {
   page: string;
@@ -11,7 +11,7 @@ export interface ActiveContext {
   selectedObjects?: any[];
 }
 
-export function useCopilot(page: string) {
+export function useChatbot(page: string) {
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -23,7 +23,7 @@ export function useCopilot(page: string) {
   const loadHistory = useCallback(async () => {
     try {
       setError(null);
-      const res = await copilotApi.getHistory();
+      const res = await chatbotApi.getHistory();
       setMessages(res.messages || []);
     } catch (err: any) {
       console.error("Failed to load chat history:", err);
@@ -34,7 +34,7 @@ export function useCopilot(page: string) {
   // Load suggestion chips dynamically
   const loadSuggestions = useCallback(async (activePage: string) => {
     try {
-      const res = await copilotApi.getSuggestions(activePage);
+      const res = await chatbotApi.getSuggestions(activePage);
       setSuggestions(res.suggestions || []);
     } catch (err) {
       console.error("Failed to load suggestions:", err);
@@ -45,7 +45,7 @@ export function useCopilot(page: string) {
   const clearHistory = useCallback(async () => {
     try {
       setError(null);
-      await copilotApi.clearHistory();
+      await chatbotApi.clearHistory();
       setMessages([]);
       // Reload page-based suggestions
       loadSuggestions(page);
@@ -87,7 +87,7 @@ export function useCopilot(page: string) {
 
       let accumulatedText = "";
 
-      await copilotApi.streamChat(
+      await chatbotApi.streamChat(
         {
           message: text,
           page: context.page,

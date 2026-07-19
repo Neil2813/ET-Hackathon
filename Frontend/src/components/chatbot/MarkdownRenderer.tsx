@@ -60,12 +60,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
         const level = match[1].length;
         const text = match[2];
         const headingStyles = {
-          1: "text-lg font-headline font-bold text-foreground border-b border-border pb-1 mt-4 mb-2 uppercase tracking-wide",
-          2: "text-md font-headline font-bold text-foreground/90 mt-3 mb-1.5 uppercase tracking-wide",
-          3: "text-sm font-headline font-bold text-foreground/80 mt-2 mb-1.5 uppercase tracking-wider",
-          4: "text-xs font-headline font-bold text-foreground/70 uppercase tracking-widest",
-          5: "text-xs font-bold text-muted-foreground uppercase",
-          6: "text-[10px] font-bold text-muted-foreground uppercase font-mono"
+          1: "text-lg font-headline font-bold text-foreground border-b border-border pb-1 mt-4 mb-2",
+          2: "text-md font-headline font-bold text-foreground/90 mt-3 mb-1.5",
+          3: "text-sm font-headline font-bold text-foreground/80 mt-2 mb-1.5",
+          4: "text-xs font-headline font-bold text-foreground/70",
+          5: "text-xs font-bold text-muted-foreground",
+          6: "text-[10px] font-bold text-muted-foreground font-mono"
         };
         const className = headingStyles[level as keyof typeof headingStyles] || headingStyles[3];
         return React.createElement(`h${Math.min(level, 6)}`, { key: index, className }, parseLine(text));

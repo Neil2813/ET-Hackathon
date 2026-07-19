@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Maximize2, Minimize2, Trash2, Cpu, Activity, Info } from "lucide-react";
-import { useCopilot, ActiveContext } from "./hooks/useCopilot";
+import { useChatbot, ActiveContext } from "./hooks/useChatbot";
 import { ChatWindow } from "./ChatWindow";
 import { ChatInput } from "./ChatInput";
 import { SuggestionChips } from "./SuggestionChips";
@@ -13,7 +13,7 @@ interface CopilotDrawerProps {
   initialContext?: Partial<ActiveContext>;
 }
 
-export const CopilotDrawer: React.FC<CopilotDrawerProps> = ({
+export const ChatbotDrawer: React.FC<CopilotDrawerProps> = ({
   isOpen,
   onClose,
   page,
@@ -27,7 +27,7 @@ export const CopilotDrawer: React.FC<CopilotDrawerProps> = ({
     page,
   });
 
-  // Load useCopilot hook
+  // Load useChatbot hook
   const {
     messages,
     suggestions,
@@ -36,7 +36,7 @@ export const CopilotDrawer: React.FC<CopilotDrawerProps> = ({
     sendMessage,
     stopGeneration,
     clearHistory,
-  } = useCopilot(page);
+  } = useChatbot(page);
 
   // Sync active parameters
   useEffect(() => {
@@ -157,11 +157,8 @@ export const CopilotDrawer: React.FC<CopilotDrawerProps> = ({
                 <div className="flex items-center gap-1.5">
                   <Activity size={12} className="text-red-500 animate-pulse" />
                   <h2 className="text-xs font-headline font-bold uppercase tracking-widest text-foreground">
-                    Praecantator AI Copilot
+                    Praecantator AI
                   </h2>
-                  <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 font-mono font-bold border border-red-500/20">
-                    <Cpu size={9} /> Groq · Active
-                  </span>
                 </div>
                 <div className="text-[10px] text-muted-foreground/80 font-mono mt-1 flex items-center gap-1">
                   <Info size={9} /> Context: <span className="text-foreground/90 font-sans font-semibold">{getPageTitle(activeContext.page)}</span>
@@ -224,4 +221,4 @@ export const CopilotDrawer: React.FC<CopilotDrawerProps> = ({
     </AnimatePresence>
   );
 };
-export default CopilotDrawer;
+export default ChatbotDrawer;

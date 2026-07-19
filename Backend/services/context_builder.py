@@ -78,10 +78,16 @@ class ContextBuilder:
             except Exception as exc:
                 logger.error("ContextBuilder: Failed to fetch incident %s: %s", incident_id, exc)
                 context["active_incident"] = "Error retrieving incident details."
-        elif page in ("incidents", "incident-simulator"):
+        elif page in ("dashboard", "incidents", "incident-simulator"):
             try:
-                recent_incidents = list_incidents(limit=5)
-                context["recent_incidents"] = recent_incidents
+                recent_incidents = list_incidents(limit=10, tenant_id=tenant_id)
+                context["recent_incidents"] = [{
+                    "id": inc.get("id"),
+                    "title": inc.get("title"),
+                    "severity": inc.get("severity"),
+                    "status": inc.get("status"),
+                    "impact_exposure_usd": inc.get("impact_exposure_usd"),
+                } for inc in recent_incidents]
             except Exception as exc:
                 logger.warning("ContextBuilder: Failed to list recent incidents: %s", exc)
 
@@ -97,12 +103,18 @@ class ContextBuilder:
             except Exception as exc:
                 logger.error("ContextBuilder: Failed to fetch supplier %s: %s", supplier_id, exc)
                 context["active_supplier"] = "Error retrieving supplier details."
-        elif page == "network":
+        elif page in ("dashboard", "network"):
             try:
                 suppliers = _context_suppliers_or_empty(user_id)
                 # Include top 5 high exposure suppliers
                 sorted_suppliers = sorted(suppliers, key=lambda s: s.get("exposureScore", 0.0), reverse=True)
-                context["top_suppliers"] = sorted_suppliers[:5]
+                context["top_suppliers"] = [{
+                    "id": s.get("id"),
+                    "name": s.get("name"),
+                    "exposureScore": s.get("exposureScore"),
+                    "country": s.get("country"),
+                    "tier": s.get("tier"),
+                } for s in sorted_suppliers[:5]]
             except Exception as exc:
                 logger.warning("ContextBuilder: Failed to build network view context: %s", exc)
 
@@ -118,7 +130,7 @@ class ContextBuilder:
             except Exception as exc:
                 logger.error("ContextBuilder: Failed to fetch route %s: %s", route_id, exc)
                 context["active_route"] = "Error retrieving route details."
-        elif page == "route-viewer":
+        elif page in ("dashboard", "route-viewer"):
             try:
                 routes = _context_network_routes(user_id)
                 context["available_routes_summary"] = [
@@ -150,12 +162,17 @@ class ContextBuilder:
             except Exception as exc:
                 logger.error("ContextBuilder: Failed to fetch workflow %s: %s", workflow_id, exc)
                 context["active_workflow"] = "Error retrieving workflow/governance execution details."
-        elif page == "compliance":
+        elif page in ("dashboard", "compliance"):
             try:
                 pending = list_pending_checkpoints(tenant_id, limit=10)
                 gov_sum = governance_summary(tenant_id)
                 context["governance_status"] = {
-                    "pending_checkpoints": pending,
+                    "pending_checkpoints": [{
+                        "id": c.get("id"),
+                        "checkpoint_name": c.get("checkpoint_name"),
+                        "status": c.get("status"),
+                        "owner_role": c.get("owner_role"),
+                    } for c in pending[:5]],
                     "summary": gov_sum or {}
                 }
             except Exception as exc:
