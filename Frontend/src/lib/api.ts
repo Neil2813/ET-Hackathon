@@ -260,7 +260,7 @@ async function refreshAccessToken(): Promise<string | null> {
   return refreshPromise;
 }
 
-async function request<T>(
+export async function request<T>(
   path: string,
   options?: RequestInit & { timeoutMs?: number },
   retryOnAuthFailure = true,

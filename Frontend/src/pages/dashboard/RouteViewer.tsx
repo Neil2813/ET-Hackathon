@@ -378,6 +378,23 @@ export default function RouteViewer() {
             </span>
           ))}
         </div>
+
+        <button
+          onClick={() => {
+            window.dispatchEvent(
+              new CustomEvent("open-copilot", {
+                detail: {
+                  page: "route-viewer",
+                  routeId: activeCostKey,
+                  message: `Analyze the active ${activeMode.toUpperCase()} route from ${fromLabel} to ${toLabel}. Compare costs, carbon emissions, and potential transit constraints.`,
+                },
+              })
+            );
+          }}
+          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "#fff", background: "#ef4444", border: "1px solid #ef4444", borderRadius: 7, padding: "5px 11px", cursor: "pointer" }}
+        >
+          Explain Route
+        </button>
       </div>
 
       {/* ── Route subtitle ─────────────────────────────────────────────────── */}

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from typing import Literal, NotRequired, TypedDict
+try:
+    from typing import Literal, NotRequired, TypedDict
+except ImportError:  # Python < 3.11
+    from typing import Literal, TypedDict  # type: ignore[assignment]
+    from typing_extensions import NotRequired  # type: ignore[assignment]
 
 
 class WorkflowState(TypedDict):

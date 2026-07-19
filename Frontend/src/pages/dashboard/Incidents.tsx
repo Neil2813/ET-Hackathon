@@ -499,6 +499,23 @@ const Incidents = () => {
                     </span>
                   )}
                   <button
+                    onClick={() => {
+                      window.dispatchEvent(
+                        new CustomEvent("open-copilot", {
+                          detail: {
+                            page: "incidents",
+                            incidentId: detail.id,
+                            message: `Explain this incident: "${detail.event_title}" and evaluate its supply chain risk.`,
+                          },
+                        })
+                      );
+                    }}
+                    className={`ml-${detail.pipeline_ms && Number(detail.pipeline_ms) > 0 ? "2" : "auto"} flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-2.5 py-1.5 bg-red-500 hover:bg-red-600 text-white transition-all rounded shadow-sm border border-red-600 cursor-pointer`}
+                  >
+                    <Activity size={12} className="text-white" />
+                    Ask AI
+                  </button>
+                  <button
                     disabled={reportLoading}
                     onClick={async () => {
                       setReportLoading(true);
@@ -508,7 +525,7 @@ const Incidents = () => {
                         setReportLoading(false);
                       }
                     }}
-                    className={`ml-${detail.pipeline_ms && Number(detail.pipeline_ms) > 0 ? "2" : "auto"} flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-2.5 py-1.5 bg-white text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 transition-all rounded shadow-sm disabled:opacity-60`}
+                    className="ml-2 flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-2.5 py-1.5 bg-white text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 transition-all rounded shadow-sm disabled:opacity-60 cursor-pointer"
                   >
                     {reportLoading ? <Loader2 size={12} className="animate-spin" /> : <FileDown size={12} />}
                     Report

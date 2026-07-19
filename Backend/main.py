@@ -25,19 +25,11 @@ from scheduler.signal_poll import start_signal_scheduler
 from services.event_bus import websocket_handler as ws_handler
 
 # Import modular routers
-import routers.auth
-import routers.onboarding
-import routers.signals
-import routers.workflow
-import routers.incidents
-import routers.energy_resilience
-import routers.governance
-import routers.analytics
-import routers.global_monitor
-import routers.routing_utils
-import routers.audit
-import routers.settings
-import routers.utility
+from routers import (
+    auth, onboarding, signals, workflow, incidents,
+    energy_resilience, governance, analytics, global_monitor,
+    routing_utils, audit, settings, utility, copilot
+)
 
 app = FastAPI(title="SupplyShield API", version="0.2.0")
 
@@ -126,6 +118,8 @@ def _bootstrap_ml_models():
 async def _start_worldmonitor_cron():
     """Initialize Firebase Admin when configured; start worldmonitor background fetcher."""
     init_store()
+    from db.orm_models import init_orm_db
+    init_orm_db()
     migrate_energy_resilience_schema()
     init_firebase_admin_app()
     
@@ -141,19 +135,20 @@ async def _start_worldmonitor_cron():
 
 
 # Mount the modular routers
-app.include_router(routers.auth.router)
-app.include_router(routers.onboarding.router)
-app.include_router(routers.signals.router)
-app.include_router(routers.workflow.router)
-app.include_router(routers.incidents.router)
-app.include_router(routers.energy_resilience.router)
-app.include_router(routers.governance.router)
-app.include_router(routers.analytics.router)
-app.include_router(routers.global_monitor.router)
-app.include_router(routers.routing_utils.router)
-app.include_router(routers.audit.router)
-app.include_router(routers.settings.router)
-app.include_router(routers.utility.router)
+app.include_router(auth.router)
+app.include_router(onboarding.router)
+app.include_router(signals.router)
+app.include_router(workflow.router)
+app.include_router(incidents.router)
+app.include_router(energy_resilience.router)
+app.include_router(governance.router)
+app.include_router(analytics.router)
+app.include_router(global_monitor.router)
+app.include_router(routing_utils.router)
+app.include_router(audit.router)
+app.include_router(settings.router)
+app.include_router(utility.router)
+app.include_router(copilot.router)
 
 
 # ── WebSocket Real-Time Push ──

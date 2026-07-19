@@ -186,6 +186,22 @@ const Compliance = () => {
 
         {/* Export actions */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              window.dispatchEvent(
+                new CustomEvent("open-copilot", {
+                  detail: {
+                    page: "compliance",
+                    message: "Explain the active governance precision, recall, and F1 scores. What decision checkpoints are currently pending manual validation?",
+                  },
+                })
+              );
+            }}
+            className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white transition-all rounded shadow-sm border border-red-600 cursor-pointer"
+          >
+            <Activity size={12} className="text-white animate-pulse" />
+            Analyze Compliance
+          </button>
           {tab === "incidents" && (
             <button
               onClick={() => {
@@ -205,7 +221,7 @@ const Compliance = () => {
                 a.href = url; a.download = `compliance_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
                 URL.revokeObjectURL(url);
               }}
-              className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-3 py-1.5 bg-white text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 transition-all rounded shadow-sm"
+              className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold tracking-widest px-3 py-1.5 bg-white text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 transition-all rounded shadow-sm cursor-pointer"
             >
               <Download size={12} /> CSV
             </button>

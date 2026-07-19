@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { BrandLoader } from "@/components/ui/BrandLoader";
 import { api, getAccessToken, getUserId, getDisplayName, clearAuthSession } from "@/lib/api";
+import { FloatingButton } from "@/components/copilot/FloatingButton";
+import { lazy, Suspense } from "react";
+const CopilotDrawer = lazy(() => import("@/components/copilot/CopilotDrawer"));
 import { useWSQueryInvalidation, useWebSocket } from "@/hooks/use-websocket";
 import { toast } from "@/components/ui/sonner";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -137,6 +140,38 @@ const DashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   void setCollapsed; // sidebar collapse reserved for future toggle
   const queryClient = useQueryClient();
+
+  // Copilot State
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [hasOpenedCopilot, setHasOpenedCopilot] = useState(false);
+  const [initialCopilotContext, setInitialCopilotContext] = useState<any>(undefined);
+
+  useEffect(() => {
+    const handleOpenEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setHasOpenedCopilot(true);
+      setIsCopilotOpen(true);
+      if (customEvent.detail) {
+        setInitialCopilotContext(customEvent.detail);
+      }
+    };
+    window.addEventListener("open-copilot", handleOpenEvent);
+    return () => {
+      window.removeEventListener("open-copilot", handleOpenEvent);
+    };
+  }, []);
+
+  const getPageName = (pathname: string): string => {
+    if (pathname === "/dashboard") return "dashboard";
+    if (pathname.includes("incidents")) return "incidents";
+    if (pathname.includes("network")) return "network";
+    if (pathname.includes("compliance")) return "compliance";
+    if (pathname.includes("route-viewer")) return "route-viewer";
+    if (pathname.includes("intelligence")) return "intelligence";
+    if (pathname.includes("energy-resilience")) return "energy-resilience";
+    return "dashboard";
+  };
+  const copilotPage = getPageName(location.pathname);
 
   const tenantId = getUserId();
   useWSQueryInvalidation(tenantId, queryClient);
@@ -709,6 +744,25 @@ const DashboardLayout = () => {
             © 2026 Praecantator
           </span>
         </footer>
+
+        <FloatingButton
+          onClick={() => {
+            setHasOpenedCopilot(true);
+            setIsCopilotOpen((prev) => !prev);
+          }}
+          isOpen={isCopilotOpen}
+        />
+
+        {hasOpenedCopilot && (
+          <Suspense fallback={null}>
+            <CopilotDrawer
+              isOpen={isCopilotOpen}
+              onClose={() => setIsCopilotOpen(false)}
+              page={copilotPage}
+              initialContext={initialCopilotContext}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   );
