@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Copy, Check, Bot, User, Clock } from "lucide-react";
-import { CopilotMessage } from "./services/copilotApi";
+import { CopilotMessage } from "./services/chatbotApi";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface MessageBubbleProps {

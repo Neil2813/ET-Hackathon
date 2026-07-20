@@ -57,7 +57,16 @@ async def api_copilot_chat(
         ):
             yield chunk
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            # Required for SSE to work reliably through proxies and Nginx
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @router.get("/api/copilot/history")

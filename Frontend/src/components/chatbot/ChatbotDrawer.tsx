@@ -36,6 +36,7 @@ export const ChatbotDrawer: React.FC<CopilotDrawerProps> = ({
     sendMessage,
     stopGeneration,
     clearHistory,
+    retryLastMessage,
   } = useChatbot(page);
 
   // Sync active parameters
@@ -201,6 +202,7 @@ export const ChatbotDrawer: React.FC<CopilotDrawerProps> = ({
               messages={messages}
               isGenerating={isGenerating}
               error={error}
+              onRetry={retryLastMessage}
             />
 
             {/* Suggestion action chips */}

@@ -176,7 +176,6 @@ class ChatbotManager:
         scheduler_result = None
         if SCHEDULER_AGENT in sequence:
             agent_statuses[SCHEDULER_AGENT] = AGENT_STATUS_RUNNING
-        if SCHEDULER_AGENT in sequence:
             scheduler_result = analyze_schedule_context(ctx, workflow_id=workflow_id)
             agent_statuses[SCHEDULER_AGENT] = AGENT_STATUS_COMPLETED
             outputs[SCHEDULER_AGENT] = {
@@ -205,6 +204,8 @@ class ChatbotManager:
             except Exception as exc:
                 _log("political_agent_failed_retrying", agent=POLITICAL_RISK_AGENT, severity="warning", meta={"error": str(exc)})
                 try:
+                    import asyncio as _asyncio
+                    await _asyncio.sleep(1.0)  # Brief backoff before retry
                     outputs[POLITICAL_RISK_AGENT] = await analyze_political_risk(scheduler_result, ctx, workflow_id=workflow_id)
                     agent_statuses[POLITICAL_RISK_AGENT] = AGENT_STATUS_COMPLETED
                     _log("political_agent_recovered", agent=POLITICAL_RISK_AGENT)
@@ -239,6 +240,8 @@ class ChatbotManager:
             except Exception as exc:
                 _log("tariff_agent_failed_retrying", agent=TARIFF_RISK_AGENT, severity="warning", meta={"error": str(exc)})
                 try:
+                    import asyncio as _asyncio
+                    await _asyncio.sleep(1.0)  # Brief backoff before retry
                     outputs[TARIFF_RISK_AGENT] = await analyze_tariff_risk(scheduler_result, ctx, workflow_id=workflow_id)
                     agent_statuses[TARIFF_RISK_AGENT] = AGENT_STATUS_COMPLETED
                     _log("tariff_agent_recovered", agent=TARIFF_RISK_AGENT)
@@ -273,6 +276,8 @@ class ChatbotManager:
             except Exception as exc:
                 _log("logistics_agent_failed_retrying", agent=LOGISTICS_RISK_AGENT, severity="warning", meta={"error": str(exc)})
                 try:
+                    import asyncio as _asyncio
+                    await _asyncio.sleep(1.0)  # Brief backoff before retry
                     outputs[LOGISTICS_RISK_AGENT] = await analyze_logistics_risk(scheduler_result, ctx, workflow_id=workflow_id)
                     agent_statuses[LOGISTICS_RISK_AGENT] = AGENT_STATUS_COMPLETED
                     _log("logistics_agent_recovered", agent=LOGISTICS_RISK_AGENT)

@@ -11,6 +11,18 @@ export interface ActiveContext {
   selectedObjects?: any[];
 }
 
+/** Tokens that indicate a backend-level error surfaced inside the SSE stream */
+const BACKEND_ERROR_PREFIXES = [
+  "Error: GROQ_API_KEY",
+  "Error calling Groq API",
+  "Internal Server Error",
+  "Error: ",
+];
+
+function isBackendErrorToken(token: string): boolean {
+  return BACKEND_ERROR_PREFIXES.some((prefix) => token.startsWith(prefix));
+}
+
 export function useChatbot(page: string) {
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -18,8 +30,12 @@ export function useChatbot(page: string) {
   const [error, setError] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  // Track the last user message + context to support retry
+  const lastRequestRef = useRef<{ text: string; context: ActiveContext } | null>(null);
+  // Flag: did we encounter a backend error token during the current stream?
+  const streamErrorRef = useRef<string | null>(null);
 
-  // Load history from DB
+  // Load history from DB — always syncs with server ground truth
   const loadHistory = useCallback(async () => {
     try {
       setError(null);
@@ -47,7 +63,7 @@ export function useChatbot(page: string) {
       setError(null);
       await chatbotApi.clearHistory();
       setMessages([]);
-      // Reload page-based suggestions
+      lastRequestRef.current = null;
       loadSuggestions(page);
     } catch (err) {
       setError("Failed to clear chat history.");
@@ -59,28 +75,29 @@ export function useChatbot(page: string) {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
-      setIsGenerating(false);
+      // isGenerating is cleared by the onDone callback triggered by AbortError in chatbotApi
     }
   }, []);
 
-  // Send message
-  const sendMessage = useCallback(
+  // Core send logic — used by both sendMessage and retryLastMessage
+  const _executeStream = useCallback(
     async (text: string, context: ActiveContext) => {
-      if (!text.trim()) return;
-
       // Abort any ongoing stream first
-      stopGeneration();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
 
       setError(null);
+      streamErrorRef.current = null;
       setIsGenerating(true);
 
-      const userMessage: CopilotMessage = { role: "user", content: text };
-      setMessages((prev) => [...prev, userMessage]);
-
-      const assistantMessageIndex = messages.length + 1; // Anticipated index
-      
-      // Add empty assistant response to update in real time
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      // Append optimistic user bubble + empty assistant placeholder
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: text },
+        { role: "assistant", content: "" },
+      ]);
 
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -98,37 +115,113 @@ export function useChatbot(page: string) {
           filters: context.filters,
           selectedObjects: context.selectedObjects,
         },
-        // onChunk
+
+        // onChunk — detect backend error tokens inline; otherwise update bubble
         (token) => {
+          if (isBackendErrorToken(token) || streamErrorRef.current) {
+            // Accumulate error text (may arrive in multiple tokens)
+            streamErrorRef.current = (streamErrorRef.current ?? "") + token;
+            return;
+          }
           accumulatedText += token;
           setMessages((prev) => {
             const next = [...prev];
             if (next.length > 0) {
-              next[next.length - 1] = {
-                role: "assistant",
-                content: accumulatedText,
-              };
+              next[next.length - 1] = { role: "assistant", content: accumulatedText };
             }
             return next;
           });
         },
-        // onDone
+
+        // onDone — check if we had a backend error token; if so, surface it as UI error
         () => {
           setIsGenerating(false);
           abortControllerRef.current = null;
+
+          if (streamErrorRef.current) {
+            const errMsg = streamErrorRef.current;
+            streamErrorRef.current = null;
+            // Remove the blank assistant placeholder since nothing was rendered
+            setMessages((prev) => {
+              const next = [...prev];
+              if (
+                next.length > 0 &&
+                next[next.length - 1].role === "assistant" &&
+                next[next.length - 1].content === ""
+              ) {
+                next.pop();
+              }
+              return next;
+            });
+            setError(errMsg + " — Check your backend configuration, then click Retry.");
+          }
         },
-        // onError
+
+        // onError — network / HTTP failure
         (err) => {
           console.error("Copilot stream error:", err);
-          setError("An error occurred during generation. Please try again.");
+          setError("Connection failed. Check your backend is running, then click Retry.");
           setIsGenerating(false);
           abortControllerRef.current = null;
+          streamErrorRef.current = null;
+          // Remove empty assistant placeholder
+          setMessages((prev) => {
+            const next = [...prev];
+            if (
+              next.length > 0 &&
+              next[next.length - 1].role === "assistant" &&
+              next[next.length - 1].content === ""
+            ) {
+              next.pop();
+            }
+            return next;
+          });
         },
+
         controller.signal
       );
     },
-    [messages.length, stopGeneration]
+    []
   );
+
+  // Send a new message
+  const sendMessage = useCallback(
+    async (text: string, context: ActiveContext) => {
+      if (!text.trim()) return;
+      lastRequestRef.current = { text, context };
+      await _executeStream(text, context);
+    },
+    [_executeStream]
+  );
+
+  // Retry the last failed message.
+  // Reloads history from the server first to get the true ground truth
+  // (avoids duplicate bubbles from local state guessing).
+  const retryLastMessage = useCallback(async () => {
+    if (!lastRequestRef.current) return;
+    const { text, context } = lastRequestRef.current;
+    setError(null);
+
+    // Re-sync with server so we don't double-count locally-added bubbles
+    try {
+      const res = await chatbotApi.getHistory();
+      setMessages(res.messages || []);
+    } catch {
+      // If history load fails just strip trailing failed bubbles locally
+      setMessages((prev) => {
+        const next = [...prev];
+        if (next.length > 0 && next[next.length - 1].role === "assistant" && next[next.length - 1].content === "") {
+          next.pop();
+        }
+        if (next.length > 0 && next[next.length - 1].role === "user") {
+          next.pop();
+        }
+        return next;
+      });
+    }
+
+    await _executeStream(text, context);
+  }, [_executeStream]);
 
   // Initial load
   useEffect(() => {
@@ -144,6 +237,7 @@ export function useChatbot(page: string) {
     sendMessage,
     stopGeneration,
     clearHistory,
+    retryLastMessage,
     refreshSuggestions: loadSuggestions,
   };
 }

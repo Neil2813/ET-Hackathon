@@ -29,6 +29,36 @@ export interface CopilotSuggestionsResponse {
   suggestions: string[];
 }
 
+/**
+ * Parses a single SSE line and calls the appropriate callback.
+ * Returns true if the stream is done.
+ */
+function processSSELine(
+  line: string,
+  onChunk: (token: string) => void,
+  onDone: () => void
+): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+
+  if (trimmed === "data: [DONE]") {
+    onDone();
+    return true;
+  }
+
+  if (trimmed.startsWith("data: ")) {
+    try {
+      const data = JSON.parse(trimmed.slice(6));
+      if (data && typeof data.token === "string") {
+        onChunk(data.token);
+      }
+    } catch {
+      // Ignore parse errors on partial/malformed chunks
+    }
+  }
+  return false;
+}
+
 export const copilotApi = {
   getHistory: async (): Promise<CopilotHistoryResponse> => {
     return request<CopilotHistoryResponse>("/copilot/history");
@@ -53,9 +83,12 @@ export const copilotApi = {
   ): Promise<void> => {
     const token = getAccessToken();
     const userId = getUserId();
-    
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      // SSE requires these to prevent buffering by proxies
+      "Accept": "text/event-stream",
+      "Cache-Control": "no-cache",
     };
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
@@ -84,50 +117,41 @@ export const copilotApi = {
 
       const decoder = new TextDecoder();
       let buffer = "";
+      let streamDone = false;
 
-      while (true) {
+      while (!streamDone) {
         const { value, done } = await reader.read();
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
+        // Split on both \n\n (SSE standard) and \n (our backend emits \n\n but be safe)
         const lines = buffer.split("\n");
-        // Keep the last partial line in the buffer
-        buffer = lines.pop() || "";
+        // Keep the last potentially incomplete line in the buffer
+        buffer = lines.pop() ?? "";
 
         for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          if (trimmed === "data: [DONE]") {
-            onDone();
-            return;
-          }
-          if (trimmed.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(trimmed.slice(6));
-              if (data && typeof data.token === "string") {
-                onChunk(data.token);
-              }
-            } catch (e) {
-              // Ignore parse errors on partial streams
-            }
+          if (processSSELine(line, onChunk, onDone)) {
+            streamDone = true;
+            break;
           }
         }
       }
 
-      // Check remaining buffer
-      if (buffer.startsWith("data: ")) {
-        try {
-          const data = JSON.parse(buffer.slice(6));
-          if (data && typeof data.token === "string") {
-            onChunk(data.token);
-          }
-        } catch (e) {}
+      // Process any remaining buffered content after the stream closes
+      if (!streamDone && buffer.trim()) {
+        processSSELine(buffer, onChunk, onDone);
+        streamDone = true;
       }
 
-      onDone();
+      // If stream ended naturally without a [DONE] frame, still resolve cleanly
+      if (!streamDone) {
+        onDone();
+      }
     } catch (err: any) {
       if (err.name === "AbortError") {
-        console.log("Copilot stream aborted by user.");
+        // User stopped generation — treat as a clean completion, not an error.
+        // This ensures isGenerating is always cleared in the hook.
+        onDone();
       } else {
         onError(err);
       }

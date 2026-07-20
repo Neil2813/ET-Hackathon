@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { Bot, AlertTriangle } from "lucide-react";
-import { CopilotMessage } from "./services/copilotApi";
+import { Bot, AlertTriangle, RefreshCw } from "lucide-react";
+import { CopilotMessage } from "./services/chatbotApi";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 
@@ -8,17 +8,28 @@ interface ChatWindowProps {
   messages: CopilotMessage[];
   isGenerating: boolean;
   error: string | null;
+  onRetry?: () => void;
 }
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isGenerating, error }) => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isGenerating, error, onRetry }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom of conversation
+  // Auto-scroll to bottom of conversation on new messages or while generating
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, [messages, isGenerating]);
+
+  // Show typing indicator when:
+  // - generation is active AND
+  // - the last message is an assistant placeholder with little or no content yet
+  const lastMsg = messages[messages.length - 1];
+  const showTypingIndicator =
+    isGenerating &&
+    messages.length > 0 &&
+    lastMsg?.role === "assistant" &&
+    (lastMsg.content ?? "").length < 5;
 
   return (
     <div
@@ -39,19 +50,26 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isGenerating, 
         </div>
       ) : (
         messages.map((msg, idx) => (
-          // Renders typing indicator for the very last assistant message if it is currently generating
           <MessageBubble key={idx} message={msg} />
         ))
       )}
 
-      {isGenerating && messages.length > 0 && messages[messages.length - 1].content === "" && (
-        <TypingIndicator />
-      )}
+      {showTypingIndicator && <TypingIndicator />}
 
       {error && (
-        <div className="flex items-start gap-2 p-3 rounded-lg border border-red-500/20 bg-red-500/[0.02] text-red-400 text-xs font-sans">
+        <div className="flex items-start gap-2 p-3 rounded-lg border border-red-500/20 bg-red-500/[0.04] text-red-400 text-xs font-sans">
           <AlertTriangle size={14} className="shrink-0 mt-0.5" />
           <div className="flex-1 leading-normal font-medium">{error}</div>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors cursor-pointer text-[10px] font-semibold uppercase tracking-wider"
+              title="Retry last message"
+            >
+              <RefreshCw size={10} />
+              Retry
+            </button>
+          )}
         </div>
       )}
     </div>
