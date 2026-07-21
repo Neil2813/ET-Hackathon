@@ -210,44 +210,58 @@ const DashboardLayout = () => {
   }, [hasToken, onboardingStatus, navigate]);
 
   // ── Notification State ──
+  const getNotifKey = (id: string) => (id ? `dashboard_notifications_${id}` : "dashboard_notifications");
+
   const [notifications, setNotifications] = useState<DashboardNotification[]>(() => {
     try {
-      const stored = localStorage.getItem("dashboard_notifications");
+      const key = getNotifKey(tenantId);
+      const stored = localStorage.getItem(key);
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
     }
   });
+
+  useEffect(() => {
+    try {
+      const key = getNotifKey(tenantId);
+      const stored = localStorage.getItem(key);
+      setNotifications(stored ? JSON.parse(stored) : []);
+    } catch {
+      setNotifications([]);
+    }
+  }, [tenantId]);
+
   const [popoverOpen, setPopoverOpen] = useState(false);
   const lastEventRef = useRef<string | null>(null);
 
   // ── Data queries ──────────────────────────────────────────────────────────
   const { data: incidentSummary } = useQuery({
-    queryKey: ["incident-summary-nav"],
+    queryKey: ["incident-summary-nav", tenantId],
     queryFn: api.incidents.summary,
-    staleTime: 15 * 60 * 1000,
-    enabled: hasToken,
+    staleTime: 5 * 60 * 1000,
+    enabled: hasToken && !!tenantId,
   });
 
   // Prefetch data for all main dashboard views in the background when signed in
   useEffect(() => {
-    if (!hasToken) return;
+    if (!hasToken || !tenantId) return;
     
     // Stagger prefetching by 5 seconds to avoid competing with critical Dashboard queries on startup
     const timer = setTimeout(() => {
       // Command Center
-      queryClient.prefetchQuery({ queryKey: ["command"], queryFn: () => api.incidents.briefing() });
+      queryClient.prefetchQuery({ queryKey: ["command", tenantId], queryFn: () => api.incidents.briefing() });
       
       // Network View
-      queryClient.prefetchQuery({ queryKey: ["risks", "suppliers"], queryFn: () => api.risks.suppliers() });
-      queryClient.prefetchQuery({ queryKey: ["risks", "events"], queryFn: () => api.risks.events() });
+      queryClient.prefetchQuery({ queryKey: ["risks", "suppliers", tenantId], queryFn: () => api.risks.suppliers() });
+      queryClient.prefetchQuery({ queryKey: ["risks", "events", tenantId], queryFn: () => api.risks.events() });
       
       // Intelligence
-      queryClient.prefetchQuery({ queryKey: ["signals", "categorized"], queryFn: () => api.signals.categorized() });
+      queryClient.prefetchQuery({ queryKey: ["signals", "categorized", tenantId], queryFn: () => api.signals.categorized() });
 
       // Incidents & Compliance
       queryClient.prefetchQuery({
-        queryKey: ["incidents", "ACTIVE"],
+        queryKey: ["incidents", "ACTIVE", tenantId],
         queryFn: async () => {
           const r = await fetch(`${BASE}/incidents`, { headers: authHeaders() });
           if (!r.ok) throw new Error("Failed to fetch incidents");
@@ -256,7 +270,7 @@ const DashboardLayout = () => {
       });
 
       queryClient.prefetchQuery({
-        queryKey: ["governance-audit"],
+        queryKey: ["governance-audit", tenantId],
         queryFn: async () => {
           const r = await fetch(`${BASE}/audit`, { headers: authHeaders() });
           if (!r.ok) return [];
@@ -265,7 +279,7 @@ const DashboardLayout = () => {
       });
 
       queryClient.prefetchQuery({
-        queryKey: ["governance-metrics"],
+        queryKey: ["governance-metrics", tenantId],
         queryFn: async () => {
           const r = await fetch(`${BASE}/governance/summary`, { headers: authHeaders() });
           if (!r.ok) return {};
@@ -275,17 +289,17 @@ const DashboardLayout = () => {
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [hasToken, queryClient]);
+  }, [hasToken, tenantId, queryClient]);
 
   const { data: checkpointData } = useQuery({
-    queryKey: ["governance-checkpoints-nav"],
+    queryKey: ["governance-checkpoints-nav", tenantId],
     queryFn: async () => {
       const r = await fetch(`${BASE}/governance/checkpoints`, { headers: authHeaders() });
       if (!r.ok) return { count: 0, pending: [] };
       return r.json();
     },
-    staleTime: 15 * 60 * 1000,
-    enabled: hasToken,
+    staleTime: 5 * 60 * 1000,
+    enabled: hasToken && !!tenantId,
   });
 
   const critCount = incidentSummary?.critical_count ?? 0;
@@ -296,7 +310,7 @@ const DashboardLayout = () => {
 
   // Seed notifications with pending checkpoints if list is empty
   useEffect(() => {
-    if (pendingChks.length > 0 && notifications.length === 0) {
+    if (pendingChks.length > 0 && notifications.length === 0 && tenantId) {
       const seeded = pendingChks.map((chk) => ({
         id: `seeded-${chk.checkpoint_id}`,
         title: `Pending Checkpoint — ${chk.risk_level}`,
@@ -307,9 +321,9 @@ const DashboardLayout = () => {
         link: "/dashboard/compliance",
       }));
       setNotifications(seeded);
-      localStorage.setItem("dashboard_notifications", JSON.stringify(seeded));
+      localStorage.setItem(getNotifKey(tenantId), JSON.stringify(seeded));
     }
-  }, [pendingChks, notifications.length]);
+  }, [pendingChks, notifications.length, tenantId]);
 
   // Handle incoming WebSocket events
   useEffect(() => {
@@ -400,7 +414,7 @@ const DashboardLayout = () => {
 
       setNotifications((prev) => {
         const updated = [newNotification, ...prev].slice(0, 100);
-        localStorage.setItem("dashboard_notifications", JSON.stringify(updated));
+        localStorage.setItem(getNotifKey(tenantId), JSON.stringify(updated));
         return updated;
       });
 
@@ -416,13 +430,13 @@ const DashboardLayout = () => {
         });
       }
     }
-  }, [lastEvent, navigate]);
+  }, [lastEvent, navigate, tenantId]);
 
   const markAllAsRead = (e: React.MouseEvent) => {
     e.stopPropagation();
     setNotifications((prev) => {
       const updated = prev.map((n) => ({ ...n, read: true }));
-      localStorage.setItem("dashboard_notifications", JSON.stringify(updated));
+      localStorage.setItem(getNotifKey(tenantId), JSON.stringify(updated));
       return updated;
     });
   };
@@ -430,7 +444,7 @@ const DashboardLayout = () => {
   const clearNotifications = (e: React.MouseEvent) => {
     e.stopPropagation();
     setNotifications([]);
-    localStorage.removeItem("dashboard_notifications");
+    localStorage.removeItem(getNotifKey(tenantId));
   };
 
   const handleNotificationClick = (notification: DashboardNotification) => {
@@ -438,7 +452,7 @@ const DashboardLayout = () => {
       const updated = prev.map((n) =>
         n.id === notification.id ? { ...n, read: true } : n
       );
-      localStorage.setItem("dashboard_notifications", JSON.stringify(updated));
+      localStorage.setItem(getNotifKey(tenantId), JSON.stringify(updated));
       return updated;
     });
     setPopoverOpen(false);

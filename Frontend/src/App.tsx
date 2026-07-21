@@ -1,10 +1,11 @@
 import { lazy, Suspense } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FirebaseRedirectResume } from "@/components/FirebaseRedirectResume";
 import { BrandLoader } from "@/components/ui/BrandLoader";
+import { queryClient } from "@/lib/queryClient";
 
 // Lazy loaded pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -25,20 +26,6 @@ const EnergyResilience = lazy(() => import("@/pages/dashboard/EnergyResilience")
 const Compliance = lazy(() => import("@/pages/dashboard/Compliance"));
 const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage"));
 const RouteViewer = lazy(() => import("@/pages/dashboard/RouteViewer"));
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Prevent hidden tabs from continuously polling expensive backend endpoints.
-      refetchIntervalInBackground: false,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
-      staleTime: 15 * 60 * 1000,
-      retry: 1,
-    },
-  },
-});
 
 // Premium, elegant skeleton loader placeholder matching design variables
 const PageLoader = () => (

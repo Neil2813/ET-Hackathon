@@ -4,6 +4,7 @@
  */
 
 import type { ReasoningStep } from "@/types/workflow";
+import { clearAppCache } from "@/lib/queryClient";
 
 function normalizeApiBase(rawBase?: string): string {
   const value = (rawBase || "").trim();
@@ -125,6 +126,13 @@ export function storeAuthSession(payload: {
   authKind?: AuthKind;
   displayName?: string;
 }): void {
+  const existingUserId = getUserId();
+  if (existingUserId && existingUserId !== payload.userId) {
+    clearAuthSession();
+  } else {
+    clearAppCache();
+  }
+
   const accessToken = String(payload.accessToken || "").trim();
   if (!isLikelyJwtToken(accessToken)) {
     clearAuthSession();
@@ -144,6 +152,8 @@ export function storeAuthSession(payload: {
 }
 
 export function clearAuthSession(): void {
+  clearAppCache();
+
   for (const storage of [localStorage, sessionStorage]) {
     storage.removeItem(ACCESS_TOKEN_KEY);
     storage.removeItem(REFRESH_TOKEN_KEY);
@@ -158,6 +168,27 @@ export function clearAuthSession(): void {
       window.sessionStorage.clear();
     } catch (e) {
       console.warn("Failed to clear sessionStorage on logout", e);
+    }
+
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const key = window.localStorage.key(i);
+        if (
+          key &&
+          (key.startsWith("onboarding_status:") ||
+            key.startsWith("dashboard_notifications") ||
+            key.startsWith("network_view") ||
+            key.startsWith("active_workflow") ||
+            key.startsWith("workflow_") ||
+            key.startsWith("preloaded_workflow"))
+        ) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+    } catch (e) {
+      console.warn("Failed to clear localStorage cached items on logout", e);
     }
   }
 

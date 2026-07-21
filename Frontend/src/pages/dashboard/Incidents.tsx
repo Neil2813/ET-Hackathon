@@ -227,15 +227,18 @@ const Incidents = () => {
   const activeStatuses = ["DETECTED", "ANALYZED", "AWAITING_APPROVAL"];
   const fetchStatusParam = statusFilter === "ACTIVE" ? undefined : (statusFilter || undefined);
 
+  const userId = getUserId();
   const { data: incidentsRaw = [], isLoading: isIncidentsLoading } = useQuery({
-    queryKey: ["incidents", statusFilter],
+    queryKey: ["incidents", userId, statusFilter],
     queryFn: () => fetchIncidents(fetchStatusParam),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!userId,
   });
   const { data: simulationIncidentsRaw = [], isLoading: isSimulationLoading } = useQuery({
-    queryKey: ["intelligence", "simulation-incidents", statusFilter],
+    queryKey: ["intelligence", "simulation-incidents", userId, statusFilter],
     queryFn: () => fetchSimulationIncidents(fetchStatusParam),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!userId,
   });
   const isLoading = isIncidentsLoading || isSimulationLoading;
 
@@ -279,9 +282,9 @@ const Incidents = () => {
   );
 
   const { data: detail, refetch: refetchDetail } = useQuery<Incident>({
-    queryKey: ["incident", selectedId],
+    queryKey: ["incident", userId, selectedId],
     queryFn: () => authFetch<Incident>(`${BASE}/incidents/${selectedId}`),
-    enabled: !!selectedId,
+    enabled: !!selectedId && !!userId,
   });
 
   const action = useMutation({

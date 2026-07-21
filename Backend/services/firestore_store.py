@@ -923,7 +923,8 @@ def get_incident(incident_id: str, tenant_id: str | None = None) -> dict[str, An
     db = _client()
     if tenant_id:
         data = _doc_to_dict(db.collection("tenants").document(tenant_id).collection("incidents").document(incident_id).get())
-        return _incident_doc_to_api(data, incident_id) if data else None
+        if data:
+            return _incident_doc_to_api(data, incident_id)
     for doc in (
         db.collection_group("incidents")
         .where(filter=FieldFilter("id", "==", incident_id))
