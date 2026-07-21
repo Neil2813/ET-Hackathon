@@ -66,30 +66,81 @@ class ContextBuilder:
             logger.warning("ContextBuilder: Failed to compile KPIs context: %s", exc)
             context["kpis"] = "Unavailable"
 
-        # 2. Incident Context
+        # 2. Incidents & Intelligence Context
+        try:
+            # Retrieve all active & simulation incidents (visibility="all")
+            incidents_raw = list_incidents(limit=30, tenant_id=tenant_id, visibility="all")
+            formatted_incidents = []
+            for inc in incidents_raw:
+                nodes = inc.get("affected_nodes") or []
+                node_names = [
+                    n.get("name") or n.get("location") or n.get("country") or f"Node-{n.get('id','?')}"
+                    for n in nodes[:6]
+                ]
+                backup = inc.get("backup_supplier") or {}
+                title = inc.get("event_title") or inc.get("title") or inc.get("event_description", "")[:100]
+                formatted_incidents.append({
+                    "event_title": title,
+                    "severity": inc.get("severity"),
+                    "status": inc.get("status"),
+                    "category": inc.get("source_category") or inc.get("category") or "Maritime",
+                    "total_exposure_usd": inc.get("total_exposure_usd"),
+                    "affected_node_count": inc.get("affected_node_count") or len(nodes),
+                    "affected_node_names": node_names,
+                    "backup_supplier_name": backup.get("name") or backup.get("location"),
+                    "min_stockout_days": inc.get("min_stockout_days"),
+                    "gnn_confidence": inc.get("gnn_confidence"),
+                    "recommendation": inc.get("recommendation"),
+                })
+            context["active_incidents"] = formatted_incidents
+        except Exception as exc:
+            logger.warning("ContextBuilder: Failed to list active incidents: %s", exc)
+
+        # Active Risk Events / Intelligence Telemetry
+        try:
+            risk_events = _api_risk_events()
+            context["active_risk_events"] = [
+                {
+                    "title": r.get("title") or r.get("event_title"),
+                    "severity": r.get("severity"),
+                    "source": r.get("source"),
+                    "location": r.get("location") or r.get("corridor"),
+                    "exposure_usd": r.get("exposure_usd") or r.get("total_exposure_usd"),
+                }
+                for r in risk_events[:10]
+            ]
+        except Exception as exc:
+            logger.warning("ContextBuilder: Failed to fetch active risk events: %s", exc)
+
         if incident_id:
             try:
                 inc = get_incident(incident_id)
                 if inc:
-                    # Clean/scrub payload if it contains large json strings
-                    context["active_incident"] = inc
-                else:
-                    context["active_incident"] = f"Incident ID {incident_id} not found."
+                    nodes = inc.get("affected_nodes") or []
+                    node_summaries = [
+                        {
+                            "name": n.get("name") or n.get("location") or f"Node-{n.get('id','?')}",
+                            "country": n.get("country"),
+                            "tier": n.get("tier"),
+                            "exposure_usd": n.get("exposure_usd"),
+                            "stockout_days": n.get("stockout_days"),
+                            "single_source": n.get("single_source"),
+                        }
+                        for n in nodes[:10]
+                    ]
+                    backup = inc.get("backup_supplier") or {}
+                    context["active_incident"] = {
+                        "event_title": inc.get("event_title") or inc.get("title") or inc.get("event_description", "")[:100],
+                        "severity": inc.get("severity"),
+                        "status": inc.get("status"),
+                        "total_exposure_usd": inc.get("total_exposure_usd"),
+                        "affected_nodes": node_summaries,
+                        "backup_supplier_name": backup.get("name") or backup.get("location"),
+                        "recommendation": inc.get("recommendation"),
+                        "gnn_confidence": inc.get("gnn_confidence"),
+                    }
             except Exception as exc:
-                logger.error("ContextBuilder: Failed to fetch incident %s: %s", incident_id, exc)
-                context["active_incident"] = "Error retrieving incident details."
-        elif page in ("dashboard", "incidents", "incident-simulator"):
-            try:
-                recent_incidents = list_incidents(limit=10, tenant_id=tenant_id)
-                context["recent_incidents"] = [{
-                    "id": inc.get("id"),
-                    "title": inc.get("title"),
-                    "severity": inc.get("severity"),
-                    "status": inc.get("status"),
-                    "impact_exposure_usd": inc.get("impact_exposure_usd"),
-                } for inc in recent_incidents]
-            except Exception as exc:
-                logger.warning("ContextBuilder: Failed to list recent incidents: %s", exc)
+                logger.error("ContextBuilder: Failed to fetch active incident %s: %s", incident_id, exc)
 
         # 3. Supplier Context
         if supplier_id:
