@@ -77,27 +77,28 @@ export function heatmapDataToPoints(
     .filter((p): p is HeatPointInput => p !== null);
 }
 
-export function transformEventsToHeatmap(events: Record<string, unknown>[]): NonNullable<HeatPointInput>[] {
-  return events
-    .map((e) => {
-      const lat = Number(e.lat ?? e.event_lat ?? e.latitude ?? 0);
-      const lng = Number(e.lng ?? e.event_lng ?? e.longitude ?? 0);
-      if (!lat && !lng) return null;
-      let severity = 50;
-      const sevStr = String(e.severity || "").toUpperCase();
-      if (sevStr === "CRITICAL") severity = 100;
-      else if (sevStr === "HIGH") severity = 80;
-      else if (sevStr === "MODERATE" || sevStr === "MEDIUM") severity = 60;
-      else if (sevStr === "LOW") severity = 30;
+export function transformEventsToHeatmap(events: Record<string, unknown>[]): HeatPointInput[] {
+  const result: HeatPointInput[] = [];
+  for (const e of events) {
+    const lat = Number(e.lat ?? e.event_lat ?? e.latitude ?? 0);
+    const lng = Number(e.lng ?? e.event_lng ?? e.longitude ?? 0);
+    if (!lat && !lng) continue;
 
-      return {
-        id: String(e.id || Math.random()),
-        lat,
-        lng,
-        severity_score: severity,
-        title: String(e.event_title || e.title || "Event"),
-        description: String(e.description || ""),
-      };
-    })
-    .filter((p): p is NonNullable<HeatPointInput> => p !== null);
+    let severity = 50;
+    const sevStr = String(e.severity || "").toUpperCase();
+    if (sevStr === "CRITICAL") severity = 100;
+    else if (sevStr === "HIGH") severity = 80;
+    else if (sevStr === "MODERATE" || sevStr === "MEDIUM") severity = 60;
+    else if (sevStr === "LOW") severity = 30;
+
+    result.push({
+      id: String(e.id || Math.random()),
+      lat,
+      lng,
+      severity_score: severity,
+      title: String(e.event_title || e.title || "Event"),
+      description: String(e.description || ""),
+    });
+  }
+  return result;
 }
