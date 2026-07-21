@@ -89,38 +89,40 @@ const Compliance = () => {
   const [reportLoading, setReportLoading] = useState(false);
   const qc = useQueryClient();
 
-  // ── Data fetches ──
+  const userId = getUserId();
   const { data: incidents = [] } = useQuery({
-    queryKey: ["incidents"],
+    queryKey: ["incidents", userId],
     queryFn: () => authFetch<unknown[]>(`${BASE}/incidents`),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!userId,
   });
 
   const { data: auditLog = [] } = useQuery({
-    queryKey: ["audit"],
+    queryKey: ["audit", userId],
     queryFn: () => authFetch<unknown[]>(`${BASE}/audit`),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!userId,
   });
 
   const { data: postActionData } = useQuery({
-    queryKey: ["post-action-list"],
+    queryKey: ["post-action-list", userId],
     queryFn: () => authFetch<{ records: any[]; total: number }>(`${BASE}/governance/post-action`),
-    staleTime: 15 * 60 * 1000,
-    enabled: tab === "post-action",
+    staleTime: 5 * 60 * 1000,
+    enabled: tab === "post-action" && !!userId,
   });
 
   const { data: replayData } = useQuery({
-    queryKey: ["replay-history"],
+    queryKey: ["replay-history", userId],
     queryFn: () => authFetch<{ runs: any[]; total: number }>(`${BASE}/governance/replay/history`),
-    staleTime: 15 * 60 * 1000,
-    enabled: tab === "replay",
+    staleTime: 5 * 60 * 1000,
+    enabled: tab === "replay" && !!userId,
   });
 
   const { data: govMetrics } = useQuery({
-    queryKey: ["governance-summary"],
+    queryKey: ["governance-summary", userId],
     queryFn: () => authFetch<any>(`${BASE}/governance/summary`),
-    staleTime: 15 * 60 * 1000,
-    enabled: tab === "metrics",
+    staleTime: 5 * 60 * 1000,
+    enabled: tab === "metrics" && !!userId,
   });
 
   const replayMut = useMutation({

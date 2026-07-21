@@ -266,10 +266,15 @@ def _run_async_sync(coro):
 
 
 def geocode_signal(signal: dict[str, Any]) -> dict[str, Any]:
-    lat = float(signal.get("lat", 0) or 0)
-    lng = float(signal.get("lng", 0) or 0)
+    lat = float(signal.get("lat") or signal.get("event_lat") or signal.get("latitude") or 0)
+    lng = float(signal.get("lng") or signal.get("event_lng") or signal.get("longitude") or 0)
     if lat != 0.0 or lng != 0.0:
-        return signal
+        out = dict(signal)
+        out["lat"] = lat
+        out["lng"] = lng
+        out["event_lat"] = lat
+        out["event_lng"] = lng
+        return out
 
     # Try SerpAPI geocoding if API key is present
     api_key = os.getenv("SERPAPI_API_KEY", "").strip()

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Heatmap } from "@/mapcn/heatmap";
 import { transformEventsToHeatmap } from "@/lib/risk-heatmap";
-import { api } from "@/lib/api";
+import { api, getUserId } from "@/lib/api";
 import { ReasoningPanel } from "@/components/workflow/ReasoningPanel";
 import { CheckpointBanner } from "@/components/workflow/CheckpointBanner";
 import type { IntelligenceGapItem, RiskEvent } from "@/lib/api";
@@ -78,16 +78,19 @@ const Intelligence = () => {
   const [selectedSignalId, setSelectedSignalId] = useState("");
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const tenantId = getUserId();
 
   const { data: categorized = {}, isLoading: isSignalsLoading } = useQuery({
-    queryKey: ["signals", "categorized"],
+    queryKey: ["signals", "categorized", tenantId],
     queryFn: api.signals.categorized,
-    staleTime: 15 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
   });
   const { data: events = [] } = useQuery<RiskEvent[]>({
-    queryKey: ["risks", "events"],
+    queryKey: ["risks", "events", tenantId],
     queryFn: () => api.risks.events(),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
   });
   const refresh = useMutation({
     mutationFn: api.signals.refresh,
@@ -147,7 +150,9 @@ const Intelligence = () => {
   const monteCarloError = monteCarlo.error instanceof Error ? monteCarlo.error.message : null;
   const selectedSignalKey = String(selectedSignal?.id || selectedSignal?.signal_id || "");
   const selectedSignalHasGeo = Boolean(
-    selectedSignal && (Number(selectedSignal.lat || 0) !== 0 || Number(selectedSignal.lng || 0) !== 0),
+    selectedSignal &&
+      (Number(selectedSignal.lat || selectedSignal.event_lat || selectedSignal.latitude || 0) !== 0 ||
+        Number(selectedSignal.lng || selectedSignal.event_lng || selectedSignal.longitude || 0) !== 0),
   );
 
   useEffect(() => {

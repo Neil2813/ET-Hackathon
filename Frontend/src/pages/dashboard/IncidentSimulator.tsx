@@ -130,18 +130,20 @@ const IncidentSimulator = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [rfqExpanded, setRfqExpanded] = useState(false);
 
+  const userId = getUserId();
   const { data: simulationsRaw = [] } = useQuery({
-    queryKey: ["intelligence", "simulation-incidents", statusFilter],
+    queryKey: ["intelligence", "simulation-incidents", userId, statusFilter],
     queryFn: () => api.intelligence.simulationIncidents(statusFilter || undefined),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!userId,
   });
 
   const simulations = filterFreshIncidents(simulationsRaw as unknown as Record<string, unknown>[]);
 
   const { data: detail } = useQuery<SimulationIncident>({
-    queryKey: ["simulation-incident", selectedId],
+    queryKey: ["simulation-incident", userId, selectedId],
     queryFn: () => authFetch<SimulationIncident>(`${BASE}/incidents/${selectedId}`),
-    enabled: !!selectedId,
+    enabled: !!selectedId && !!userId,
   });
 
   useEffect(() => {

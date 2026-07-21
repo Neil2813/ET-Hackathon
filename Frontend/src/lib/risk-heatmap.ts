@@ -79,8 +79,10 @@ export function heatmapDataToPoints(
 
 export function transformEventsToHeatmap(events: Record<string, unknown>[]): NonNullable<HeatPointInput>[] {
   return events
-    .filter((e) => e.lat != null && e.lng != null)
     .map((e) => {
+      const lat = Number(e.lat ?? e.event_lat ?? e.latitude ?? 0);
+      const lng = Number(e.lng ?? e.event_lng ?? e.longitude ?? 0);
+      if (!lat && !lng) return null;
       let severity = 50;
       const sevStr = String(e.severity || "").toUpperCase();
       if (sevStr === "CRITICAL") severity = 100;
@@ -90,11 +92,12 @@ export function transformEventsToHeatmap(events: Record<string, unknown>[]): Non
 
       return {
         id: String(e.id || Math.random()),
-        lat: Number(e.lat),
-        lng: Number(e.lng),
+        lat,
+        lng,
         severity_score: severity,
         title: String(e.event_title || e.title || "Event"),
         description: String(e.description || ""),
       };
-    });
+    })
+    .filter((p): p is NonNullable<HeatPointInput> => p !== null);
 }

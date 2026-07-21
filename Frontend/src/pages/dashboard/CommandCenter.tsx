@@ -5,7 +5,7 @@ import {
   Map, MapMarker, MarkerContent, MarkerPopup, MapControls,
 } from "@/components/ui/map";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
+import { api, getUserId } from "@/lib/api";
 import { incidentCategoryLabel, incidentCategoryColor } from "@/lib/incident-category";
 import { incidentDisplayTitle, incidentContextTag } from "@/lib/incident-title";
 import React from "react";
@@ -15,8 +15,6 @@ import {
 } from "lucide-react";
 import { fmtINR } from "@/lib/currency";
 import { RFQDispatchPanel } from "@/components/ui/RFQDispatchPanel";
-
-
 
 /* ── tiny sparkline (pure SVG) ── */
 function Sparkline({ data, color }: { data: number[]; color: string }) {
@@ -100,11 +98,37 @@ function isFiniteCoord(v: unknown): v is number {
   return isFinite(n) && n !== 0;
 }
 
-function incidentCoords(inc: Record<string, unknown>) {
-  const lat = inc.lat ?? inc.latitude ?? inc.event_lat;
-  const lng = inc.lng ?? inc.longitude ?? inc.event_lng;
-  if (!isFiniteCoord(lat) || !isFiniteCoord(lng)) return null;
-  return { lat: Number(lat), lng: Number(lng) };
+function incidentCoords(inc: Record<string, unknown>, suppliersMap?: Map<string, any>) {
+  // 1. Direct event coordinates on incident (event_lat/event_lng or lat/lng or latitude/longitude)
+  const rawLat = inc.event_lat ?? inc.lat ?? inc.latitude;
+  const rawLng = inc.event_lng ?? inc.lng ?? inc.longitude;
+  if (isFiniteCoord(rawLat) && isFiniteCoord(rawLng)) {
+    return { lat: Number(rawLat), lng: Number(rawLng) };
+  }
+
+  // 2. If event itself has no valid coordinates, fall back to supplier node location
+  const nodes = Array.isArray(inc.affected_nodes) ? inc.affected_nodes : [];
+  for (const node of nodes) {
+    if (isFiniteCoord(node.lat) && isFiniteCoord(node.lng)) {
+      return { lat: Number(node.lat), lng: Number(node.lng) };
+    }
+    if (suppliersMap) {
+      const nid = String(node.id || node.node_id || "").trim();
+      const sup = suppliersMap.get(nid);
+      if (sup && isFiniteCoord(sup.lat) && isFiniteCoord(sup.lng)) {
+        return { lat: Number(sup.lat), lng: Number(sup.lng) };
+      }
+    }
+  }
+  if (suppliersMap) {
+    const sid = String(inc.supplier_id || inc.node_id || "").trim();
+    const sup = suppliersMap.get(sid);
+    if (sup && isFiniteCoord(sup.lat) && isFiniteCoord(sup.lng)) {
+      return { lat: Number(sup.lat), lng: Number(sup.lng) };
+    }
+  }
+
+  return null;
 }
 
 function markerColor(severity: string) {
@@ -232,21 +256,25 @@ const CommandCenter = () => {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isRfqOpen, setIsRfqOpen] = useState(false);
+  const tenantId = getUserId();
 
   const { data: briefing, isLoading } = useQuery({
-    queryKey: ["command", "briefing"],
+    queryKey: ["command", "briefing", tenantId],
     queryFn: () => api.incidents.briefing(),
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
   });
   const { data: incidentsRaw = [], isLoading: isIncidentsLoading } = useQuery({
-    queryKey: ["incidents", "command-center-active"],
+    queryKey: ["incidents", "command-center-active", tenantId],
     queryFn: () => api.incidents.list(),
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
   });
   const { data: simulationIncidentsRaw = [], isLoading: isSimulationLoading } = useQuery({
-    queryKey: ["intelligence", "simulation-incidents", "command-center"],
+    queryKey: ["intelligence", "simulation-incidents", "command-center", tenantId],
     queryFn: () => api.intelligence.simulationIncidents(),
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
   });
 
   const generate = useMutation({
@@ -258,17 +286,19 @@ const CommandCenter = () => {
   });
 
   const { data: resolvedIncidentsRaw = [] } = useQuery({
-    queryKey: ["incidents", "resolved", "roi"],
+    queryKey: ["incidents", "resolved", "roi", tenantId],
     queryFn: () => api.incidents.list().then((all: Record<string, unknown>[]) =>
       all.filter((i) => String(i.status ?? "").toUpperCase() === "RESOLVED")
     ),
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
   });
 
   const { data: suppliersRaw = [] } = useQuery({
-    queryKey: ["risks", "suppliers"],
+    queryKey: ["risks", "suppliers", tenantId],
     queryFn: () => api.risks.suppliers(),
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
   });
 
   const suppliersMap = useMemo(() => {
@@ -472,25 +502,7 @@ const CommandCenter = () => {
               const unmappedIncidents: any[] = [];
 
               incidents.forEach((inc: any, i: number) => {
-                const coords = (() => {
-                  const nodes = Array.isArray(inc.affected_nodes) ? inc.affected_nodes : [];
-                  for (const node of nodes) {
-                    const nid = String(node.id || node.node_id || "").trim();
-                    const sup = suppliersMap.get(nid);
-                    if (sup) return { lat: sup.lat, lng: sup.lng };
-                  }
-                  const sid = String(inc.supplier_id || inc.node_id || "").trim();
-                  const sup = suppliersMap.get(sid);
-                  if (sup) return { lat: sup.lat, lng: sup.lng };
-
-                  // Fallback: use isFiniteCoord-safe extraction
-                  const rawLat = inc.event_lat ?? inc.latitude ?? inc.lat;
-                  const rawLng = inc.event_lng ?? inc.longitude ?? inc.lng;
-                  if (isFiniteCoord(rawLat) && isFiniteCoord(rawLng)) {
-                    return { lat: Number(rawLat), lng: Number(rawLng) };
-                  }
-                  return null;
-                })();
+                const coords = incidentCoords(inc, suppliersMap);
 
                 if (!coords) {
                   unmappedIncidents.push(inc);

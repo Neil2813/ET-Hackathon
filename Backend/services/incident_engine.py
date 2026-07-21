@@ -84,7 +84,10 @@ class Incident:
     source_category: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        d = asdict(self)
+        d["lat"] = self.event_lat
+        d["lng"] = self.event_lng
+        return d
 
 
 def _severity_from_score(score: float) -> IncidentSeverity:

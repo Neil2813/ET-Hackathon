@@ -1296,9 +1296,10 @@ function useSessionCachedQuery<T>({
 }
 
 function useGlobalDashboardBundle() {
+  const userId = getUserId() || "guest";
   return useSessionCachedQuery({
-    cacheKey: "global-dashboard-bundle",
-    queryKey: ["globalDashboardBundle"],
+    cacheKey: `global-dashboard-bundle:${userId}`,
+    queryKey: ["globalDashboardBundle", userId],
     queryFn: () => api.global.dashboardBundle(),
     staleTime: 5 * 60 * 1000,
     shouldCache: (bundle) => Boolean(bundle?.generated_at && bundle?.summary),
