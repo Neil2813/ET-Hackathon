@@ -8,6 +8,7 @@
 !/docs/
 !/nginx/
 !/secrets/
+!/diagrams/
 !/README.md
 !/.gitignore
 !/render.yaml
@@ -27,3 +28,8 @@
 .sh
 docs/DEPLOYMENT_FIREBASE.md
 docs/SETUP_GUIDE.md
+
+# Ignore databases
+*.db
+*.db-shm
+*.db-wal
