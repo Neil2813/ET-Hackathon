@@ -130,7 +130,8 @@ export default function RouteViewer() {
   const incTitle  = params.get("incident") || "Route Visualisation";
   const paramMode = (params.get("mode") || "air") as keyof typeof MODE_META;
 
-  const hasCoords = !isNaN(fromLat) && !isNaN(fromLng) && !isNaN(toLat) && !isNaN(toLng);
+  const hasCoords = !isNaN(fromLat) && !isNaN(fromLng) && !isNaN(toLat) && !isNaN(toLng)
+    && (fromLat !== 0 || fromLng !== 0) && (toLat !== 0 || toLng !== 0);
 
   const [activeMode, setActiveMode] = useState<keyof typeof MODE_META>(
     Object.keys(MODE_META).includes(paramMode) ? paramMode : "air"

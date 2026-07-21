@@ -320,40 +320,100 @@ const Incidents = () => {
     String(detail?.simulation_outcome || "").toLowerCase() !== "no_impact" &&
     !(detail?.simulation_only && Number(detail?.affected_node_count || 0) === 0);
 
+  /* ── Country name → ISO-2 lookup ────────────────────────────────────── */
+  const COUNTRY_NAME_TO_ISO: Record<string, string> = {
+    "india": "IN", "china": "CN", "united states": "US", "usa": "US", "germany": "DE",
+    "united kingdom": "GB", "uk": "GB", "japan": "JP", "south korea": "KR", "korea": "KR",
+    "singapore": "SG", "uae": "AE", "united arab emirates": "AE", "saudi arabia": "SA",
+    "australia": "AU", "brazil": "BR", "france": "FR", "netherlands": "NL", "mexico": "MX",
+    "vietnam": "VN", "thailand": "TH", "malaysia": "MY", "indonesia": "ID",
+    "philippines": "PH", "pakistan": "PK", "bangladesh": "BD", "taiwan": "TW",
+    "hong kong": "HK", "turkey": "TR", "italy": "IT", "spain": "ES", "canada": "CA",
+    "russia": "RU", "ukraine": "UA", "egypt": "EG", "nigeria": "NG", "kenya": "KE",
+    "iran": "IR", "iraq": "IQ", "oman": "OM", "kuwait": "KW", "qatar": "QA",
+  };
+
+  function resolveCountryCoords(countryStr: string): [number, number] | null {
+    if (!countryStr) return null;
+    const lower = countryStr.trim().toLowerCase();
+    const iso = COUNTRY_NAME_TO_ISO[lower];
+    if (iso && COUNTRY_CENTROIDS[iso]) return COUNTRY_CENTROIDS[iso];
+    const upper2 = countryStr.trim().toUpperCase().slice(0, 2);
+    if (COUNTRY_CENTROIDS[upper2]) return COUNTRY_CENTROIDS[upper2];
+    return null;
+  }
+
+  function isInIndia(lat: number, lng: number): boolean {
+    return lat >= 6 && lat <= 37 && lng >= 68 && lng <= 98;
+  }
+
   /* ── Derive route coords from incident data ─────────────────────────── */
+  // CONCEPT: This is an India supply chain platform.
+  // Route = [Disrupted Supplier / Event Location] → [India Destination Port]
+  // If the event is IN India, route = India → Singapore (nearest routing hub)
   const nodes = detail?.affected_nodes || [];
-  const originNode = nodes.find(n => n.lat != null && n.lng != null && (n.lat !== 0 || n.lng !== 0)) || nodes[0];
-  let originLat = originNode?.lat ?? 0, originLng = originNode?.lng ?? 0;
-  const originLabel = originNode?.name || originNode?.country || "Origin";
-  if (!originLat && !originLng && originNode?.country) {
-    const cc = COUNTRY_CENTROIDS[String(originNode.country).toUpperCase().slice(0, 2)];
-    if (cc) { originLat = cc[0]; originLng = cc[1]; }
+  const incAny = detail as any;
+
+  // Step 1: Resolve ORIGIN (the disrupted supplier or event epicenter)
+  let originLat = 0, originLng = 0, originLabel = "Supplier";
+
+  // Try event coordinates first
+  const evLat = Number(incAny?.event_lat ?? 0);
+  const evLng = Number(incAny?.event_lng ?? 0);
+  if (evLat !== 0 || evLng !== 0) {
+    originLat = evLat; originLng = evLng;
+    originLabel = String(incAny?.event_title || incAny?.event_location || "Event Location");
   }
-  let destLat = 0, destLng = 0, destLabel = "Destination";
-  if (detail?.backup_supplier) {
-    destLabel = detail.backup_supplier.name || detail.backup_supplier.location || "Backup Supplier";
-    if ((detail.backup_supplier as any).lat != null) {
-      destLat = Number((detail.backup_supplier as any).lat);
-      destLng = Number((detail.backup_supplier as any).lng);
+
+  // If no event coords, use the highest-exposure affected node that is NOT in India
+  if (!originLat && !originLng) {
+    const foreignNode = [...nodes]
+      .sort((a, b) => Number(b.exposure_usd || 0) - Number(a.exposure_usd || 0))
+      .find(n => {
+        if (!n.lat || !n.lng || (n.lat === 0 && n.lng === 0)) return false;
+        return !isInIndia(Number(n.lat), Number(n.lng));
+      });
+    if (foreignNode) {
+      originLat = foreignNode.lat ?? 0; originLng = foreignNode.lng ?? 0;
+      originLabel = foreignNode.name || foreignNode.country || "Supplier";
     }
-    if (!destLat && !destLng) {
-      const loc = String(detail.backup_supplier.location || "").trim().toUpperCase().slice(0, 2);
-      const cc = COUNTRY_CENTROIDS[loc];
-      if (cc) { destLat = cc[0]; destLng = cc[1]; }
+  }
+
+  // If no valid node coords, try country centroid of nodes — prefer non-India country
+  if (!originLat && !originLng) {
+    for (const n of nodes) {
+      if (!n.country) continue;
+      const cc = resolveCountryCoords(String(n.country));
+      if (cc && !isInIndia(cc[0], cc[1])) {
+        originLat = cc[0]; originLng = cc[1];
+        originLabel = n.name || n.country || "Supplier";
+        break;
+      }
     }
-  } else {
-    const sorted = [...nodes].filter(n => n.lat != null && n.lng != null).sort((a, b) => Number(b.exposure_usd || 0) - Number(a.exposure_usd || 0));
-    const destNode = sorted.find(n => n.id !== originNode?.id) || sorted[1] || null;
-    if (destNode) { destLat = destNode.lat ?? 0; destLng = destNode.lng ?? 0; destLabel = destNode.name || destNode.country || "Destination"; }
   }
-  if (!destLat && !destLng) {
-    const cc = COUNTRY_CENTROIDS["SG"]!;
-    destLat = cc[0]; destLng = cc[1]; destLabel = "SG Hub";
+
+  // Step 2: DESTINATION is always India (Nhava Sheva Port, Mumbai — main import gateway)
+  // Unless the origin itself is in India — then route to Singapore as nearest hub
+  const MUMBAI_PORT: [number, number] = [18.95, 72.84]; // Nhava Sheva Port
+  let destLat = MUMBAI_PORT[0], destLng = MUMBAI_PORT[1], destLabel = "Nhava Sheva Port, India";
+
+  if (isInIndia(originLat, originLng)) {
+    // Origin is in India → route to Singapore as the supply chain hub
+    const sg = COUNTRY_CENTROIDS["SG"]!;
+    destLat = sg[0]; destLng = sg[1]; destLabel = "Singapore Hub";
   }
+
+  // Final fallback: if origin is still 0,0 (no data at all)
+  if (!originLat && !originLng) {
+    const cn = COUNTRY_CENTROIDS["CN"]!;
+    originLat = cn[0]; originLng = cn[1]; originLabel = "China (Fallback)";
+  }
+
+  // Prevent same-location origin/dest
   let dist = haversineKm(originLat, originLng, destLat, destLng);
-  if (dist < 1) {
-    const alt = COUNTRY_CENTROIDS["SG"]!;
-    destLat = alt[0]; destLng = alt[1]; destLabel = "SG Hub";
+  if (dist < 50) {
+    const sg = COUNTRY_CENTROIDS["SG"]!;
+    destLat = sg[0]; destLng = sg[1]; destLabel = "Singapore Hub";
     dist = haversineKm(originLat, originLng, destLat, destLng);
   }
 
