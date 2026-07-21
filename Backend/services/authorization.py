@@ -191,7 +191,9 @@ def _decode_local_jwt(token: str) -> dict[str, Any]:
     """Decode JWT using local secret (dev fallback). Swap for Firebase verify in prod."""
     import jwt as pyjwt
 
-    secret = os.getenv("JWT_SECRET", "dev-secret-change-in-production")
+    secret = os.getenv("JWT_SECRET", "change-me-in-production-secure-32-byte-secret").strip()
+    if len(secret) < 32:
+        secret = (secret + "-secure-default-key-padding-32bytes")[:32]
     try:
         return pyjwt.decode(token, secret, algorithms=["HS256"])
     except Exception as exc:

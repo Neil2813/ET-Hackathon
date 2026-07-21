@@ -427,7 +427,7 @@ const CommandCenter = () => {
   }, [incidents]);
 
   return (
-    <div className="flex flex-col gap-4 min-h-screen text-foreground">
+    <div className="flex flex-col gap-4 text-foreground">
 
       {/* ═══ KPI CARDS ═══ */}
       <div className="grid grid-cols-4 gap-4">

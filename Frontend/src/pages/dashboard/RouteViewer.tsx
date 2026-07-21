@@ -285,7 +285,7 @@ export default function RouteViewer() {
 
   if (!hasCoords) {
     return (
-      <div className="h-[calc(100vh-120px)] flex items-center justify-center bg-slate-50">
+      <div className="h-full flex items-center justify-center bg-slate-50">
         <div className="text-center space-y-3">
           <AlertTriangle size={32} className="text-amber-500 mx-auto" />
           <p className="text-slate-700 font-bold">No route coordinates provided.</p>
@@ -327,7 +327,7 @@ export default function RouteViewer() {
   const activeCost = costs[activeCostKey];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", background: "#f8fafc", fontFamily: "var(--font-body)" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#f8fafc", fontFamily: "var(--font-body)" }}>
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div style={{ flexShrink: 0, background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "10px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(0,0,0,.06)" }}>

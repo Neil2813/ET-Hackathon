@@ -25,7 +25,10 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def _secret() -> str:
-    return os.getenv("JWT_SECRET", "change-me-in-prod")
+    val = os.getenv("JWT_SECRET", "change-me-in-production-secure-32-byte-secret").strip()
+    if len(val) < 32:
+        val = (val + "-secure-default-key-padding-32bytes")[:32]
+    return val
 
 
 def mint_access_token(

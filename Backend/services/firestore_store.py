@@ -927,12 +927,12 @@ def get_incident(incident_id: str, tenant_id: str | None = None) -> dict[str, An
             return _incident_doc_to_api(data, incident_id)
     for doc in (
         db.collection_group("incidents")
-        .where(filter=FieldFilter("id", "==", incident_id))
-        .limit(1)
         .stream()
     ):
         data = doc.to_dict() or {}
-        return _incident_doc_to_api(data, doc.id)
+        doc_id = str(doc.id or data.get("id") or data.get("_doc_id") or "").strip()
+        if doc_id == incident_id or str(data.get("id") or "").strip() == incident_id:
+            return _incident_doc_to_api(data, doc_id)
     return None
 
 

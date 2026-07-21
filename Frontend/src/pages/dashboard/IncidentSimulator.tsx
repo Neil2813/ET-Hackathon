@@ -151,8 +151,11 @@ const IncidentSimulator = () => {
   }, [selectedId]);
 
   useEffect(() => {
-    if (!selectedId && simulations.length > 0) {
-      setSearchParams({ id: String(simulations[0].id) });
+    if (simulations.length > 0) {
+      const exists = simulations.some((s) => String(s.id) === selectedId);
+      if (!selectedId || !exists) {
+        setSearchParams({ id: String(simulations[0].id) }, { replace: true });
+      }
     }
   }, [simulations, selectedId, setSearchParams]);
 
@@ -163,7 +166,7 @@ const IncidentSimulator = () => {
     Number(detail?.affected_node_count || 0) === 0;
 
   return (
-    <div className="h-[calc(100vh-120px)] flex gap-0 min-h-0">
+    <div className="h-full flex gap-0 min-h-0">
       <div className="w-[360px] shrink-0 border border-slate-200 bg-white flex flex-col min-h-0">
         <div className="px-5 py-4 border-b border-slate-200 shrink-0">
           <div className="flex items-center gap-2 mb-3">

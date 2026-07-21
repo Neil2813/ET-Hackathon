@@ -62,7 +62,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col min-h-0 bg-slate-50 text-slate-900">
+    <div className="h-full flex flex-col min-h-0 bg-slate-50 text-slate-900">
       <div className="px-6 py-8 flex-1 overflow-y-auto custom-scrollbar">
         <h1 className="font-headline text-2xl font-bold tracking-tight uppercase mb-6">
           Settings

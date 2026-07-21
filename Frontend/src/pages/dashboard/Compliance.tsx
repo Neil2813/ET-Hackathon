@@ -151,7 +151,7 @@ const Compliance = () => {
   ];
 
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col min-h-0">
+    <div className="h-full flex flex-col min-h-0">
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 py-3 border border-slate-200 bg-white shrink-0 rounded-t-xl">
         <div className="flex items-center gap-3 flex-wrap">

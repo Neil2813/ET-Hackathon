@@ -1488,7 +1488,7 @@ const EnergyResilience = () => {
 
   if (isLoading) {
     return (
-      <div className="h-[calc(100vh-120px)] flex items-center justify-center border border-slate-200 bg-white rounded">
+      <div className="h-full flex items-center justify-center border border-slate-200 bg-white rounded">
         <Loader2 size={24} className="animate-spin text-red-500" />
       </div>
     );
@@ -1504,7 +1504,7 @@ const EnergyResilience = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-120px)] space-y-4">
+    <div className="space-y-4">
       <div className="border border-slate-200 bg-white rounded shadow-sm p-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>

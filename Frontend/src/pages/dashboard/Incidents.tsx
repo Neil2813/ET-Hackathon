@@ -306,9 +306,11 @@ const Incidents = () => {
     },
   });
 
-  useEffect(() => { setExecutionResult(null); setActiveTab("overview"); }, [selectedId]);
   useEffect(() => {
-    if (!selectedId && incidents.length > 0) setSearchParams({ id: String(incidents[0].id) });
+    if (incidents.length > 0) {
+      const exists = incidents.some((inc) => String(inc.id) === selectedId);
+      if (!selectedId || !exists) setSearchParams({ id: String(incidents[0].id) }, { replace: true });
+    }
   }, [incidents, selectedId, setSearchParams]);
 
   // Scroll to top of detail when incident changes
@@ -389,7 +391,7 @@ const Incidents = () => {
 
   /* ─── Render ──────────────────────────────────────────────────────────── */
   return (
-    <div className="h-[calc(100vh-120px)] flex gap-0 min-h-0" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="h-full flex gap-0 min-h-0" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
 
       {/* ═══════════════════ LEFT PANEL ════════════════════════════════════ */}
       <div className="w-[340px] shrink-0 border border-slate-200 bg-white flex flex-col min-h-0 shadow-sm">
