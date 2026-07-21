@@ -27,6 +27,7 @@ Praecantator features a real-time multi-agent OODA pipeline that executes threat
 16. [Testing](#testing)
 17. [Sample Data](#sample-data)
 18. [Architecture Evolution Phases](#architecture-evolution-phases)
+19. [Diagrams & Documentation](#diagrams--documentation)
 
 ---
 
@@ -1285,6 +1286,24 @@ The backend is designed for incremental hardening:
 | **Phase 3 — Scalability** | Redis queuing, Celery workers for signal spikes | 🔄 In progress |
 | **Phase 4 — Operational Trust** | Evidence ledgers, SLA-compliant isolation validation | ✅ Complete |
 | **Phase 5 — Governance Audits** | Post-action verification, feedback-driven threshold tuning | ✅ Complete |
+
+---
+
+## Diagrams & Documentation
+
+Detailed Mermaid-based architectural diagrams and documentation can be found in the `diagrams/` folder:
+
+- **[System Architecture](diagrams/architecture.md)**: Full-stack Cloud, Edge, and Database design.
+- **[Data Ingestion Pipeline](diagrams/data_ingestion.md)**: Sequential data fetching, signal analysis, and execution loop.
+- **[Multi-Agent Interaction](diagrams/Agent_interaction_diagram.md)**: OODA loop coordination across LangGraph agents.
+- **[Database ER Model](diagrams/Database_ER_Diagram.md)**: Tenancy isolation across Firestore, SQLite, and Redis.
+- **[Workflow Sequence](diagrams/SequenceDiagram.md)**: Governance checkpoint, human-in-the-loop, and external API flow.
+- **[Knowledge Graph Schema](diagrams/KnowledgeGraphSchema.md)**: Node and edge mapping for the Customer Supply Graph.
+- **[Digital Twin Architecture](diagrams/DigitalTwinArchitecture.md)**: Layered connectivity from physical sensors to the 3D AR Globe.
+- **[Security & Governance Model](diagrams/SecurityModel.md)**: Zero-trust perimeter, identity validation, and role-based access.
+- **[RAG Architecture](diagrams/RAGArchitecture.md)**: Retrieval-Augmented Generation flow for Copilot intelligence.
+- **[Technology Stack](diagrams/TechnologyStack.md)**: Complete map of Frontend, Backend, ML, and Cloud tools.
+- **[Academic References](diagrams/academic%20references.txt)**: Core academic papers underpinning the AI/GNN/OODA mechanisms.
 
 ---
 
