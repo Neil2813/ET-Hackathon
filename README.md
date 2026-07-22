@@ -1314,6 +1314,63 @@ The backend is designed for incremental hardening:
 
 ---
 
+## Application Interfaces & Outputs
+
+This section showcases the visual interface and functional output of the Praecantator platform, matching the user experience detailed in the project specification.
+
+### 1. User Authentication & Onboarding
+The entry point for operators to access their tenant-segregated environment and bootstrap their supply chain topologies.
+- **Login Screen**: Secure JWT-based entry supporting multi-tenant credentials.
+  ![Login Screen](Outputs/Login.png)
+- **Registration Screen**: Tenant onboarding and organization registration.
+  ![Register Screen](Outputs/Register.png)
+
+### 2. Command Center
+The unified operational dashboard summarizing national crude import metrics, active alerts, risk distribution, and governance checkpoints.
+![Command Center](Outputs/Command%20Center.png)
+
+### 3. Network View & Spatial Intelligence
+Visualizes interconnected nodes (suppliers, ports, refineries, SPRs) and overlays live hazard signals.
+- **Supply Network Graph**: Force-directed graph representation of supply relationships and exposure heatmaps.
+  ![Supply Network Graph](Outputs/Network.png)
+- **3D Supply Chain Globe (AR View)**: Globe rendering of maritime corridors and spatial-temporal vessel clusters.
+  ![3D Globe](Outputs/3D%20Globe.png)
+- **Google Earth View**: 3D flyover of active incidents and refinery sites.
+  ![Google Earth View](Outputs/Google%20Earth%20View.png)
+
+### 4. Intelligence & Simulation
+- **Global Signal Monitor**: Ingests real-time events from ACLED, GDELT, and PortWatch.
+  ![World Monitor](Outputs/World%20Monitor.png)
+  ![Intelligence Signals](Outputs/Intelligence.png)
+- **Scenario Modeller & Monte Carlo Simulation**: Enables what-if scenario planning and probabilistic disruption forecasting (e.g., Strait of Hormuz closure).
+  ![Scenario Modeller](Outputs/Scenario%20Modeller.png)
+  ![Monte Carlo Simulation](Outputs/Monte%20Carlo.png)
+
+### 5. Energy, Maritime & Strategic Petroleum Reserve (SPR)
+- **SPR Drawdown Scheduling**: RL-driven daily draw schedule vs. heuristic models.
+  ![SPR Drawdown](Outputs/SPR.png)
+- **Refinery Assay Grade Blending**: LP-based optimal sweet/sour substitution recipe.
+  ![LP Blend](Outputs/LP%20Blend.png)
+- **Suez vs. Cape Route Compare**: Real-time comparison of freight transit times, war premiums, and CO2 footprint.
+  ![Route Compare](Outputs/Route%20Compare.png)
+- **Exchange Ledger**: Secure peer-to-peer inventory sharing among refiners.
+  ![Exchange Ledger](Outputs/Exchange%20Ledger.png)
+- **AIS Tanker Tracking & Deviation**:
+  ![AIS Tanker Tracking](Outputs/AIS.png)
+  ![Sea Route of Incident](Outputs/Sea%20Route%20of%20Incident.png)
+  ![Air Route of Incident](Outputs/Air%20Route%20of%20Incident.png)
+
+### 6. Incidents & Governance
+- **Incident Analysis**: Pre-analyzed incident cards generated autonomously.
+  ![Incident Card](Outputs/Incident.png)
+- **Governance Checkpoint & RFQ**: Halts high-value actions for legal/finance sign-off and generates RFQs.
+  ![Governance Checkpoint](Outputs/Governance.png)
+  ![RFQ Dispatch](Outputs/RFQ.png)
+- **Settings & Conversational Copilot**:
+  ![Settings & Chatbot](Outputs/Settings%20+%20Chatbot.png)
+
+---
+
 ## Diagrams & Documentation
 
 Detailed Mermaid-based architectural diagrams and documentation can be found in the `diagrams/` folder:
