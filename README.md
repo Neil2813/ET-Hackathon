@@ -218,7 +218,10 @@ graph TB
 
     subgraph "GCP — Paid Backend Hosting"
         GCR[Cloud Run / Compute Engine]
-        Nginx[nginx Reverse Proxy    subgraph "Application Layer"
+        Nginx[nginx Reverse Proxy]
+    end
+
+    subgraph "Application Layer"
         API[FastAPI Backend :8000]
         WS[WebSocket /ws/tenant_id]
         Celery[Celery + Celery Beat Workers]
