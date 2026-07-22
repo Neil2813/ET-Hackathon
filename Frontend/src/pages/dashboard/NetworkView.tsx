@@ -1088,7 +1088,17 @@ const POOL_NEWS = [
 ];
 
 function YouTubeLivePlayer({ videoId, onUnavailable, overlay }: { videoId: string; onUnavailable: () => void; overlay: ReactNode }) {
-  void onUnavailable;
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.width === 120 && img.height === 90) {
+        onUnavailable();
+      }
+    };
+    img.onerror = () => onUnavailable();
+    img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+  }, [videoId, onUnavailable]);
+
   const embedSrc = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(
     videoId,
   )}?autoplay=1&mute=1&controls=1&playsinline=1&rel=0&modestbranding=1`;
@@ -2476,7 +2486,6 @@ export default function NetworkView() {
                       {checked && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <span style={{ fontSize:14 }}>{l.icon}</span>
                       <span style={{ color: checked ? "var(--text)" : "var(--text-muted)", fontSize:11, fontFamily:"var(--font-headline)", fontWeight:700, letterSpacing:"0.06em", textTransform:"uppercase" }}>{l.label}</span>
                     </div>
                   </div>

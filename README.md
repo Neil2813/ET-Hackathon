@@ -2,6 +2,16 @@
 
 **AI-Driven Energy Supply Chain Resilience for Import-Dependent Economies**
 
+Submitted for participation in **ET AI Hackathon 2.0 2026**
+
+**Submitted By:**
+* Neil Emmanuel Mathias
+* Ancilla Teresa D'Souza
+* Amisha Josna D’Souza
+* Shantanu V
+
+---
+
 Praecantator is an enterprise-grade energy security resilience platform designed to safeguard crude oil supply chains. It continuously monitors geopolitical, maritime, and commodity risk signals, models major chokepoint disruption scenarios (e.g., Strait of Hormuz partial closures, Red Sea/Bab el-Mandeb shipping attacks, OPEC+ supply cuts), projects downstream macroeconomic impacts (refinery run rates, domestic retail fuel prices, power-sector stress, and GDP growth trajectories), and dynamically generates executable procurement rerouting recommendations — turning a reactive energy crisis response into a managed, anticipatory process.
 Praecantator features a real-time multi-agent OODA pipeline that executes threat detection, supply graph blast-radius assessment, multi-modal routing, and strategic reserve optimization under human-in-the-loop governance. It leverages PyTorch-based Supply Graph neural networks, Stable-Baselines3 reinforcement learning, and scipy-based linear programming to secure crude supply from wellhead to refinery.
 
@@ -65,9 +75,11 @@ Praecantator solves this with continuous geopolitical news monitoring, spatial-t
 
 ## Google Cloud Stack
 
-Praecantator is built on the **Google Cloud ecosystem** for the [Google Solution Challenge 2026](https://developers.google.com/community/gdsc-solution-challenge). The backend is designed to run on **paid GCP infrastructure** while the frontend is hosted on **Firebase Hosting** with **Cloudflare** in front for DNS, CDN, and edge protection.
+Praecantator is built on the **Google Cloud ecosystem** for the **ET AI Hackathon 2.0 2026**. The backend is designed to run on **paid GCP infrastructure** while the frontend is hosted on **Firebase Hosting** with **Cloudflare** in front for DNS, CDN, and edge protection.
 
 ### Stack at a Glance
+
+![Technology Stack](diagrams/Technology%20Stack.jpeg)
 
 ```mermaid
 graph TB
@@ -192,6 +204,8 @@ API key is served from `/api/config/maps` — never baked into the frontend buil
 
 ## System Architecture
 
+![System Architecture](diagrams/System%20Architecture.jpeg)
+
 Praecantator uses a decoupled architecture: a React/Vite frontend on **Firebase Hosting** behind **Cloudflare**, and a Python FastAPI backend on **paid Google Cloud** (Cloud Run or Compute Engine) or Docker + nginx on any host, with **Firestore**, **Firebase Auth**, **Gemini / Vertex AI**, and **Google Maps** as core Google services.
 
 ```mermaid
@@ -285,6 +299,9 @@ sequenceDiagram
 ---
 
 ## Autonomous OODA Pipeline
+
+![Data Ingestion Pipeline](diagrams/Data%20Ingestion.jpeg)
+![Execution and Governance Sequence](diagrams/Execution%20and%20Governance.jpeg)
 
 The core cognitive loop is implemented in `Backend/agents/autonomous_pipeline.py` and follows the military OODA model adapted for supply chains:
 

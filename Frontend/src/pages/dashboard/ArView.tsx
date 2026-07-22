@@ -37,7 +37,13 @@ export default function ArView() {
     }
   }, [lastEvent, queryClient]);
 
-  const nodes = data?.nodes ?? [];
+  const nodes = (data?.nodes ?? []).filter((node) => {
+    if ((node.exposureScore ?? 0) <= 0) return false;
+    const type = String(node.type || "supplier").toLowerCase();
+    if (type === "customer" || type === "logistics") return true;
+    const score = Number(node.exposureScore ?? 50);
+    return score >= 60 || node.criticality === "high" || node.criticality === "critical";
+  });
   const routes = data?.routes ?? [];
   const disruptions = data?.disruptions ?? [];
   const hasGlobeData = nodes.length > 0 || disruptions.length > 0;

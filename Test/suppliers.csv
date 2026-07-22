@@ -1,6 +1,0 @@
-supplier_name,country,email,origin_nodes,products_categories,category,tier,sla_days,incoterm,backup_supplier
-ABC Supplies,India,abc@supplies.com,Factory A,Auto Parts,Automotive,Tier 1,15,FOB,FALSE
-Global Parts Ltd,Germany,contact@globalparts.de,Warehouse 1,Machinery,Industrial,Tier 2,30,CIF,TRUE
-Nippon Materials,Japan,info@nipponmaterials.jp,Port Hub,Electronics,Technology,Tier 1,20,EXW,FALSE
-US Industrial Co,USA,sales@usindustrial.com,Factory B,Chemicals,Manufacturing,Tier 2,45,DDP,TRUE
-China Export Hub,China,export@china-hub.cn,Distribution Center,Textiles,Apparel,Tier 1,10,FCA,FALSE

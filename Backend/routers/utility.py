@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import logging
 from datetime import datetime, timezone
 from typing import Any
@@ -231,3 +232,12 @@ async def api_orchestration_replay_autonomous(run_id: str, user=Depends(verify_f
     tenant_id = _resolved_request_tenant(user)
     from agents.autonomous_pipeline import replay_autonomous_run
     return await replay_autonomous_run(run_id, tenant_id=tenant_id)
+
+
+@router.get("/api/config/maps")
+async def api_config_maps() -> dict[str, Any]:
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
+    return {
+        "google_maps_api_key": api_key,
+        "configured": bool(api_key.strip())
+    }
