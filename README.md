@@ -1346,7 +1346,7 @@ Detailed Mermaid-based architectural diagrams and documentation can be found in 
 
 ## Acknowledgments
 
-Built for the **Google Solution Challenge 2026**. Praecantator runs on the **Google Cloud stack** — **Cloud Run / Compute Engine** (paid backend hosting), **Firestore**, **Firebase Auth**, **Vertex AI / Gemini**, **Secret Manager**, **Google Maps**, and **Gmail API** — combined with open intelligence feeds, graph-based risk science, and governed multi-agent AI to give supply chain operators a proactive command center.
+Built for the **ET AI Hackathon 2.0 2026**. Praecantator runs on the **Google Cloud stack** — **Cloud Run / Compute Engine** (paid backend hosting), **Firestore**, **Firebase Auth**, **Vertex AI / Gemini**, **Secret Manager**, **Google Maps**, and **Gmail API** — combined with open intelligence feeds, graph-based risk science, and governed multi-agent AI to give supply chain operators a proactive command center.
 
 ---
 
