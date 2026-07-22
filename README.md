@@ -339,6 +339,8 @@ When triggered, the pipeline halts and creates a `PENDING` checkpoint. Operators
 
 ## Multi-Agent System
 
+![Multi-Agent Interaction](diagrams/Agent%20Interaction.jpeg)
+
 Praecantator operates three orchestration paths defined in `Backend/agents/governance.py`:
 
 | Path | Entry Point | Agents Allowed |
