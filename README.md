@@ -837,6 +837,8 @@ Firestore collections include tenant-scoped documents for incidents, signals, wo
 
 ### LLM Integration & Pydantic Type Hardening
 
+![RAG Architecture](diagrams/RAG%20Architecture.jpeg)
+
 `services/llm_provider.py` supports:
 
 - **Gemini 2.0 Flash** via Google AI API — structured JSON output with **Pydantic schemas** enforcing rigorous payload contracts.
@@ -1110,7 +1112,7 @@ Firebase Hosting + Cloudflare (Frontend SPA)
 
 ### Backend on Google Cloud (Paid — Recommended)
 
-Deploy the same `Backend/Dockerfile` image to GCP. This is the intended production path for the Solution Challenge stack.
+Deploy the same `Backend/Dockerfile` image to GCP. This is the intended production path for the ET AI Hackathon 2.0 2026 stack.
 
 
 **Compute Engine VM (always-on)**
