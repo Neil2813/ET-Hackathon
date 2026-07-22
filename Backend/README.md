@@ -47,6 +47,9 @@ Located in `agents/autonomous_pipeline.py`, the autonomous pipeline drives busin
 *   **Routing Agent (`routing_agent.py`):** Acts as the logistical brain. Evaluates alternative long-haul sea corridors, comparing transit costs, days, and CO2 emissions for Suez Canal transits vs. Cape of Good Hope detours for VLCC and Suezmax tankers.
 *   **LP Blend Optimizer (`energy_resilience.py`):** Uses `scipy.optimize.linprog` (HiGHS solver) to calculate the optimal crude grade recipe substitution matching refinery assay parameters exactly (API gravity, sulfur %, viscosity) when primary global grades are disrupted.
 *   **RFQ & Audit Agent (`rfq_agent.py` & `audit_agent.py`):** Transitions virtual mathematical outcomes into real-world business mechanics by drafting communication quotes to backup suppliers and compiling the full trace of an executed run into an immutable PDF audit certificate.
+*   **RAG Copilot Service (Vertex AI):** Deploys Retrieval-Augmented Generation (RAG) using Vertex AI embeddings and Gemini models to query supply graph state, historical incidents, and global intelligence feeds dynamically for real-time operator queries.
+
+    ![RAG Architecture](../diagrams/RAG%20Architecture.jpeg)
 
 ### 2.2 Enterprise Isolation & Tenancy Governance
 
