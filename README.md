@@ -12,7 +12,7 @@ Submitted for participation in **ET AI Hackathon 2.0 2026**
 
 ---
 
-Praecantator is an enterprise-grade energy security resilience platform designed to safeguard crude oil supply chains. It continuously monitors geopolitical, maritime, and commodity risk signals, models major chokepoint disruption scenarios (e.g., Strait of Hormuz partial closures, Red Sea/Bab el-Mandeb shipping attacks, OPEC+ supply cuts), projects downstream macroeconomic impacts (refinery run rates, domestic retail fuel prices, power-sector stress, and GDP growth trajectories), and dynamically generates executable procurement rerouting recommendations — turning a reactive energy crisis response into a managed, anticipatory process.
+Praecantator is an enterprise-grade energy security resilience platform designed to safeguard crude oil supply chains. It continuously monitors geopolitical, maritime, and commodity risk signals, models major chokepoint disruption scenarios (e.g., Strait of Hormuz partial closures, Red Sea/Bab el-Mandeb shipping attacks, OPEC+ supply cuts), projects downstream macroeconomic impacts (refinery run rates, domestic retail fuel prices, power-sector stress, and GDP growth trajectories), and dynamically generates executable procurement rerouting recommendations turning a reactive energy crisis response into a managed, anticipatory process.
 Praecantator features a real-time multi-agent OODA pipeline that executes threat detection, supply graph blast-radius assessment, multi-modal routing, and strategic reserve optimization under human-in-the-loop governance. It leverages PyTorch-based Supply Graph neural networks, Stable-Baselines3 reinforcement learning, and scipy-based linear programming to secure crude supply from wellhead to refinery.
 
 ---
