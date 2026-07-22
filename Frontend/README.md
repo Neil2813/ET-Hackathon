@@ -135,6 +135,55 @@ sequenceDiagram
     npm run dev
     ```
 
+## 🖼️ Application Interfaces & Outputs
+
+This gallery showcases the main screens of the Praecantator frontend application:
+
+### 1. Authentication & Onboarding
+- **Workspace Registration**:
+  ![Register](../Outputs/Register.png)
+- **Login Portal**:
+  ![Login](../Outputs/Login.png)
+
+### 2. Operational Nexus (Dashboard)
+The main command center summarizing KPIs, active events, and critical alerts.
+![Command Center](../Outputs/Command%20Center.png)
+
+### 3. Spatial Intelligence (Risk Maps & Globes)
+- **Network View**: Interactive supplier/refinery node risk mapping.
+  ![Network](../Outputs/Network.png)
+- **3D Supply Chain Globe (AR View)**: 3D representation of maritime corridors.
+  ![3D Globe](../Outputs/3D%20Globe.png)
+- **Google Earth View**: 3D flyover of active incidents.
+  ![Google Earth View](../Outputs/Google%20Earth%20View.png)
+
+### 4. Scenario Modelling & Simulation
+- **Scenario Modeller**: What-if chokepoint closure modeling.
+  ![Scenario Modeller](../Outputs/Scenario%20Modeller.png)
+- **Monte Carlo Simulator**: Probabilistic outcome distribution plots.
+  ![Monte Carlo](../Outputs/Monte%20Carlo.png)
+
+### 5. Energy Security & Routing
+- **SPR Drawdown Scheduling**: RL daily drawdown schedules.
+  ![SPR](../Outputs/SPR.png)
+- **LP Blend Optimizer**: Solver output matching refinery assay properties.
+  ![LP Blend](../Outputs/LP%20Blend.png)
+- **Suez vs Cape Router**: Maritime corridor cost-benefit breakdown.
+  ![Route Compare](../Outputs/Route%20Compare.png)
+- **Exchange Ledger**: Peer-to-peer inventory sharing ledger.
+  ![Exchange Ledger](../Outputs/Exchange%20Ledger.png)
+
+### 6. Incident Analysis & Governance
+- **Incident View**: Pre-analyzed incident details and OODA timeline.
+  ![Incident](../Outputs/Incident.png)
+- **Governance Checkpoint & RFQ**: Checkpoint approval interface and drafted backup RFQ email templates.
+  ![Governance](../Outputs/Governance.png)
+  ![RFQ](../Outputs/RFQ.png)
+- **Settings & Conversational Copilot**: Sidebar settings and RAG-driven AI chatbot assistant.
+  ![Settings & Chatbot](../Outputs/Settings%20+%20Chatbot.png)
+
+---
+
 ## 🔒 Security & Standards
 
 - **Strict Linting**: Configured with ESLint and TypeScript for code quality.
