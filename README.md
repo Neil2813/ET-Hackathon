@@ -391,6 +391,8 @@ Praecantator operates three orchestration paths defined in `Backend/agents/gover
 
 ## Machine Learning & Graph Intelligence
 
+![Knowledge Graph Schema](diagrams/Knowledge%20Graph%20Schema.jpeg)
+
 ### Customer Supply Graph
 
 `Backend/models/supply_graph.py` is the single source of truth for all graph operations.
