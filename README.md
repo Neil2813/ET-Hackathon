@@ -528,6 +528,8 @@ Suez Canal, Strait of Malacca, Strait of Hormuz, Bab el-Mandeb, Panama Canal, Ta
 
 ## Enterprise Governance & Security
 
+![Security and Governance Model](diagrams/Security%20and%20Governance.jpeg)
+
 ### Role-Based Access Control
 
 `Backend/services/authorization.py` enforces stateless JWT-based RBAC:
