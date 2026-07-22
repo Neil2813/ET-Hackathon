@@ -8,7 +8,13 @@ Our objective with the backend is to facilitate "Zero-Touch" threat detection ma
 
 ## 1. Architectural Foundations
 
+![System Architecture](../diagrams/System%20Architecture.jpeg)
+
+
 ### 1.1 Stateless Edge / Stateful Subsystems
+
+![Database ER](../diagrams/Database%20ER.jpeg)
+
 The Praecantator backend is designed to operate seamlessly across high-availability multi-instance deployments. 
 - **The FastAPI Edge:** The API layer is natively stateless. Identity verification, Request scoping, and Tenant extraction occur globally at the middleware dependency layer without touching the database via secure JWT propagation. All endpoints enforce strict validation using **Pydantic Schemas**, providing a bulletproof contract for the frontend.
 - **The State Storage (`services.firestore_store` & `alembic`):** Core graph models and customer topology are persisted in Firestore. Relational local tracking (like local fallbacks and migrations) is systematically managed using **Alembic**, providing version-controlled, concurrent-safe database schemas (avoiding fragile startup DDL execution).
@@ -17,6 +23,9 @@ The Praecantator backend is designed to operate seamlessly across high-availabil
 - **Live ERP State Sync:** Instead of relying on static configurations from onboarding models, operational telemetry (like localized margin percent and live safety stock burn rate) dynamically injects into the execution boundary via `services/erp_sync.py` prior to invoking mathematical propagation logic.
 
 ### 1.2 The OODA Loop Pipeline
+
+![Data Ingestion Pipeline](../diagrams/Data%20Ingestion.jpeg)
+
 At the absolute core of the risk management platform lies the `autonomous_pipeline.py`. Relying on LangGraph for deterministic graph iterations, Praecantator translates intelligence intercepts into actionable items using the `[DETECT -> ASSESS -> DECIDE -> ACT -> AUDIT]` cognitive loop.
 
 Instead of generating unstructured text, Large Language Models run in strict constrained schemas dictating parameters like "Re-Routed Ports", "Total USD Savings", and "Fallback Vendors."
@@ -26,6 +35,9 @@ Instead of generating unstructured text, Large Language Models run in strict con
 ## 2. Core Operational Modules
 
 ### 2.1 Multi-Agent Orchestration & Determinism
+
+![Multi-Agent Interaction](../diagrams/Agent%20Interaction.jpeg)
+
 Located in `agents/autonomous_pipeline.py`, the autonomous pipeline drives business logic using specialized analytical agents.
 
 *   **Political Risk / Signal Agent (`political_risk_agent.py` & `signal_agent.py`):** Operates on the frontlines actively crawling structured and real-time feeds (GDELT geopolitical events, OPEC+ meeting bulletins, EIA/IEA reports, OFAC sanctions list, and simulated tanker AIS stream) to construct "Risk Polygons" near key shipping lanes.
@@ -37,6 +49,9 @@ Located in `agents/autonomous_pipeline.py`, the autonomous pipeline drives busin
 *   **RFQ & Audit Agent (`rfq_agent.py` & `audit_agent.py`):** Transitions virtual mathematical outcomes into real-world business mechanics by drafting communication quotes to backup suppliers and compiling the full trace of an executed run into an immutable PDF audit certificate.
 
 ### 2.2 Enterprise Isolation & Tenancy Governance
+
+![Security and Governance Model](../diagrams/Security%20and%20Governance.jpeg)
+
 The primary requirement for operating B2B Multi-Tenant platforms is preventing "data bleed." Praecantator employs pervasive isolation protocols.
 
 *   **Authorization Substrate (`services.authorization.py`):** Introduces Role-Based Access Controls (RBAC). It evaluates internal policy schemas, confirming that users inherently contain permissions required to interact with API endpoints. If an onboarded user with `tenant_A` attempts to access logistics mapped natively for `tenant_B`, the endpoint evaluates the incoming bearer token logic, instantly dropping the request and returning `403 Forbidden`.
@@ -49,6 +64,9 @@ Since Praecantator relies strictly on automated LLM execution crossing multiple 
 *   **Compensation and State Recovery:** The `stage_policy.py` file details what must be completed before agents pass information to adjacent nodes. If a failure is found, the system is forced into a terminal fallback state, awaiting a manual replay initialization (`replay_autonomous_run()`).
 
 ### 2.4 Governance & Safety Protocols
+
+![Execution and Governance Sequence](../diagrams/Execution%20and%20Governance.jpeg)
+
 To maintain operator trust, the system integrates heavy procedural checkpoints for human validation.
 
 *   **Checkpoints (`services.governance_checkpoint.py`):** If a disruption algorithm detects a multi-million dollar threat that intends to invoke radical logistical alterations, the pipeline halts immediately after the `DECIDE` stage. An internal checkpoint generates a required operational review layer. An action is permanently disabled from executing globally until an authoritative human explicitly grants permission.
@@ -59,6 +77,9 @@ To maintain operator trust, the system integrates heavy procedural checkpoints f
 ## 3. Data Integrity & Verification
 
 ### 3.1 Network Canonicalization & Validation
+
+![Knowledge Graph Schema](../diagrams/Knowledge%20Graph%20Schema.jpeg)
+
 To guarantee mapping consistency, generic external names are forcefully rejected unless validated by `services.master_data_validator.py`.
 Users must provide legitimate geospatial constraints. If spatial bounding constraints fail, a deterministic fuzzy string-matching fallback actively searches global signal text matrices against exact entity mapping names protecting against zero-match failure latency.
 Staging validation boundaries explicitly check for DUNS / LEI duplications mitigating cascading data conflicts *prior* to finalizing JSON state payloads.
