@@ -2,19 +2,6 @@
 /*
 
 # Except these explicitly allowed directories and files
-!/Backend/
-!/Frontend/
-!/Test/
-!/docs/
-!/nginx/
-!/secrets/
-!/diagrams/
-!/README.md
-!/.gitignore
-!/render.yaml
-!/docker-compose.yml
-!/deploy.sh
-
 # Local environment files. Keep examples trackable.
 **/.env
 **/.env.*
